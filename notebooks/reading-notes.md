@@ -1,74 +1,81 @@
-# Reading Notes Template — Week 1 Manual Transcript Review
+# Reading Notes — Manual Transcript Review (Week 1)
 
-> **Purpose:** These notes become the manual test cases for validating LLM scoring in Phase 2.  
-> Read 5+ full transcripts end-to-end. Note specific sentences that felt evasive, overpromising, vague, or contradictory. Later, you'll run the LLM scorer on these same transcripts and compare scores against your notes.
-
----
-
-## Per-Transcript Template
-
-### Transcript 1
-- **Company:** 
-- **Quarter:** 
-- **File name:** (e.g., `TCS_Q1_2025.pdf`)
-- **Suspicious quote(s) with page/line ref:**
-- **Why it felt evasive/off (1–2 lines):**
-- **Confidence (low / med / high):**
+These notes become the **manual test cases** for validating LLM scores in Phase 2.
+Read 5+ transcripts end-to-end. For each suspicious/evasive passage, log it here.
+Later, the LLM's dimension scores (evasiveness, sentiment shift, etc.) are checked against these human labels.
 
 ---
 
-### Transcript 2
-- **Company:** 
-- **Quarter:** 
-- **File name:** 
-- **Suspicious quote(s) with page/line ref:**
-- **Why it felt evasive/off (1–2 lines):**
-- **Confidence (low / med / high):**
+## Template per Transcript
+
+### Company: [e.g., TCS]
+**Quarter:** [e.g., Q1 2025]  
+**File:** [e.g., TCS_Q1_2025.pdf]
+
+| # | Quote (with page/line if possible) | Why it felt evasive/off (1–2 lines) | Confidence (low/med/high) |
+|---|-------------------------------------|--------------------------------------|----------------------------|
+| 1 |                                     |                                      |                            |
+| 2 |                                     |                                      |                            |
+| 3 |                                     |                                      |                            |
 
 ---
 
-### Transcript 3
-- **Company:** 
-- **Quarter:** 
-- **File name:** 
-- **Suspicious quote(s) with page/line ref:**
-- **Why it felt evasive/off (1–2 lines):**
-- **Confidence (low / med / high):**
+### Company: [e.g., INFY]
+**Quarter:** [e.g., Q3 2024]  
+**File:** [e.g., INFY_Q3_2024.pdf]
+
+| # | Quote (with page/line if possible) | Why it felt evasive/off (1–2 lines) | Confidence (low/med/high) |
+|---|-------------------------------------|--------------------------------------|----------------------------|
+| 1 |                                     |                                      |                            |
+| 2 |                                     |                                      |                            |
+| 3 |                                     |                                      |                            |
 
 ---
 
-### Transcript 4
-- **Company:** 
-- **Quarter:** 
-- **File name:** 
-- **Suspicious quote(s) with page/line ref:**
-- **Why it felt evasive/off (1–2 lines):**
-- **Confidence (low / med / high):**
+### Company: [e.g., HDFCBANK]
+**Quarter:** [e.g., Q2 2025]  
+**File:** [e.g., HDFCBANK_Q2_2025.pdf]
+
+| # | Quote (with page/line if possible) | Why it felt evasive/off (1–2 lines) | Confidence (low/med/high) |
+|---|-------------------------------------|--------------------------------------|----------------------------|
+| 1 |                                     |                                      |                            |
+| 2 |                                     |                                      |                            |
+| 3 |                                     |                                      |                            |
 
 ---
 
-### Transcript 5
-- **Company:** 
-- **Quarter:** 
-- **File name:** 
-- **Suspicious quote(s) with page/line ref:**
-- **Why it felt evasive/off (1–2 lines):**
-- **Confidence (low / med / high):**
+### Company: [e.g., WIPRO]
+**Quarter:** [e.g., Q4 2024]  
+**File:** [e.g., WIPRO_Q4_2024.pdf]
+
+| # | Quote (with page/line if possible) | Why it felt evasive/off (1–2 lines) | Confidence (low/med/high) |
+|---|-------------------------------------|--------------------------------------|----------------------------|
+| 1 |                                     |                                      |                            |
+| 2 |                                     |                                      |                            |
+| 3 |                                     |                                      |                            |
 
 ---
 
-### Transcript 6+ (add as needed)
-- **Company:** 
-- **Quarter:** 
-- **File name:** 
-- **Suspicious quote(s) with page/line ref:**
-- **Why it felt evasive/off (1–2 lines):**
-- **Confidence (low / med / high):**
+### Company: [e.g., RELIANCE]
+**Quarter:** [e.g., Q1 2025]  
+**File:** [e.g., RELIANCE_Q1_2025.pdf]
+
+| # | Quote (with page/line if possible) | Why it felt evasive/off (1–2 lines) | Confidence (low/med/high) |
+|---|-------------------------------------|--------------------------------------|----------------------------|
+| 1 |                                     |                                      |                            |
+| 2 |                                     |                                      |                            |
+| 3 |                                     |                                      |                            |
 
 ---
 
-## Notes for Phase 2 Validation
+## What to look for (quick cheat sheet)
 
-- After Phase 2 scoring is built, run the scorer on these exact 5+ transcripts.
-- Compare LLM scores (evasiveness, sentiment shift, overpromising, complexity, guidance vagueness) against your **Confidence** ratings above.
-- Record correlation / disagreements in a new section below — that becomes your labeled test set.
+| Dimension | Red-flag phrasing examples |
+|-----------|----------------------------|
+| **Evasiveness** | "We don't break that out", "It's too early to say", "I'd rather not comment on specifics" |
+| **Sentiment shift** | Sudden drop in positive language vs prior quarter; hedging where confidence was high before |
+| **Complexity spike** | Jargon density jumps; sentences >40 words; nested qualifiers ("broadly speaking, generally...") |
+| **Overpromising** | "Best quarter ever" without numbers; "significant upside" with no quantifiable driver |
+| **Forward guidance vagueness** | "We remain optimistic", "well positioned", "multiple levers" — no numbers, no timeline |
+
+> **Tip:** Note the *section* (Prepared Remarks vs Q&A) — evasion in Q&A is stronger signal.
