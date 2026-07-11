@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # EarningsLens
 
 AI system that reads Indian company earnings call transcripts and scores
@@ -50,3 +51,6 @@ cp .env.example .env   # fill in LLM API key when you get to Phase 2
 - `config.py` is the only place paths/constants live.
 - No LangChain, LangGraph, or vector DBs — this project doesn't need them.
 - `scripts/` only orchestrates; real logic always lives in `src/`.
+=======
+# EarningLens
+>>>>>>> e93bdebb8f29ce9e5cfdb7627af850b877e0e201
