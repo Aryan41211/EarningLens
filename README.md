@@ -53,4 +53,4 @@ cp .env.example .env   # fill in LLM API key when you get to Phase 2
 - `scripts/` only orchestrates; real logic always lives in `src/`.
 =======
 # EarningLens
->>>>>>> e93bdebb8f29ce9e5cfdb7627af850b877e0e201
+
