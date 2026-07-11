@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # EarningsLens
 
 AI system that reads Indian company earnings call transcripts and scores
