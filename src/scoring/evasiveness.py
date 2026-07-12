@@ -205,11 +205,12 @@ def score_evasiveness_llm(chunks: list[str], model: str = None) -> dict:
 # ---- Combined scoring ----
 
 def score_transcript_evasiveness(chunks: list[str]) -> dict:
-    """Full evasiveness scoring: keyword count + Q&A detection + LLM score."""
-    kw_result = score_evasiveness_keywords(chunks)
-
+    """Full evasiveness scoring: keyword count + Q&A detection + LLM score.
+    Keyword matching is restricted to Q&A chunks only to avoid
+    safe-harbor boilerplate false positives in prepared remarks."""
     qa_start = find_qa_start_index(chunks)
     if qa_start == -1:
+        kw_result = score_evasiveness_keywords([])
         return {
             "keyword_result": kw_result,
             "qa_detected": False,
@@ -218,6 +219,7 @@ def score_transcript_evasiveness(chunks: list[str]) -> dict:
         }
 
     qa_chunks = chunks[qa_start:]
+    kw_result = score_evasiveness_keywords(qa_chunks)
     llm_result = score_evasiveness_llm(qa_chunks)
 
     return {
