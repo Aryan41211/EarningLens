@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from config import RAW_PDFS_DIR, DB_PATH, CHUNK_TARGET_WORDS, LOG_PATH, MIN_EXTRACTED_WORDS
 from src.extraction.pdf_extractor import extract_text_from_pdf, parse_filename_metadata
-from src.extraction.cleaner import clean_text
+from src.utils.text_cleaning import clean_extracted_text as clean_text
 from src.extraction.chunker import chunk_text
 from src.storage.db import init_db, store_transcript
 from src.utils.logging import setup_logger
