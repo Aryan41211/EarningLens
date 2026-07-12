@@ -8,7 +8,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.extraction.pdf_extractor import parse_filename_metadata
-from src.extraction.cleaner import clean_text
+from src.utils.text_cleaning import clean_extracted_text as clean_text
 from src.extraction.chunker import chunk_text
 
 
