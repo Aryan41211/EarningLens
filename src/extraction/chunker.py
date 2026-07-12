@@ -30,12 +30,29 @@ def _split_on_speakers(text: str) -> list[str]:
     return paragraphs
 
 
+def _split_long_paragraph(para: str, target_words: int) -> list[str]:
+    """Split a too-long paragraph on sentence boundaries to keep chunks ~target_words."""
+    # Split on sentence endings followed by space + capital letter
+    sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z])", para)
+    chunks, current, current_count = [], [], 0
+    for sent in sentences:
+        w = len(sent.split())
+        if current_count + w > target_words and current:
+            chunks.append(" ".join(current))
+            current, current_count = [], 0
+        current.append(sent)
+        current_count += w
+    if current:
+        chunks.append(" ".join(current))
+    return chunks
+
+
 def chunk_text(text: str, target_words: int = 600) -> list[str]:
     """Splits on paragraph boundaries and packs paragraphs into chunks
     close to target_words, so sentences are never cut mid-way.
-    If no paragraph breaks exist (or only 1 giant paragraph), falls back to speaker-label splitting."""
+    If no paragraph breaks exist (or only 1 giant paragraph), falls back to speaker-label splitting.
+    Very long paragraphs (single speaker turns) are split on sentence boundaries."""
     paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
-    # Fallback: if we got only 1 paragraph and it's huge, the text has no real paragraph breaks
     if len(paragraphs) == 1 and len(paragraphs[0].split()) > target_words * 2:
         paragraphs = _split_on_speakers(text)
 
@@ -43,11 +60,23 @@ def chunk_text(text: str, target_words: int = 600) -> list[str]:
 
     for para in paragraphs:
         para_word_count = len(para.split())
-        if current_count + para_word_count > target_words and current:
+        # If a single paragraph exceeds target, split it on sentence boundaries
+        if para_word_count > target_words * 1.5:
+            sub_chunks = _split_long_paragraph(para, target_words)
+            for sub in sub_chunks:
+                if current_count + len(sub.split()) > target_words and current:
+                    chunks.append(" ".join(current))
+                    current, current_count = [], 0
+                current.append(sub)
+                current_count += len(sub.split())
+        elif current_count + para_word_count > target_words and current:
             chunks.append(" ".join(current))
             current, current_count = [], 0
-        current.append(para)
-        current_count += para_word_count
+            current.append(para)
+            current_count += para_word_count
+        else:
+            current.append(para)
+            current_count += para_word_count
 
     if current:
         chunks.append(" ".join(current))
