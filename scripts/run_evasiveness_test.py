@@ -44,9 +44,9 @@ def main():
 
             chunk_texts = [r[5] for r in chunks]
 
-            # Keyword-only scan
-            kw = score_evasiveness_keywords(chunk_texts)
             qa_idx = find_qa_start_index(chunk_texts)
+            qa_texts = chunk_texts[qa_idx:] if qa_idx >= 0 else []
+            kw = score_evasiveness_keywords(qa_texts)
 
             print(f"\n{'-' * 72}")
             print(f"TCS {q} {year}  ({len(chunks)} chunks)")
