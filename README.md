@@ -1,4 +1,3 @@
-
 # EarningsLens
 
 AI system that reads Indian company earnings call transcripts and scores
@@ -64,4 +63,3 @@ cp .env.example .env   # fill in LLM API key when you get to Phase 2
 
 - [notebooks/reading-notes.md](notebooks/reading-notes.md) — Manual reading notes from 5+ transcripts; becomes the labeled test set for validating LLM scores in Phase 2.
 - [data/findings/findings.md](data/findings/findings.md) — The single demonstrable example where trend detection would have flagged a company before a stock move; empty template awaiting a real case.
-
