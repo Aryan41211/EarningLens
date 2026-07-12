@@ -8,8 +8,10 @@ BOILERPLATE_PATTERNS = [
     r"^\s*Disclaimer.*$",
     r"^\s*Transcript\s+generated\s+by.*$",
     r"^\s*www\..*$",
-    # TCS per-page footer (observed 168x across 7 TCS transcripts)
-    r"^Tata Consultancy Services Earnings Conference Call\s+[\d:]+\s+(?:hrs\s+)?IST\s*\(?[\d:]+\s*(?:hrs\s+)?US\s+ET\)?\s*\|?\s*\d*\s*$",
+    # TCS per-page footer - line 1 (observed 168x across 7 TCS transcripts)
+    r"^Tata Consultancy Services Earnings Conference Call\s*$",
+    # TCS per-page footer - line 2 with date/time + optional page marker (observed 168x)
+    r"^[\d:]+\s+(?:hrs\s+)?IST\s*\(?[\d:]+\s*(?:hrs\s+)?US\s+ET\)?\s*\|?\s*\d*\s*$",
     # INFY per-page header (observed 84x across 3 INFY transcripts)
     r"^Infosys (?:Limited|Earnings Conference Call)\s*$",
     # Bare page number line (observed 25x in INFY_Q1_2023)
