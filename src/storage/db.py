@@ -41,10 +41,14 @@ def init_db(db_path: str) -> sqlite3.Connection:
 
 def store_transcript(conn, company, quarter, year, chunks, source_file):
     cur = conn.cursor()
+    # Delete any existing chunks for this transcript to avoid stale high-index chunks
+    cur.execute("""
+        DELETE FROM transcripts WHERE company = ? AND quarter = ? AND year = ?
+    """, (company, quarter, year))
     now = datetime.now(timezone.utc).isoformat()
     for idx, chunk in enumerate(chunks):
         cur.execute("""
-            INSERT OR REPLACE INTO transcripts
+            INSERT INTO transcripts
             (company, quarter, year, chunk_index, chunk_text, word_count, source_file, extracted_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (company, quarter, year, idx, chunk, len(chunk.split()), source_file, now))
