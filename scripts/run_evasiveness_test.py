@@ -1,7 +1,12 @@
 """
 Manual inspection script for evasiveness scoring.
-Runs scoring against TCS (all available quarters).
+Runs scoring against a specified company (all available quarters).
+Keyword counts are restricted to Q&A chunks only.
 Displays keyword counts, matched phrases, LLM scores, and supporting quotes.
+
+Usage:
+    python scripts/run_evasiveness_test.py TCS
+    python scripts/run_evasiveness_test.py INFY
 """
 
 import sys
@@ -23,22 +28,25 @@ from src.utils.logging import setup_logger
 setup_logger(LOG_PATH)
 
 
-def main():
-    conn = init_db(str(DB_PATH))
+def run_company(conn, company: str) -> None:
     quarters = ["Q1", "Q2", "Q3", "Q4"]
     years = sorted(set(
         r[0] for r in conn.cursor().execute(
-            "SELECT year FROM transcripts WHERE company='TCS'"
+            "SELECT year FROM transcripts WHERE company = ?", (company.upper(),)
         ).fetchall()
     ))
 
+    if not years:
+        print(f"No transcripts found for {company}")
+        return
+
     print("=" * 72)
-    print("EVASIVENESS SCORING -- TCS (All Quarters)")
+    print(f"EVASIVENESS SCORING -- {company} (All Quarters)")
     print("=" * 72)
 
     for year in years:
         for q in quarters:
-            chunks = get_chunks(conn, "TCS", q, year)
+            chunks = get_chunks(conn, company, q, year)
             if not chunks:
                 continue
 
@@ -49,11 +57,10 @@ def main():
             kw = score_evasiveness_keywords(qa_texts)
 
             print(f"\n{'-' * 72}")
-            print(f"TCS {q} {year}  ({len(chunks)} chunks)")
+            print(f"{company} {q} {year}  ({len(chunks)} chunks)")
             print(f"  Q&A boundary: {'chunk ' + str(qa_idx) if qa_idx >= 0 else 'NOT FOUND'}")
 
-            # Keyword results
-            print(f"\n  Keyword Dodge Count: {kw['total_count']}")
+            print(f"\n  Keyword Dodge Count (Q&A only): {kw['total_count']}")
             if kw["total_count"] > 0:
                 print(f"  Top phrases by frequency:")
                 for phrase, count in list(kw["frequency"].items())[:10]:
@@ -63,7 +70,6 @@ def main():
                     print(f"    [{m['phrase']}]")
                     print(f"      \"...{m['context']}...\"")
 
-            # Full combined scoring (keyword + LLM if configured)
             print(f"\n  --- Full Combined Scoring ---")
             full = score_transcript_evasiveness(chunk_texts)
 
@@ -79,12 +85,18 @@ def main():
                     for i, quote in enumerate(llm["supporting_quotes"], 1):
                         print(f"    [{i}] \"{quote}\"")
             else:
-                print(f"  Q&A section not detected — LLM scoring skipped.")
+                print(f"  Q&A section not detected -- LLM scoring skipped.")
 
-    conn.close()
     print(f"\n{'=' * 72}")
-    print("DONE")
+    print(f"DONE ({company})")
     print(f"{'=' * 72}")
+
+
+def main():
+    company = sys.argv[1] if len(sys.argv) > 1 else "TCS"
+    conn = init_db(str(DB_PATH))
+    run_company(conn, company)
+    conn.close()
 
 
 if __name__ == "__main__":
