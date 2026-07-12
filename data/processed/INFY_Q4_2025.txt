@@ -1,4 +1,4 @@
-External Document © 2024 Infosys Limited 1
+Infosys Limited
 Earnings Conference Call
 July 18, 2024
 CORPORATE PARTICIPANTS:
@@ -27,14 +27,12 @@ James Friedman
 Susquehanna International
 Sumeet Jain
 CLSA India
-External Document © 2024 Infosys Limited 2
 Kawaljeet Saluja
 Kotak Securities
 Jonathan Lee
 Guggenheim Securities
 Girish Pai
 BOB Capital Markets
-External Document © 2024 Infosys Limited 3
 Moderator
 Ladies and gentlemen, good day and welcome to Infosys Earnings Conference Call. As a reminder,
 all participant lines will be in the listen-only mode and there will be an opportunity for you to ask
@@ -63,7 +61,6 @@ realization.
 We had another quarter of strong large deal wins with 34 large deals at a total contract value of $4.1
 bn. Our clients see us as a preferred partner of choice for consolidation, cost takeout and efficiency
 programs. This is also a reflection of our leadership strength.
-External Document © 2024 Infosys Limited 4
 With the mobilization of our margin program, we see positive impact on our operating metrics and
 pricing. This resulted in our margin expanding by 1percentage point sequentially. Jayesh will
 elaborate on margin puts and takes later on the call.
@@ -94,7 +91,6 @@ to be under pressure, our highly differentiated offerings around driving efficie
 transformation capabilities around Generative AI have positioned us well in the market.
 With respect to our recent acquisition of in-tech, we have received the required approvals and have
 closed the acquisition.
-External Document © 2024 Infosys Limited 5
 Given our strong performance in Q1 and our current outlook, we have revised our revenue growth
 guidance for the full financial year to 3% to 4% growth in constant currency. Our operating margin
 guidance for the financial year remains at 20% to 22%.
@@ -137,7 +133,6 @@ investors
 With that, let me now elaborate with details.
 Revenue for Q1 was $4.7 bn, up 3.6% sequentially and 2.5% year-on-year in constant currency
 terms. This included benefit from improved realization from one-timers of 0.5%.
-External Document © 2024 Infosys Limited 6
 Operating margin improved by 1% sequentially to 21.1% led by 1.4% improvement in gross margins
 on account of strong operating performance across different dimensions. The major components of
 sequential margin walk are as follows:
@@ -169,7 +164,6 @@ Pipeline remains strong, and we are working with the clients to accelerate their
 for modernizing legacy platforms, fraud detection, credit process simplification, etc.
 In Manufacturing, growth was broad-based across geographies and sub verticals like industrial,
 automotive and aerospace. While pressure on discretionary spends persist, we see increased
-External Document © 2024 Infosys Limited 7
 benefits of vendor consolidation, opportunities around resolving supply chain bottlenecks and
 rationalizing infrastructure and applications. We see strong interest on Gen AI with deep client
 engagements. Our capability and pipeline in the engineering space will be solidified by the acquisition
@@ -200,7 +194,6 @@ what is the breakup of the very strong momentum this quarter, if you could, betw
 that you have won over the last year? Any kind of improvement in execution of short-cycle business
 or discretionary business and potentially better execution? And also when you answer that, if you
 can talk about how client conversations are changing, if there is anything turning a bit more positive,
-External Document © 2024 Infosys Limited 8
 and any change in the momentum on the short-cycle deals, but large deals you can see is going on
 very strongly? Thanks.
 Salil Parekh
@@ -230,7 +223,6 @@ a macro level, there is, not with clients, but generally speaking, a view that i
 rate and all of those discussions change, that will change something. But we do not know what will
 that trigger be.
 Ankur Rudra
-External Document © 2024 Infosys Limited 9
 Okay. I appreciate it. Maybe just one question for Jayesh. Jayesh, great performance on the margins.
 Could you maybe talk about how do you think about the puts and takes from here on? Utilization,
 especially including trainees, seems to be high. I guess that indicates fewer trainees in the system.
@@ -260,7 +252,6 @@ indicated that you thought that business outcomes or business energy had improve
 to hear a little bit more about that. It is certainly something we have not heard from some of our
 software-related companies. But what do you think is the driver of the improvement in Financial
 Services in particular?
-External Document © 2024 Infosys Limited 10
 Jayesh Sanghrajka
 So, Keith, there, if you look at our commentary on that, we are seeing some recovery in U.S. Financial
 Services, specifically in the areas like mortgages, capital markets and cards payments and the larger
@@ -290,7 +281,6 @@ point in time, we do not really see an impact. But as you will appreciate, forex
 mean, forex is unpredictable, and it can have the margin benefit or impact depending on which way
 it goes. But at this point in time, it is remaining range bound.
 Keith Bachman
-External Document © 2024 Infosys Limited 11
 Okay. All right. Perfect. Many thanks. Congratulations on solid results.
 Jayesh Sanghrajka
 Thank you.
@@ -319,7 +309,6 @@ Services in the U.S. shows that some of that type of demand is coming now. We wi
 across all the industries, whether it is what you are describing, or whether tech services project
 discretionary work also comes back or whether there will be transformation programs in tech which
 will also come.
-External Document © 2024 Infosys Limited 12
 We are definitely seeing more and more discussions in enterprises on Generative AI programs.
 Jayesh also shared a couple of examples. I shared a couple of examples. And these are not POCs,
 these are actual projects where we are participating. So we do see that. My own sense is this U.S.
@@ -348,7 +337,6 @@ like a mixed data point that we see on the outside, but just wanted your thought
 thinking about the sustainability of the recovery on the Financial Services space? And then I had one
 more quick question?
 Jayesh Sanghrajka
-External Document © 2024 Infosys Limited 13
 So, Nitin, what we are seeing right now is early signs, as I said, of recovery. Of course, it is early
 signs, so we do not know how sustainable at this point in time it is going to remain, but the fact that
 we saw volume growth after many quarters, we saw strong growth in our Financial Services after
@@ -379,7 +367,6 @@ do a back of the envelope calculation and the rest of it is going to be all the 
 about, the Q1 performance including large deal wins, the volume and U.S. Financial Services while
 the discretionary still continues to remain challenging.
 Nitin Padmanabhan
-External Document © 2024 Infosys Limited 14
 Perfect. That is all from my end. Thank you and all the best.
 Jayesh Sanghrajka
 Thank you.
@@ -409,7 +396,6 @@ So Retail typically has higher exposure to discretionary as well, right, and tha
 to the macro environment largely, Vibhor. So, I think that would be one of the key reasons. Otherwise
 outside of that we are winning deals. If you look at this quarter also, we have won eight large deals
 in Retail as well, but the discretionary spending has to come back.
-External Document © 2024 Infosys Limited 15
 Vibhor Singhal
 Got it. My second question is I think at the end of the last quarter, we had mentioned that we are
 expecting the first half to be better than the second half. Any change in that outlook given the deal
@@ -436,7 +422,6 @@ you have seen?
 Salil Parekh
 So, the way this quarter has gone, what we have seen is the volumes have been strong. We have
 then seen that change in the Financial Services in the U.S. which has given us more positive outcome
-External Document © 2024 Infosys Limited 16
 for the quarter. Then some of the work that we are doing in terms of working with our clients on value
 and pricing has also translated overall into the mix for our revenue. And then the way we saw the
 outlook, as we did some of the large deals in this quarter which was a good outcome, and that gives
@@ -467,7 +452,6 @@ as this quarter.
 Gaurav Rateria
 Thank you very much.
 Moderator
-External Document © 2024 Infosys Limited 17
 Thank you. Next question is from the line of Bryan Bergin from TD Cowen. Please go ahead.
 Bryan Bergin
 Hi. Good evening. Thank you. First question I had is on Generative AI. Can you provide some detail
@@ -499,7 +483,6 @@ landscape of tech. And here are the first steps, data and cloud. And then here i
 actually deliver impact today, which could be more, let us say, a smaller area of the company. But
 these are all discussions which are done which eventually relate to how contracting is done.
 Bryan Bergin
-External Document © 2024 Infosys Limited 18
 Okay. That is helpful. Thank for the color. My follow-up's a clarification just on the 1Q onetime item.
 I think you cited 40 bps quarter-over-quarter op margin benefit and a similar revenue impact. Was
 that expected in your prior guidance? Or was that a surprise or a new item that was not expected
@@ -526,7 +509,6 @@ our outlook is we are assuming that that will be the way it will progress. So we
 that it will change. We have not also assumed that it will become much larger.
 We have also not assumed that this will move to some other geography in Financial Services. So we
 do not know, but that is what the assumption is into our guidance. All the client discussions seem to
-External Document © 2024 Infosys Limited 19
 indicate that U.S. Financial Services, we will have this sort of a traction, but that is the way we built
 our outlook.
 James Friedman
@@ -553,7 +535,6 @@ Jayesh Sanghrajka
 So Sumeet, this is Jayesh here. We had clearly called out at that point in time that in-tech acquisition
 is not part of it because it was pending approval from various regulatory authorities.
 Sumeet Jain
-External Document © 2024 Infosys Limited 20
 Right. So maybe in-tech acquisition now being closed and the 50-basis point impact on revenue in
 India business, can one assume these are the two primary factors for your revision in the guidance?
 Jayesh Sanghrajka
@@ -583,7 +564,6 @@ So Sumeet there first of all, the India business is relatively much smaller. So 
 in that business shows up in percentage, comes much larger. But having said that, it was a onetime
 impact on one of our India clients and it is one-off. So, I think we should just take it as one-off.
 Sumeet Jain
-External Document © 2024 Infosys Limited 21
 Got it. Thanks for the opportunity and all the best.
 Moderator
 Thank you. Next question is from the line of Kawaljeet Saluja from Kotak Securities. Please go
@@ -611,7 +591,6 @@ the macro environment as well as the peer practice.
 And we will take a call considering all of these factors. Having said that, as I called out in our margin
 walk also, we have increased our variable pay during the quarter versus last year as well as last
 quarter.
-External Document © 2024 Infosys Limited 22
 Kawaljeet Saluja
 That is very helpful. A final question is, Jayesh, for you and Salil. Both of you have articulated the
 fact that you want the profitability to improve in the medium term. And then there are a number of
@@ -636,7 +615,6 @@ Great evening, and thanks for taking our questions. A lot of moving parts here..
 Moderator
 Jonathan, sorry to interrupt you. May I request you to speak a little louder, please?
 Jonathan Lee
-External Document © 2024 Infosys Limited 23
 Great. A lot of moving parts here on the margin side. Can you remind us how we should be thinking
 about seasonality through the year, especially as you think about the impact from Project Maximus
 and large deal ramps?
@@ -663,7 +641,6 @@ and high end of our range. I think we have done various models internally to get
 Some of them get us to the lower end of the band, and some of the assumptions will get us to the
 higher end of the band. I do not think there is any secular segment that is going to drive either way.
 Jonathan Lee
-External Document © 2024 Infosys Limited 24
 Appreciate the color. Thank you.
 Moderator
 Thank you. Next question is from the line of Girish Pai from BOB Capital Markets. Please go ahead.
@@ -691,7 +668,6 @@ If I may squeeze in one last question. Salil, you mentioned that interest rates 
 would probably be driving demand. So, are the customers looking at the start of a cutting cycle? Are
 they looking at a certain level of Fed funds rate before they kind of start spending in a much bigger
 fashion?
-External Document © 2024 Infosys Limited 25
 Salil Parekh
 So there, I think my point in the prior comment was more on what is the macro environment. So first,
 we do not know if that is a trigger or is not a trigger. We are typically seeing the large digital program.

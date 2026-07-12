@@ -1,4 +1,3 @@
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 Tata Consultancy Services Limited
 Q4 & Year Ended 31st March 2025 Earnings Conference Call
@@ -35,7 +34,6 @@ Hi, everyone.
 Nehal Shah:
 Our management team will give a brief overview of the company's
 performance, followed by a Q&A session. As you are aware, we don't provide
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 specific revenue or earnings guidance. And anything said on this call, which
 reflects our outlook for the future, or which could be construed as a forward-
@@ -68,7 +66,6 @@ Samir Seksaria:
 Thank you, Krithi. Good day, everyone.
 I will start with the full year’s numbers and then proceed to the quarterly
 commentary.
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 For the full year, our revenue was $30.2 billion, a year-on-year growth of
 4.2% in constant currency. The revenue growth is 3.8% in dollar terms and 6%
@@ -98,7 +95,6 @@ mitigate some of these headwinds by improving our operating leverage and
 optimizing our revenue mix. Furthermore, currency movements provided 40-
 basis point support.
 Net margins in Q4 were 19%.
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 Our accounts receivable stood at 71 days DSO in dollar terms for Q4 and were
 down three days sequentially.
@@ -131,7 +127,6 @@ across more than 80% of our SaaS customers, boosting productivity by 150%.
 Code Accelerator has played a key role in driving faster product adoption by
 delivering first-time right use cases. Additionally, ignioTM is leveraging GenAI
 capabilities to expedite the migration of its on-premises customers to SaaS, by
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 seamlessly transforming their code to be compatible with the latest platform,
 making them future ready.
@@ -178,7 +173,6 @@ has deployed the end-to-end next-gen omnichannel Point-of-Sale solutions in
 more than 9,000 locations. The Composable architecture with distributed
 Cloud and Edge ensures full resiliency while maintaining centralized control
 and monitoring. The intuitive user interface leverages Vision AI and interactive
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 display, enabling personalized and gamified checkout experiences and training
 free transactions. The self-filling solution, which integrates seamlessly with
@@ -219,7 +213,6 @@ Thank you, Samir. Good day, everyone. Our workforce at the end of FY '25
 was 607,979. We continue to enjoy pride of place as the employer of choice
 by prioritizing a culture of professional and personal growth, well-being and
 purpose-driven engagement. Our LTM attrition was stable at 13.3%.
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 During the year, we strengthened our talent pipeline through strategic
 investment in skill development. Our campus hiring program is progressing as
@@ -253,7 +246,6 @@ consecutive quarter of very strong TCV, which consisted of a good mix of large,
 medium and small deals, which augurs well for future revenue visibility.
 We are seeing TCV improvement across markets as clients prioritize initiatives
 around technology modernization, cost optimization, vendor consolidation,
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 operating model transformation, risk and compliance. We have all been
 witnessing an increased level of uncertainty in the global economic and
@@ -291,7 +283,6 @@ In the Insurance sector in the US, we saw instances of delayed decision making.
 The Consumer Business Group saw heightened caution and delays in discretionary projects,
 especially in the US. This was driven by the significant drop in consumer sentiment in February,
 which preceded changes in global trade and tariffs creating a domino effect on retail CPG and TTH
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 industries. However, prioritizing cost saving and defensive technology-debt reduction and
 modernization initiatives, especially on the interface digital core. There is fair interest in the adoption
@@ -327,7 +318,6 @@ catalyst for business growth, continuously improving time-to-market product qual
 an exceptional end-customer experience. This transformation also led to a 50% reduction in overall
 manual effort, the elimination of manual testing, expanded test coverage and improved consistency,
 significantly enhancing overall product quality.
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 •
 In Life Sciences & Healthcare, the client-specific challenges called out by us earlier are largely
@@ -365,7 +355,6 @@ of opportunities from both existing and potential clients. Key factors contribut
 include investments in advanced technologies such as AI/GenAI, data analytics, and energy
 storage to enhance operational efficiency and reliability. There is a shift towards cleaner energy
 sources that will generate new markets and opportunities for energy companies.
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 •
 We continue to see traction in Growth Markets. Currently, we have a very strong deal pipeline,
@@ -400,7 +389,6 @@ resilience and better customer experience. Driven by the vision to provide equit
 sustainable compensation system for motor vehicle accident victims, RAF partnered with
 TCS to realize its cloud-first strategy. As part of the engagement, TCS migrated RAF’s core
 infrastructure, business applications and workloads to the public cloud, ensuring increased
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 capacity utilization and effective oversight of business-critical activities. The shift to cloud
 has not only helped RAF gain competitive advantage but also enabled a robust claim
@@ -441,7 +429,6 @@ TCS has designed a unified supply chain insight solution powered by Agentic AI f
 biopharma. It enhances the ability of the control tower function within this supply chain with self-
 service access to holistic insights from multiple sources. These sources span across structured,
 unstructured datasets, and news articles.
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 •
 Our success is evident in our strong performance in analyst surveys in FY '25, securing 43
@@ -478,7 +465,6 @@ Yogesh Aggarwal:
 Okay. Krithi, it's hard to be optimistic in the current environment. But usually in
 the past, after every crisis, there has been a tailwind for the IT industry as
 clients invest in various newer areas. So, in your conversations, once dust
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 settles down on the tariff tantrums, do you think there are any new areas which
 could open up for the industry at least for the next one to two years?
@@ -515,7 +501,6 @@ emerge, and our clients will start investing towards more technology
 transformation programs or adopting technology. So, this is essentially based
 on client conversations we are having. And we believe some of the pauses we
 saw are more temporary.
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 Sudheer Guntupalli:
 Fair enough, sir. And the second question is the order booking this quarter has
@@ -555,7 +540,6 @@ Milind Lakkad:
 Yes. So, these promotions were planned and that's why they were carried out.
 The wage hikes are for FY '26. And that is why, basically, that is the reason
 why we are basically looking at the way there is uncertainty in the environment.
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 Once clarity emerges and then we will decide, when do we carry out these
 wage hikes.
@@ -593,7 +577,6 @@ promotions?
 Milind Lakkad:
 See, we have been giving promotions every year as per the cycle every
 quarter. And that is what we have been following. And we have done two cycles
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 of promotions, as per the plan, and that has happened this year. So there's --
 this is done as per the plan for FY '25. There are absolutely no delays in this.
@@ -628,7 +611,6 @@ level, it has been funded by saving on the legacy side.
 Ankur Rudra:
 I think on the budget side you mentioned that customers are funding AI
 innovation by saving cost saving initiatives. So, is that what you meant?
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 K Krithivasan:
 That also happens. When there is a cost optimization, when customers have
@@ -664,7 +646,6 @@ your reckoning over the next few years because it's very clearly deflationary in
 the current service portfolio and because there seems to be more cost
 optimization and budgets are flat. So, the net impact between the two over the
 medium term in your reckoning?
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 K Krithivasan:
 Apurva, I can answer for this year. See, for instance, in one of our large deals
@@ -703,7 +684,6 @@ Vibhor Singhal:
 Yes, hi. Thanks for taking my question. Krithi, just a little bit of more color on
 the overall environment that we are seeing at this point of time. So, at this point
 of time, is it fair to say that the uncertainty that we are seeing or the delayed
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 decision making that you talked about is actually present across the segments
 or is it more prevalent in, let's say, verticals which are directly impacted by the
@@ -741,7 +721,6 @@ realization.
 Vibhor Singhal:
 Got it. That's really helpful. Just one last question, if I may squeeze in. I mean,
 I know we've talked about our business de-risking ourselves from the
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 dependence on H1B visa and all. But are there any changes to that you see at
 this point of time that with the strong anti-immigration stand that the
@@ -778,7 +757,6 @@ projects come up for renewal, or even without coming up for renewal, there will
 be expectations from customers, we will keep them future-ready by infusing AI.
 We don't see any -- and the productivity benefits if we realize, we pass it on,
 our share with the customer.
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 Gaurav Rateria:
 Got it. My second question is on your strategy for talent for building AI for
@@ -816,7 +794,6 @@ Is that one-time in nature or will that be recurring going forward? And also, th
 promotion spending, which you said that is the usual part of your planned
 program. So, if you can give some understanding what it was like last year
 during this quarter?
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 Samir Seksaria:
 Okay. I'll handle the first one in terms of the 60 basis points. So these were
@@ -855,7 +832,6 @@ confidence that this momentum should continue into next year?
 K Krithivasan:
 So, that's what we see like, TCV is very difficult to predict because it changes
 based on even the customer delays a decision by a week or two, it can cross
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 over a quarter. So, what we can talk about is our pipeline. Our pipeline
 continues to be strong at a very high level and so it gives us confidence. As
@@ -890,7 +866,6 @@ Moderator:
 Thank you, members of the management team. On behalf of TCS, that
 concludes this conference call. Thank you for joining us, and you may now
 disconnect your lines.
-Tata Consultancy Services Earnings Conference Call
 April 10, 2025, 19:00hrs IST (08:30hrs US ET)
 Note: This transcript has been edited for readability and does not purport to be a verbatim record of the
 proceedings.

@@ -33,7 +33,6 @@ Nehal Shah:
 Our management team will give a brief overview of the company's performance
 followed by a Q&A session. As you are aware, we don't provide specific
 revenue or earnings guidance. And anything said on this call, which reflects
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 our outlook for the future or which could be construed as a forward-looking
 statement must be reviewed in conjunction with the risks that the company
@@ -70,7 +69,6 @@ Net cash from operations was $1.34 billion, which is 92.8% of net income.
 Free cash flows were $1.23 billion and invested funds at the end of the period
 stood at $5.59 billion. The Board has recommended an interim dividend of
 ₹10 per share.
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 I'm now going to talk about our industry leading portfolio, our production
 platform which saw good traction during the quarter.
@@ -121,7 +119,6 @@ TCS BaNCS for Intelligent Experience, our state-of-the-art framework
 for enabling next generation Customer experience, went live at a number
 of customers this quarter, strengthening what we can offer leveraging
 Digital, Data and AI.
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 •
 Quartz blockchain platform had 1 win and 1 go-live this quarter.
@@ -175,7 +172,6 @@ hours during this quarter and acquired 1.2 million competencies. We have one
 of the most comprehensive talent development programs in the world, helping
 us stay ahead of the curve and continue to innovate and adapt to keep pace
 with the evolving business needs.
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 This program has earned us the respect and admiration of our customers and
 employees alike. Our workforce continues to be very diverse with 151
@@ -210,7 +206,6 @@ TCV for our Consumer Business Group was at $1.1 billion. The TCV of deals
 signed in North America stood at $4.6 billion.
 Having said that, during Q1, we continued to see the dichotomy that we have
 witnessed over the past six quarters.
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 While larger and strategic transformation programs with enterprise-wide scope
 or benefits, example, cloud or data foundation, are continuing apace, some of
@@ -253,7 +248,6 @@ Consumer Business Group saw sequential growth for the second quarter, led
 by demand for cost optimization, improving end-customer experiences and
 Enterprise Applications Modernizations and Transformations. On a Y-o-Y
 basis, it declined 0.3%.
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 o
 Optimizing IT costs and realizing efficiencies is a big priority for
@@ -298,7 +292,6 @@ o
 This success story showcases how the client embarked on its supply
 chain transformation wherein their key objective of ‘Global Inventory
 Optimization and Systems Consolidation’ was achieved, and how TCS
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 with its large project expertise and contextual knowledge was able to
 deliver substantial savings to the client.
@@ -343,7 +336,6 @@ vendor consolidation, and integrated operations.
 Technology and Services returned to sequential growth after 5 quarters. On a
 Y-o-Y basis, it declined 3.9%. Customers in this vertical remain cautious
 about new spending until business growth momentum picks up. However, we
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 are very excited about a marquee deal we secured with a leading tech
 company, where we will showcase the depth and breadth of all our service
@@ -384,7 +376,6 @@ data foundation that were able to experiment with multiple GenAI use cases
 are now looking to reimagine parts of their value chain to make them AI-
 native. This AI first business strategy is increasingly seen as the eventual
 long-term aspirational goal. While the interest is strong, organizations are
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 taking a calibrated approach to measure the risk potential and organizational
 impact while chalking out their roadmap for GenAI adoption. TCS has been
@@ -423,7 +414,6 @@ modernization, Risk & Compliance and Cloud Security.
 •
 Our Interactive services saw good growth this quarter across multiple
 offerings. The effective integration of technology and creativity is a key theme
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 for all marketers. Our narrative around the need to improve CMO-CIO
 collaboration is being received well. CMOs understand that it is of paramount
@@ -463,7 +453,6 @@ debt, inflation and interest rates.
 We remain focused on delivering to the best of our capabilities and improve
 market share across industries, services and geographies.
 We can now open the line for questions.
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 Moderator:
 Thank you very much. We will now begin the question-and-answer session.
@@ -505,7 +494,6 @@ through Generative AI. Clients do want us to look at Generative AI as one of
 the levers to better deliver in terms of cycle time or in terms of cost or quality.
 That discussion always happens, but we have not seen Gen AI as a headwind
 so far.
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 Ankur Rudra:
 Any comments on pricing given the nature of the business. Thank you.
@@ -546,7 +534,6 @@ philosophical, but it is quite practical Sudheer.
 Sudheer Guntupalli:
 And the second question is on your other statement that clients are neither
 going for large-scale technology initiatives nor going for deep spending cuts.
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 So if we were to quantify this qualitative statement, is it fair to say that since
 the deep spend cuts are already in the denominator, incrementally not having
@@ -585,7 +572,6 @@ if you still conclude that you should not give a guidance then at least maybe
 start giving some more operating metrics such as order backlog or ACV
 numbers, which can help us in modelling and come to a sense that what
 direction the growth potentially could be?
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 K Krithivasan:
 Sure, Kumar. We will definitely consider that. You see, it's been a considered
@@ -627,7 +613,6 @@ really impacted by furlough. So, this is BFSI performance to a great extent is,
 I would say, North America performance as well.
 Kumar Rakesh:
 Got it. Thanks a lot.
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 Moderator:
 Thank you. We have our next question from the line of Abhishek Pathak from
@@ -667,7 +652,6 @@ America come back to sequential growth. I don't think even during the financial
 crisis we've had a situation where we have five quarters of sequential decline.
 So this was an unusual time, but do you think that we finally bottomed out here
 and should we see sequential growth from here in North America?
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 K Krithivasan:
 Ravi, I don't want to say this now because it's the first quarter of broad-based
@@ -706,7 +690,6 @@ We are currently well within that range.
 Ravi Menon:
 Thanks. And one last question if I may you were, I think moving to a pattern of
 on boarding all the fresh graduates you make offers to in the first half of the
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 year, right? This year, are you planning to continue that or should we see this
 more spread out over the quarters?
@@ -747,7 +730,6 @@ term ROI.
 And this will change only when there is a long-term certainty on the economic
 outlook. Till that happens, the pattern of whatever is happening, whatever
 happened in the previous quarters will continue. That's the reason also why we
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 are not calling out that growth is back or this momentum will be sustained,
 because customers do take decisions at a very short notice.
@@ -787,7 +769,6 @@ Sure, that is very helpful. Thank you so much and all the very best.
 Moderator:
 Thank you. We have our next question from the line of Sandeep Shah from
 Equirus Securities. Please go ahead.
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 Sandeep Shah:
 Yes. Thanks for the opportunity. Krithi, just wanted to understand, is it fair to
@@ -829,7 +810,6 @@ Sometimes we see opportunities for using GenAI and wherever you are able
 to use GenAI and then offer some productivity, we offer those productivity to
 customers. But if you ask me that is it widespread, I won't say it's very
 widespread at this time. Like customers do expect productivity but asking for
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 extreme or a high level of productivity gain through GenAI is not a very common
 place.
@@ -868,7 +848,6 @@ outlook is poor in the coming quarters it may take a hit again.
 Vibhor Singhal:
 Got it. But then improving macro situation in which maybe inflation is coming
 down with the CPI data today or let's say there's some possibility of let's say,
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 interest rate cuts you expect this segment those should act as tailwinds for the
 sector.
@@ -910,7 +889,6 @@ I would say there is not a major shift, okay, but we do hear more about
 application modernization compared to the past. And on the discretionary
 spend side, you also look at a supply chain modernization, customer
 experience transformation, those kinds of programs we keep seeing.
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 From the nature of the opportunity, typically the cost optimization programs
 tend to be more tenured because customers give us a large chunk of their AMS
@@ -950,7 +928,6 @@ investments we made last year and the year before that. And some of it is also
 because of the fact that we want to plan for this year properly.
 Gaurav Rateria:
 Thank you.
-Tata Consultancy Services Earnings Conference Call
 July 11, 2024, 19:00 hrs IST
 Moderator:
 Thank you. Ladies and gentlemen, that was the last question for today. I now

@@ -1,4 +1,4 @@
-External Document © 2025 Infosys Limited 1
+Infosys Limited
 Q4 FY'25 Earnings Conference Call
 April 17, 2025
 CORPORATE PARTICIPANTS:
@@ -27,7 +27,6 @@ Abhishek Kumar
 JM Financial
 Sandeep Shah
 Equirus Securities
-External Document © 2025 Infosys Limited 2
 Vibhor Singhal
 Nuvama Institutional Equities
 Nitin Padmanabhan
@@ -38,7 +37,6 @@ Ashwin Mehta
 Ambit Capital
 Girish Pai
 BOB Capital Markets
-External Document © 2025 Infosys Limited 3
 Moderator
 Ladies and gentlemen, good day, and welcome to Infosys Limited Q4 FY'25 Earnings Conference
 Call. As a reminder, all participant lines will be in the listen-only mode and there will be an opportunity
@@ -68,7 +66,6 @@ their benefit. Our AI work spans a wide spectrum of priority areas like process 
 engineering, customer service, cybersecurity and employee productivity.
 We are helping a large U.S. financial services company navigate the AI transformation to deliver
 hyperpersonalized conversational AI-powered customer experience with accuracy of over 80%.
-External Document © 2025 Infosys Limited 4
 We are working with a Europe-based company to create master solution, driving multiple AI-first
 transformation projects, i.e. automating 70% of their process landscape.
 We continue with our strategic expansion with acquisitions, one in energy consulting space in the
@@ -99,7 +96,6 @@ year '25.
 3. I am particularly glad that operating margins for the financial year improved 50 basis points
 over FY'24 to 21.1% after absorbing multiple headwinds. This has been a key focus area
 over the last year and I will elaborate over this later.
-External Document © 2025 Infosys Limited 5
 4. Sequentially, revenue declined by 3.5% in constant currency terms due to reduction in third-
 party costs and seasonal weakness. Approximately, two-third of the sequential revenue drop
 was due to reduction in third party with the decline being higher than our expectation. Balance
@@ -139,7 +135,6 @@ Partly offset by a tailwind of
 20 basis points from currency movement and
 -
 20 basis points from lower third-party costs.
-External Document © 2025 Infosys Limited 6
 Higher travel and visa costs were offset by lower other costs leading to a decline of 30 basis points
 sequentially.
 Utilization, excluding trainees, stands at 84.9%. On-site mix further reduced to 23.6% .We hired
@@ -169,7 +164,6 @@ deals in Financial Services, 5 in EURS, 4 in Manufacturing, 3 in Communication, 
 and Life Sciences and 1 in Retail. Region-wise, we signed 12 large deals each in America and
 Europe.
 Coming to verticals,
-External Document © 2025 Infosys Limited 7
 In Financial Services, budgets are flat to slightly higher in AI, regulatory compliance and cost
 management. We anticipate steady growth in capital markets and cards & payments in large global
 banks and U.S. regional banks. Mortgage sector will see an uptick in spend if interest rates reduce
@@ -202,7 +196,6 @@ budget.
 In Hi-Tech, most clients remain cautious due to the macroeconomic headwind and tariff
 announcements, with discretionary spend still remaining under pressure. There is increased margin
 pressure on account of committed spend on data centers.
-External Document © 2025 Infosys Limited 8
 Exiting FY'25, global uncertainties relating to tariffs and impact of that on client sentiment and spend
 are taking center stage. Basis our assessment of the current macroeconomic environment and the
 visibility that we have today, we expect FY'26 growth to be 0% to 3% in constant currency terms.
@@ -230,7 +223,6 @@ related to that. Some of the deals that we had in the pipeline had slipped. So, 
 than what we anticipated. And the balance was the usual Q4 seasonality and the volume decline
 that we saw. So two-third of our 3.5% decline was on the back of third-party cost and revenue.
 Ankur Rudra
-External Document © 2025 Infosys Limited 9
 I appreciate it totally. I was curious if that played out more in March or if that played out over the
 course of the entire quarter?
 Jayesh Sanghrajka
@@ -259,7 +251,6 @@ many of our existing programs. But here, we are seeing benefits which relate to 
 use AI with clients in different areas. So as a composite, what we saw last year, 4.2% growth we feel
 pretty confident that we will see benefits from it even as we see some productivity improvement. So,
 we do not see anything in terms of the revenue on that.
-External Document © 2025 Infosys Limited 10
 Ankur Rudra
 Okay, appreciate it. Thank you and best of luck.
 Moderator
@@ -288,7 +279,6 @@ projects again, if the macroeconomic uncertainty continues for a little longer, 
 reassessment of the projects, which may again start happening the way we have seen over the last
 year or two?
 Salil Parekh
-External Document © 2025 Infosys Limited 11
 Hi. First, the changes that we have seen in the economic environment, impact have happened very
 recently and over a short span. Having said that, the discussions we have had, specifically on some
 of the deals we have signed in the recent quarters, we have not seen a change in that, like the
@@ -317,7 +307,6 @@ And the second question was – which I think is probably partly answered. But c
 your peers have called out some deferrals or at least some uncertainty in decision-making. How
 does the next immediate quarter looks in terms of, let us say deferrals or ramp-downs? And do you
 see any significant risk in the extreme short term?
-External Document © 2025 Infosys Limited 12
 And lastly, do the current events kind of push-down the recovery in short cycle deals a bit more and
 do you feel short cycle deals are again, something that will struggle to take-off? Thank you.
 Jayesh Sanghrajka
@@ -346,7 +335,6 @@ variable pay, the large deal ramp-ups, acquisition-related costs and our endeavo
 to improve from where we are in the current environment.
 Abhishek Pathak
 Understood. Thanks a lot.
-External Document © 2025 Infosys Limited 13
 Moderator
 Thank you. Next question is from the line of Gaurav Rateria from Morgan Stanley. Please go ahead.
 Gaurav Rateria
@@ -373,7 +361,6 @@ margins. But if I take this midpoint of your guide, it is kind of slowing compar
 So is it fair to believe that kind of creates some operating deleverage and create some pressure on
 margin? So what would be the levers to offset that and still be -- stay within the band within FY'25
 range? Thank you.
-External Document © 2025 Infosys Limited 14
 Jayesh Sanghrajka
 So Gaurav, if you look at the last year also, we had a large comp impact coming into the year because
 we had the previous comp which was rolled out in November. So full year impact of that came into
@@ -402,7 +389,6 @@ Jonathan Lee
 Thanks for that clarification. Second, how would you characterize the pricing environment through
 the quarter? And how does that compare to what you have seen since the beginning of this fiscal
 year?
-External Document © 2025 Infosys Limited 15
 Jayesh Sanghrajka
 We continue seeing stable pricing through the quarter, generally at the overall business levels.
 Everything that has changed in the environment has been very recent. So we have not really seen
@@ -433,7 +419,6 @@ and this is building up through the last year, through the quarters and we antic
 ahead as well. Where for example, if there are large customer service programs, we see that there
 could be benefits to the clients of 20% to 40%. If there are different areas where Generative AI can
 be applied, those discussions are very much at the forefront on clients minds.
-External Document © 2025 Infosys Limited 16
 Sometimes, the client view are maybe larger than what we are seeing in realization and so, we have
 a choice to make there. Many times, they are aligned and AI is one component of automation, of
 lean, then AI and then consolidation, all of which give some benefits in a cumulative way to the
@@ -464,7 +449,6 @@ us some benefits. So it is not like one number which gets shared then with clien
 yes.
 Keith Bachman
 Okay. Many thanks for the answers and I wish you all the best of luck.
-External Document © 2025 Infosys Limited 17
 Salil Parekh
 Thank you.
 Moderator
@@ -489,7 +473,6 @@ you.
 Jayesh Sanghrajka
 Sorry. Abhishek, if you could repeat the first question on the third-party, I did not get that well.
 Abhishek Kumar
-External Document © 2025 Infosys Limited 18
 Yes. So I mean we said that some of the weakness in Q4 was because some third-party item got
 spilled over. So is that just a deferral and it will come back in Q1 or that is something that we have
 lost?
@@ -520,7 +503,6 @@ why the margin uplift is so low? Thank you.
 Jayesh Sanghrajka
 Abhishek, the margin uplift on that is around 20 basis points. If you look at, the reduction in third-
 party cost is $100 mn, obviously we make some margins on those deals as well. So, you will only
-External Document © 2025 Infosys Limited 19
 get the benefit to the extent of the delta margin of the company versus those third-party deals and
 that is where the margins were impacted.
 Abhishek Kumar
@@ -548,7 +530,6 @@ Sandeep Shah
 Okay. And Jayesh or Salil, whoever can answer this, whether it is fair to assume the seasonality of
 1H better than 2H may continue even in FY'26? What are your guidance assumptions for the same?
 Jayesh Sanghrajka
-External Document © 2025 Infosys Limited 20
 So typically, our 2H is softer because you have furloughs, you have lower working and calendar
 days, etc., etc., so that part of the seasonality will remain. As we see today, I do not expect that
 seasonality to change. But beyond that, in an uncertain environment like this, it is very difficult to
@@ -577,7 +558,6 @@ Sandeep Shah
 Okay. Thanks and all the best.
 Jayesh Sanghrajka
 Thank you.
-External Document © 2025 Infosys Limited 21
 Moderator
 The next question is from the line of Nitin Padmanabhan from Investec India. Please go ahead.
 Nitin Padmanabhan
@@ -606,7 +586,6 @@ SEBI also or stock exchanges also earlier. So, we should see that in that contex
 Nitin Padmanabhan
 So, it is not that these deals have any anniversary impact at the moment or if there is a continued
 ramp that you are sort of anticipating there?
-External Document © 2025 Infosys Limited 22
 Jayesh Sanghrajka
 So, if you look at most of the deals that we had talked about earlier, which was signed in FY'24, they
 had ramped up in the Q4 of FY'24, and then we saw the benefit of them in FY'25. So they are pretty
@@ -634,7 +613,6 @@ how that pans out in Q1, Q2 to see if – and the implication of that to see whe
 be better or worse versus earlier years.
 So in short, the uncertainty remains. That is the reason why we have given a 3-point guidance. At
 the bottom end of our guidance, we expected higher uncertainty. At the top end of the guidance, if
-External Document © 2025 Infosys Limited 23
 we end up there, then you will see a regular seasonality in H1 and H2. But yes, at the bottom end of
 our guidance, it is going to be unpredictable.
 Vibhor Singhal
@@ -662,7 +640,6 @@ Got it. Great. Thank you so much for taking my questions and wish you all the be
 Jayesh Sanghrajka
 Thank you, Vibhor.
 Moderator
-External Document © 2025 Infosys Limited 24
 Thank you. Next question is from the line of Manik Taneja from Axis Capital. Please go ahead.
 Manik Taneja
 Hi, thanks for the opportunity. You made a remark regarding the fact that we should probably be
@@ -689,7 +666,6 @@ Sure. Thank you and all the best for the future.
 Moderator
 Thank you. Next question is from the line of Ashwin Mehta from Ambit Capital. Please go ahead.
 Ashwin Mehta
-External Document © 2025 Infosys Limited 25
 Hi, thanks for the opportunity. Jayesh, one clarification. In our cost of sales line, we have almost Rs.
 145 crores negative number for consultancy and professional charges, have not seen a negative
 number ever here. So, what is driving this?
@@ -716,7 +692,6 @@ Thank you.
 Moderator
 Thank you. Next question is from the line of Girish Pai from BOB Capital Markets. Please go ahead.
 Girish Pai
-External Document © 2025 Infosys Limited 26
 Yes, thanks for the opportunity. Salil, are there any silver linings to the current macroeconomic
 situation around tariffs? Are you having any conversations with clients around the supply chain
 solutions or anything like that?
@@ -747,7 +722,6 @@ on our services for AI and so on. So we will see how that plays out, so that is 
 Girish Pai
 Okay. Thank you.
 Moderator
-External Document © 2025 Infosys Limited 27
 Thank you. Ladies and gentlemen, I now hand the conference over to the management for closing
 comments.
 Salil Parekh

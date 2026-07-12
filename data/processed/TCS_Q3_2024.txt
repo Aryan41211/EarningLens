@@ -34,7 +34,6 @@ Our management team will give a brief overview of the company's
 performance, followed by a Q&A session. As you are aware, we don't provide
 specific revenue or earnings guidance and anything said on this call, which
 reflects our outlook for the future, or which could be construed as a forward-
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 looking statement must be reviewed in conjunction with the risks that the
@@ -69,7 +68,6 @@ Our Q3 operating margin was 24.5%, a sequential improvement of 40 basis
 points, despite headwinds on account of furloughs and Q3 seasonality, which
 was offset by operating efficiency through improvement in productivity,
 utilization and pyramid.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 Net income margin in Q3 was 19.4%, and our EPS grew 6.4% Y-o-Y.
@@ -101,7 +99,6 @@ The ongoing trend in AI and GenAI are significantly driving investments in AI-
 based systems and intelligent automation. These advancements are propelling
 ignio’s deal wins as an increasing number of customers embark on their journey
 towards becoming autonomous enterprises.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 •
@@ -143,7 +140,6 @@ Learning, had 38 new wins and 150-plus platform capabilities went live.
 o
 Our assessment platform administered in-center exams for over 17 million
 candidates.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 o The growing demand for AI-driven analysis and recommendations on assessed
@@ -178,7 +174,6 @@ Thank you, Samir. Let me start by wishing you all a very Happy New Year.
 Our workforce at the end of the third quarter was 607,354. Our workforce
 continues to be very diverse with 152 nationalities represented and with
 women making 35.3% of the base. Our LTM Attrition in IT services was up
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 13%. Employees logged over 40 million learning hours year-to-date and
@@ -211,7 +206,6 @@ of large language models. We are now starting to go past the initial wave of
 chatbots and RAG deployments of GenAI, and more crucially, this will allow
 TCS to use our deep contextual knowledge of our customers' business to
 design, train, and deploy agents that solve high-value business problems.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 •
@@ -253,7 +247,6 @@ client IT budgets to remain similar in CY '25 with a positive bias. We are seein
 early signs of revival in discretionary spend in BFSI and Retail. Manufacturing
 and Life Sciences and Healthcare should also start seeing growth in the
 medium term as near-term challenges have bottomed out in this quarter.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 o
@@ -293,7 +286,6 @@ within the EU, chose TCS as a strategic partner to enable faster market entry.
 We leveraged our contextual knowledge and deep understanding of the
 omnichannel ecosystem to adapt it for local languages, currencies, payment
 preferences, and compliance regulations, ensuring a unified user experience
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 across all geographies and channels. We implemented a leading order
@@ -333,7 +325,6 @@ a good number of large deal wins during the quarter, and we see a strong
 pipeline for the future. We continue to capture demand on the back of
 significant investments in the areas of factory of the future, smart
 manufacturing, software vehicles and AI, GenAI.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 •
@@ -372,7 +363,6 @@ K Krithivasan:
 So, Yogesh, we had strong deal wins in FY’24 also. But what happened during
 FY’25 was also the deferral of some projects going slow based on the ROI
 expectation which saw reprioritization. And seeing the revival in discretionary
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 spend, as I said, when I say revival, early signs of revival, I don't want to say
@@ -411,7 +401,6 @@ should have closed in Q2 that closed in Q3 to give us this bump.
 Ravi Menon:
 And you also said that there were no mega deals in this quarter. How is the
 mega deal pipeline looking now?
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 K Krithivasan:
@@ -452,7 +441,6 @@ some extent, recovering collectively should help us in the growth for Q4.
 Sandeep Shah:
 Okay. And just coming to margins, just wanted to understand, last time we said
 we have an aspiration to reach to 26% by Q4. And now furloughs won't be
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 there, rupee depreciation may help. In that scenario, do you believe this
@@ -491,7 +479,6 @@ The type of deals, apart from seeing regular optimization deals, there is an
 increased proportion of deals on the application modernization, cloud. And our
 customers are gearing up to leverage AI, towards that there are more data
 projects being commissioned.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 So, it's a good mix of projects on optimization with the improvement on the
@@ -527,7 +514,6 @@ we are attempting to use Gen AI to ensure that the transfer technology
 modernization is more fail safe.
 So, there are opportunities we find towards software engineering where there's
 a productivity improvement as well. But net-net, if you look at the overall
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 demand environment, we think AI demand will be net positive rather than being
@@ -564,7 +550,6 @@ in replacing this revenue. So, we are looking at all options. And we are quite
 confident that we will be able to manage the impact. On the deal wins, yes,
 there are no mega deals because the deal tenure with what you won could be
 marginally lower than what it was before.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 And there is a confidence that the revenue realization could improve compared
@@ -601,7 +586,6 @@ we are at this time confident, when I said that CY’25 will be a better year th
 CY'24, it's more broadly on the international business.
 Net business we have to see, BSNL revenue replacement could definitely be
 a headwind, but we know that we'll be able to replace most of it.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 Sudheer Guntupalli:
@@ -640,7 +624,6 @@ GenAI adoption. So, any progress that you believe that we are also making in
 terms of the legacy code modernization, the opportunity that we showcased in
 our Analyst Day as well? Any POCs or projects which have gone towards an
 incremental advanced stage on that front about which we can talk?
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 K Krithivasan:
@@ -682,7 +665,6 @@ color on that.
 Samir Seksaria:
 Rishi, unfortunately, like we have said in the past, we will not be divulging client
 specific contributions of revenue or profitability.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 Rishi Jhunjhunwala:
@@ -722,7 +704,6 @@ deal cycles are shortening.
 In terms of pricing because of GenAI, while there are discussions that happen
 on what could be alternate options, there has not been a significant change
 because of AI, GenAI in our pricing model at this time.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 Manik Taneja:
@@ -763,7 +744,6 @@ Abhishek, reprioritization will keep happening all the time. But the expectation
 of ROI or how soon the ROI should be, what is the period by which they must
 get the return, that bar could change, because clients are interested in doing
 more, and also, there is a greater interest and focus on discretionary projects.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 All put together, we find that there will be a positive momentum, and there is a
@@ -803,7 +783,6 @@ From a manufacturing perspective, I feel we'll bottom out in Q4, and growth
 should revive subsequently. In Life Sciences and Healthcare, that’s one
 industry waiting for more policy clarity in the US. So once clarity emerges,
 discretionary spend could return there.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 Sumeet Jain:
@@ -842,7 +821,6 @@ Krithi, just a question on your point earlier around retail is about seeing some
 recovery. I just wanted to know the drivers behind that and the outlook for that,
 let's say, for CY'25? And the other thing, likewise on technology and hi-tech,
 what's your view on the hi-tech vertical?
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 Do you think a lot of the capex spend around GenAI and GPUs is all behind
@@ -880,7 +858,6 @@ we'll be able to provide further color on it.
 Sandeep Shah:
 Okay. Fair enough. And just last thing, Krithi, is it fair to assume you are
 expecting recovery in CY'25 in most of the verticals, but auto and aero may lag
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 of the recovery or how do you like to see, which verticals there would be a lag
@@ -917,7 +894,6 @@ hires next year.
 •
 I would like to thank all TCSers' for their efforts and unwavering
 dedication to realizing their own and the company's potential.
-Tata Consultancy Services Earnings Conference Call
 January 09, 2025, 19:00 hrs IST (08:30 hrs US ET)
 :
 We look forward with cautious optimism to the promising opportunities that

@@ -70,7 +70,6 @@ Nehal Shah:
 Mr. Samir Seksaria, Chief Financial Officer.
 Samir Seksaria:
 Hello, everyone.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 Nehal Shah:
 And Mr. Milind Lakkad, Chief Human Resources Officer.
@@ -104,7 +103,6 @@ Our total value of contracts signed in Q1 FY26 was $9.4 billion, up
 These headline numbers must also be read in the context of successful
 completion of a very large strategic program of national importance last
 quarter.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 Looking ahead, enterprises realize the need to invest in being
 perpetually adaptive and require a dependable partner that can provide
@@ -137,7 +135,6 @@ contraction during the quarter had an impact on our utilization and was
 offset by lower third-party costs and currency.
 Higher other income and lower effective tax rate for the quarter helped
 boost our net income margin to 20.1%. Our EPS grew 6% Y-o-Y.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 Our accounts receivable was at 75 days DSO in dollar terms, up five
 days Y-o-Y.
@@ -168,7 +165,6 @@ transformation. Discretionary spend continues to remain under
 heightened scrutiny and pressure. However, enterprises focused on
 scaling AI adoption across applications, workflows and data
 performance remains strong.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 Our approach at TCS integrates expertise in deploying technology
 blended with contextual knowledge of enterprise, data, business
@@ -199,7 +195,6 @@ affected sectors in this quarter. Widespread industry challenges
 resulted in funding delays, project postponements and delayed
 milestone completion. However, we continue to work on transformative
 programs across all industry segments.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 •
 A leading U.S. specialty retailer partnered with TCS to overhaul its
@@ -240,7 +235,6 @@ time-critical data analytics. Whether at the racetrack or at the team
 base, Jaguar TCS Racing engineers need timely access to this data to
 make informed decisions about car set-up and race strategy.
 Undoubtedly, this is where championships are won or lost!
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 While Formula E races often take place on temporary street circuits and
 with tight regulations, Jaguar TCS Racing can’t often practice on
@@ -272,7 +266,6 @@ severely impact the earnings of Medicaid focused insurers, hospital
 operators, diversified Medicare insurers amongst us.
 In Healthcare, payers are trying to optimize costs due to rising medical
 expenses. Preauthorization delays and claim denials are causing
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 friction with providers. Key priorities are affordability, transparency,
 simplification, and improved patient experiences. Clients are
@@ -306,7 +299,6 @@ product innovation across all sub-segments under TechSS. Enterprises
 continue to defer business transformation initiatives and prioritize targeted
 technology transformations that deliver significant operational efficiencies and
 cost savings.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 CMI:
 In the Communications, Media, and Information vertical, enterprises are re-
@@ -339,7 +331,6 @@ engagement improved, while the total cost of ownership for Foxtel came
 down. During the quarter, TCS and Foxtel Group also won the AI
 Pacesetter Category at the 2025 ISG Paragon Awards ANZ in recognition
 of this impact.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 Moving on to our portfolio of products and platforms, they continue to
 help us in developing bespoke solutions for our clients.
@@ -374,7 +365,6 @@ Customers receive one consolidated communication and can make a
 single payment for multiple deals or funds, streamlining the investment
 process.
 We expect these go lives to further expand our position in the UK.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 •
 TCS iON, our platform for digital assessment, exam administration and
@@ -406,7 +396,6 @@ customer centric strategy.
 With Aarthi now leading all the service lines, we are broadening our
 leadership in emerging technologies and aim to bring even more
 seamless integration across our service offerings.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 With that, let me hand over to Aarthi, for giving more color on our
 service offerings.
@@ -445,7 +434,6 @@ the competition and create a personalized summary. This new solution
 replaced the previous method for doing the same, which had brokers
 re-keying in a lot of data manually and reduced the time for quote
 extraction and generation from 30 minutes to 5 minutes for the brokers.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 Brokers also benefit from comparison, recommendation and
 personalized summaries, as it reduces the need for manual analysis
@@ -477,7 +465,6 @@ Enterprise Solutions continues to be an area of investment for our
 customers. Clients are increasingly investing in streamlining their
 business workflows and modernizing their digital core by adopting AI
 powered SaaS platforms.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 •
 An American multinational energy conglomerate chose TCS to help
@@ -514,7 +501,6 @@ Security, Data Security and Network Security.
 For a leading Transport organization in Europe, we recommended
 Information Security and IT Governance practices for AI Assets against
 various industry standards, including the EU AI Act regulatory
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 requirement, thereby enabling the customer’s organization to establish
 revised security governance and controls.
@@ -555,7 +541,6 @@ Building upon these robust outcomes, we are now collaborating with the
 client to embed TwinX into subsequent service campaign cycles, further
 strengthening customer retention and revenue predictability.
 With that, I would like to open the line for questions.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 Moderator:
 Thank you very much. We'll take our first question from the line of
@@ -589,7 +574,6 @@ Sudheer Guntupalli: Got it. Thank you so much.
 Moderator:
 Thank you. We'll take our next question from the line of Kumar Rakesh
 from BNP Paribas. Please go ahead.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 Kumar Rakesh:
 Hi, good evening and thank you for taking my questions and welcome
@@ -625,7 +609,6 @@ we have continued to make investments in people. like we had called
 out in Q4.
 And overall, the investments which are required for long-term growth
 continue. In this quarter as well, we have invested in capacity. We
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 continued our investments and that is what is reflecting into our
 margins. Having said that, if you look at it, the capacity versus the
@@ -661,7 +644,6 @@ Ankur, pricing has been reasonably stable at an overall level. But if you
 ask like is there any demand on productivity, there are instances where
 large deals are coming up for re-negotiation, there is a demand for
 productivity, either -- we don't see much coming as a pure discount, but
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 coming as AI-infused productivity or generic otherwise also a normal
 productivity.
@@ -697,7 +679,6 @@ Okay. Just the last question on margins. You did highlight that you're
 investing in talent, which is why margins haven't picked up despite the
 BSNL ramp down. Now, you have a new BSNL contract that will be
 ramping up perhaps from the next quarter onwards. Isn't there going to
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 be a significant headwind on margins? How should the margin trajectory
 be for the rest of the year? Are there any levers you might pull to hold
@@ -734,7 +715,6 @@ costs have not gone down as much. Would that interpretation be right?
 Samir Seksaria:
 So Ravi, so you would see a 70 basis points decline on positive impact
 because of lower third-party expenses and a similar like-to-like increase
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 in employee costs. And this includes, as you rightly called out, not just
 the hiring, we have given additional QVA.
@@ -772,7 +752,6 @@ up? I mean, is this going to be a one-shot ramp up in 2Q and then ramp
 down in the next quarter? That's the first question.
 And the second question is around margins, again. I understand that
 you are carrying excess capacity. But considering we have attrition
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 trending upwards of 13%, why would we carry this capacity? I mean, do
 we expect a materially better H2 with regards to growth in anticipation
@@ -806,7 +785,6 @@ be directly comparable, because the revenue mix is different. There was
 a significant third-party component sitting in the revenue till last quarter.
 Having said that, your question in terms of current revenues or
 employee costs at 47%, should we be trying to optimize it? Yes, we'll
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 look towards optimizing that and bringing that as a percentage of
 revenue downwards.
@@ -842,7 +820,6 @@ contraction.
 But if you take it from a TCV perspective, we don't want to get a quarter-
 on-quarter comparison on TCV because it tends to be lumpy, like some
 quarters you sign very big deal and some deal closures also happen
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 towards the end of the quarter. So, we don't want to go by a quarter-on-
 quarter TCV comparison.
@@ -875,7 +852,6 @@ Nitin Padmanabhan: Got it. Just one last clarification from my end. You are curr
 assuming that international business should be better in the following
 quarter, and BSNL, it will take time until the POs come through for the
 actual execution to take place. Are those two fair understanding?
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 K Krithivasan:
 Nitin, as you know, we don’t give any specific guidance, but on the
@@ -911,7 +887,6 @@ K Krithivasan:
 So, Abhishek, whenever there is a revenue reduction, it's concerning.
 So, we are worried. Our client metrics are based on last 12 months’
 revenue in dollar terms.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 So, if a particular client is on the borderline or let us say $101 million
 and because of this overall reduction in revenue, the client moves from
@@ -943,7 +918,6 @@ Samir Seksaria:
 As I clarified, it is not just adding people. We have given a higher QVA
 as well this quarter. Last quarter, we had called out about tactical
 interventions, which were by way of promotions.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 Gaurav Rateria:
 Got it. My second question is on the conversation that we are having at
@@ -980,7 +954,6 @@ move towards the fixed-price model. So, we are seeing both options
 here.
 Gaurav Rateria:
 Thank you.
-Tata Consultancy Services Earnings Conference Call
 July 10, 2025, 19:00 hrs IST (09:30 hrs US ET)
 Moderator:
 Thank you. Ladies and gentlemen, we'll take that as the last question

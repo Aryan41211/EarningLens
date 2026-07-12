@@ -40,7 +40,6 @@ performance, followed by a Q&A session. As you are aware, we don't provide
 specific revenue or earnings guidance. And anything said on this call reflects
 our outlook for the future or which could be construed as a forward-looking
 statement must be reviewed in conjunction with the risks that the company
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 faces. We have outlined these risks in the second slide of the quarterly fact
 sheet available on our website and emailed out to those who have subscribed
@@ -80,7 +79,6 @@ Let me now go over our financial performance. Our operating margin is at
 headwind on account of seasonal furloughs and higher third-party expenses
 offset by 60 basis points improvement on account of efficiency improvements
 through productivity and realization and a further 70 basis points
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 improvement from reduction in subcontractor expenses. Currency gains
 accounted for the remaining 25 bps.
@@ -119,7 +117,6 @@ competencies, including over 515,000 high demand competencies. Our
 workforce continues to be very diverse with 153 nationalities, with women
 making up 35.7% of the base. Over to you NGS for some color on segments
 and products.
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 N G Subramaniam:
 Thank you, Milind. Happy New Year and Sankranti wishes to all of you. Let me
@@ -166,7 +163,6 @@ using historic data. The solution will help in planning at a milestone-
 task-component level, and will also include features such as
 automated alerts and notifications, a rich and easy-to-use reporting
 dashboard and visualization.
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 •
 TCS HOBS, our suite of products for communication service providers,
@@ -213,7 +209,6 @@ resilience continued to be high priority in the light of macro uncertainties and
 geopolitical volatilities. This is driving our clients to prioritize business-critical
 projects, where return on investment realization is immediate. We are closely
 partnering with our clients and leveraging our contextual knowledge to
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 proactively identify solutions to business problems in these challenging times.
 This is, in turn, driving good deal momentum for us.
@@ -252,7 +247,6 @@ objective of futuristic digital workplace services to delight their end users. T
 will leverage its contextual knowledge, machine-first delivery model and
 future-ready talent pool to help VMO2 to enhance its regional capacity while
 delivering a globally best-in-class experience for their users.
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 Moving on to Operating Model Transformation: Our contextual knowledge
 has been instrumental in reimagining the client operations and the AI-
@@ -303,7 +297,6 @@ concept was designed to attract customers looking for promotional deals,
 high-profile and limited-edition exclusive offers and to smoothen the
 discovery experience during shopping. TCS leveraged its contextual
 knowledge to develop this product feature that presents an engaging and
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 exciting interface for customers and builds an exclusive appeal. The
 initiative has helped attract new customers, increased the mobile app
@@ -349,7 +342,6 @@ and annualized reduction of stock through automated ordering.
 I will be now moving on to Sustainability: We are seeing that Sustainability is
 a core priority for organizations aiming to secure a resilient and responsible
 future and enhanced brand reputation. I'll now share a few examples of how
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 we have played a pivotal role in assisting our clients in their sustainability
 journey. Clients are engaging us to develop innovative technology-led
@@ -398,7 +390,6 @@ advance and help clients to be proactive in addressing increasing threats.
 •
 Our Products and Platforms are also being enhanced with differentiating
 capabilities leveraging Gen AI.
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 o We have built a co-pilot for TCS Optumera™, our AI-powered retail
 strategic intelligence platform, for dynamic competitive pricing, new
@@ -443,7 +434,6 @@ unstructured data sources related to world events, company updates, and
 portfolio composition. Services include summarizing earnings reports,
 earnings report review, industry and market trends, ratings, commentary,
 etc.
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 We have engaged with clients for setting up Gen AI Centers of Excellence or
 AI offices and providing advisory services to scale proven use cases in a
@@ -484,7 +474,6 @@ those actions to translate into margin expansion.
 Also, attrition and supply tightness in the market cooled off significantly from
 where it was 12 to 15 months ago. So, if we see these two facts in conjunction,
 Samir, is it fair to say that the margin improvement cycle has just started and
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 it has more legs to go, despite headwinds from some of the large deal ramp
 ups?
@@ -527,7 +516,6 @@ Okay. Thank you so much.
 Moderator:
 We have our next question from the line of Vibhor Singhal from Nuvama
 Equities.
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 Vibhor Singhal:
 Hi, thanks for taking my question and congrats on a great margin
@@ -573,7 +561,6 @@ right? And in terms of either for the positive or for the negative side, it's pr
 much the same as we have been seeing.
 K Krithivasan:
 Yes. That's the way I would also read it Vibhor.
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 Moderator:
 Thank you. We have a next question from the line of Sandeep Shah from
@@ -619,7 +606,6 @@ and operationalized that's also been progressing well. So overall, I would say
 that this is the first quarter where we have delivered close to about, I would
 say, 2,000 sites worth of equipment, and they are in the different stages of
 installation and commissioning. At the same time, the data centers
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 installations are all progressing as per plan. And it will get done over the next,
 let's say, four to six quarters as we envisage.
@@ -666,7 +652,6 @@ solutions. For a vendor consolidation to be successful, you should bring in the
 value for the customer, in terms of the contextual knowledge, the industry
 knowledge in terms of delivery certainty. So, all these things matter. And the
 process that you want to deploy.
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 So, what is your ability to bring in automation, your transformational
 capability, etc. So, you should be able to do everything. Just because we have
@@ -711,7 +696,6 @@ quarter, you did talk about realization and productivity. So, the general
 perception is that in a tough environment, it's very difficult to use a lever of
 realization, but you have been able to do that. Is there anything going on with
 respect to client negotiations that has been helping you to benefit on
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 margins? And is there a -- like this is over or this is going to continue in coming
 quarters as well?
@@ -755,7 +739,6 @@ completed in North America and furlough impact we had across markets; I
 think BFSI actually did well. The deal closures in BFSI vertical are also quite
 broad-based across markets. I would agree that BFSI is actually a positive
 thing from my perspective, and it will only further improve from here.
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 Apurva Prasad:
 Got it. And Samir, my question to you is on margins. What further headwinds
@@ -802,7 +785,6 @@ least in our portfolio of clients that we have.
 Ravi Menon:
 Thank you. And one last follow-up, if I may. You talked about your specific
 advantages on contextual knowledge and how the overall value that you
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 provide to the customer and the solution. Could you tell us how many solution
 architects, overall software architects you have within your employee base,
@@ -848,7 +830,6 @@ Dipesh Mehta:
 Two questions. First, on BFSI. If I look last 3 years, BFSI deal intake remained
 around $10.5 billion on last 12 months basis. So more or less flattish, if I look,
 let's say, 3-year basis, in a way it gets reflected in revenue growth
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 performance also in BFSI. Can you help us understand from a medium- to
 long-term perspective how one should look at BFSI growth trajectory?
@@ -892,7 +873,6 @@ We have not started to give that out, and let's hope that this year, augurs well
 for us to give you more color on all of this.
 Dipesh:
 Thanks.
-Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
 Moderator:
 Thank you. Ladies and gentlemen, that was the last question for today. I now
