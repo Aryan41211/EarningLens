@@ -7,6 +7,9 @@ No module in src/ should hardcode a path - import from config instead.
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ---------- Paths ----------
 PROJECT_ROOT = Path(__file__).parent
@@ -29,6 +32,12 @@ COMPANIES = [
     "HDFCBANK",
 ]
 QUARTERS = ["Q1", "Q2", "Q3", "Q4"]
+
+# ---------- Logging ----------
+LOG_PATH = DATA_DIR / "earningslens.log"
+
+# ---------- PDF Validation ----------
+MIN_EXTRACTED_WORDS = 50  # reject suspiciously small extractions
 
 # ---------- Chunking ----------
 CHUNK_TARGET_WORDS = 600
