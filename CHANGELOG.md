@@ -5,6 +5,25 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — Production Infrastructure Additions
+
+### Added
+- `.github/workflows/test.yml` — CI runs `pytest tests/ -v` on every push and pull request
+- `config.py` now calls `load_dotenv()` on import — environment variables are loaded at startup
+- `config.py` — `LOG_PATH` and `MIN_EXTRACTED_WORDS` constants for logging and validation
+- `src/utils/logging.py` — Structured logging module; writes DEBUG+ to `data/earningslens.log`, INFO+ to console
+- `src/storage/db.py` — `scoring_runs` table for prompt + model versioning with raw LLM response preservation
+- `src/storage/db.py` — `store_scoring_run()` function for inserting scoring metadata
+- `scripts/run_phase1.py` — Migrated from `print()` to structured logging via `logger`
+- `scripts/run_phase1.py` — PDF extraction validation: rejects extractions below 50 words with a logged warning, continues batch
+- `ARCHITECTURE.md` — Full architecture document: data flow diagram, phase map, design decisions, tradeoffs, non-goals
+
+### Changed
+- `.gitignore` — Added `data/earningslens.log`
+- `README.md` — Added CI badge, ARCHITECTURE link, updated project structure and design rules
+
+---
+
 ## [Unreleased] — Phase 1: PDF Extraction + Storage (in progress)
 
 ### Added
