@@ -90,8 +90,10 @@ def score_evasiveness_keywords(chunks: list[str]) -> dict:
 # ---- Q&A Detection ----
 
 Q_A_MARKER_PATTERN = re.compile(
-    r"(?:first question from the line of|we'?ll take our first question|"
-    r"we have (?:our|a) first question|first question is from the line of)",
+    r"(?:first\s+question\s+from\s+the\s+line\s+of|"
+    r"we'?ll\s+take\s+our\s+first\s+question|"
+    r"we\s+have\s+(?:our|a)\s+first\s+question|"
+    r"first\s+question\s+is\s+from\s+the\s+line\s+of)",
     re.IGNORECASE,
 )
 
