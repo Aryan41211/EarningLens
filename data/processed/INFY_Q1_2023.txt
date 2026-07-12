@@ -1,4 +1,3 @@
-Infosys Limited
 Earnings Conference Call
 July 20, 2023
 CORPORATE PARTICIPANTS:
@@ -31,14 +30,12 @@ Surendra Goyal
 Citigroup
 Prashant Kothari
 Pictet
-1
 Bryan Bergin
 TD Cowen
 Nitin Padmanabhan
 Investec
 Vibhor Singhal
 Nuvama Equities
-2
 Moderator
 Ladies and gentlemen good day and welcome to the Infosys Earnings Conference Call. As a
 reminder, all participant lines will be in the listen-only mode and there will be an opportunity for you
@@ -67,7 +64,6 @@ Q1. Our value of deals of financial services was 50% of the overall large deal v
 announced a mega deal of $2 bn value after the close of Q1 and before our results, before today.
 With a strong large deal and mega deal wins, we are building well for the future. Our pipeline of large
 deals is strong and we continue to have megadeals in our pipeline.
-3
 We are delighted that Topaz, our AI and generative AI platform is resonating well with our clients.
 We are working on 80 generative AI projects for our clients at this time. The work we are doing
 encompasses large language models for software development, text, document, voice and video.
@@ -100,7 +96,6 @@ unchanged at 20% to 22%.
 With that, let me hand it over to Nilanjan.
 Nilanjan Roy
 Thanks, Salil. Good evening, everyone, and thank you for joining the call.
-4
 We entered FY '24 on the backdrop of uncertain macroeconomic environment with clients
 reassessing the IT spend and continue to focus on cost and efficiency programs.
 Q1 revenue growth was 4.2% on a Y-on-Y basis in constant currency. Sequentially, revenue grew
@@ -132,7 +127,6 @@ Coming to vertical segment performance.
 Financial services vertical witnessed continued softness in areas like mortgage, asset management,
 investment banking, cards and payments. Large and super regional banking clients in US have been
 resilient during this quarter. Large banking clients are focusing on vendor consolidation, cost takeout
-5
 and self-funding transformation programs. Many financial institutions are looking at outsourcing the
 non-core business that includes taking away existing employees across technology and operations.
 While delayed decision-making is impacting the vertical, our recent deal wins and the strong pipeline
@@ -166,7 +160,6 @@ lower mega deal volumes arising from delayed timing and longer ramp-up times due
 approvals and transition.
 Margin guidance remained at 20% to 22% for FY '24. We continue to aspire for higher margins over
 the medium term with the razor-sharp focus on cost optimization and efficiency improvements. As
-6
 Salil mentioned, we have launched a new margin maximization program across the five pillars
 comprising over 20 tracks.
 With that, we can open up the call for questions.
@@ -198,7 +191,6 @@ Kawaljeet Saluja
 But Nilanjan, just to try to know, when you basically spoke in the last quarter, you did highlight that
 1Q would be weaker and we expect pickup in 2Q, whereas right now you are saying that 1Q and 2Q
 are strong quarters. I'm just trying to understand the disconnect in commentary.
-7
 The second part to the question Nilanjan is that, two consecutive quarters, two consecutive misses.
 I guess last time around as well, there were a lot of pushback saying that the environment has
 deteriorated and how you built any extra cushion into your guidance, etc. So what are your learnings
@@ -230,7 +222,6 @@ mega deal closures, or it's based on the deals closed up to now?
 Salil Parekh
 So here, the way we have built this guidance, or our view of the 3.5% is based on what we have
 closed today in large and mega deals, and then we have a way of estimating based on what we see
-8
 into the future as an aggregate, not as a one-off, or not as a binary discussion, but in aggregate with
 what we see as the probabilities and also the probability of when that work will transition and the
 revenues are . So those are what we see in the pipeline and are baked into it.
@@ -260,7 +251,6 @@ Yogesh Aggarwal
 Okay, thanks. And just a quick follow-up. The revised guidance now, at the lower end, I wanted to
 ask, you have already won few mega deals and the lower end of the guidance suggests almost
 negative or flattish growth for the next three quarters, which would also mean that for six quarters,
-9
 seven quarters now, revenues would be flat. So what are the assumptions for the lower end of the
 guidance I wanted to know?
 Salil Parekh
@@ -290,7 +280,6 @@ Ankur Rudra
 Okay. And also, I just want to get a sense of maybe asking this in a slightly different way. Obviously,
 the guidance change is quite drastic. Is this just the change in environment of spending over the
 course of the last three months? Or is this also a difference in the way you measure the likelihood of
-10
 success of when the deals ramp-up, or the win rate of future deals? Just curious about that and if
 this guidance is more conservative anyway versus the last time you said it?
 Salil Parekh
@@ -321,7 +310,6 @@ It is just not looking at cost, it is looking at portfolio. And this is now bein
 with 20 tracks, 30 leaders. Of course, our aspiration continues to be that we will aspire for higher
 margins than where we are today. So from that perspective, it is offensive -- on offense, I would say
 offensive, but on offense, this thing to increase our margins. That is the intent.
-11
 Ankur Rudra
 Appreciate it, thank you, and best of luck.
 Moderator
@@ -350,7 +338,6 @@ So there, it is really, the way we see it is, our pipeline for large and mega de
 as we closed the quarter. We see good traction for mega deals and our large deals. The focus is
 much more when you are talking to clients on efficiency or cost or consolidation. We have a real
 traction with them. We see less discussions on digital transformation.
-12
 And then in general, across the client base for those industries that I referenced in the opening
 remark, we see where there are discretionary programs where the client feels that they can slow
 them or pause them for some time, we see that action. So those are the two sort of actions we are
@@ -380,7 +367,6 @@ As you saw my margin walk, we had a 70 basis points benefit from utilization, co
 we are seeing the tailwinds of that. And the big part of that, we actually put back into employee-
 related compensation, which is variable pay, that is a big part - promotion. So it is not that we are
 losing that to the market. That is a conscious decision for us to plow it back towards employees.
-13
 So as we look ahead, we are actively considering compensation hikes, we announced this as well
 at press conference earlier. And the new program that kicks-in, we think in optimization will give us
 the necessary tailwinds to be well within the margin guidance band.
@@ -411,7 +397,6 @@ Salil Parekh
 So this is Salil. Thanks for the question. The way we see it today, we see this demand environment,
 especially on discretionary, that we have been discussing so far, as a function of the macro
 environment. We can see, for example, if you look at different industries, manufacturing growing at
-14
 21%, other industry is doing well, whereas financial service is weaker. So our service portfolio, we
 believe, works well.
 We have already transformed the company, moved it predominantly into a digital business. We are
@@ -441,7 +426,6 @@ Sure. And do you think this goes into revenue translation in second half?
 Salil Parekh
 Yes. So again, there, we do not have anything more on the specific deal. It is more about the general
 comments that we have talked about the large and mega deals. We do see, in general, across our
-15
 large and mega deals, the revenue coming through in terms of the transitions and revenue realization
 more towards the later part of the year.
 Abhishek Bhandari
@@ -471,7 +455,6 @@ ago. We have good traction in Germany, as you referenced, a good traction in the
 had good traction so far.
 Now the macro environment, we feel, as Nilanjan also pointed earlier, is definitely something that is
 affecting overall in Europe. So we are seeing within the segments we referenced, for example,
-16
 Financial Services and the sub-segments there in telco, in some parts of retail, those being impacted
 in Europe as well, and we will see how that plays out into the future.
 Moshe Katri
@@ -502,7 +485,6 @@ So on the guidance, again, some of the comments that Nilanjan shared earlier, we
 volume and discretionary projects slowing. And based on that, plus the delay in some of the large or
 mega deals are starting up in terms of revenue, we felt that has given us the view of the lower end
 of the guidance.
-17
 What we see really the function of the way, the volume in the discretionary project evolves. The
 macro environment, as we look out, is changing as we see things, which are from US to Europe, to
 Asia, keeping those factors in mind is how we build that lower end of the guidance.
@@ -532,7 +514,6 @@ So there, what Nilanjan was referencing to is not that it is client specific, as
 clients. It was more in terms of clients within that industry vertical and more now shifting, what we
 had in the US to the European market. So it is not that we have specific one or two clients, where
 we have seen this impact showing up from there.
-18
 Mukul Garg
 Sure. I think that is helpful. Thanks for taking my questions. I will get back in the queue.
 Moderator
@@ -557,7 +538,6 @@ Surendra Goyal
 Sure. Thanks, Salil.
 Moderator
 Thank you. The next question is from the line of Prashant Kothari from Pictet. Please go ahead.
-19
 Prashant Kothari
 Yeah. A couple of questions. One is, when you are looking at the revenue growth guidance this year,
 it seems we will be growing maybe worse than the peer group that we track, even in terms of the
@@ -587,7 +567,6 @@ All right. Yeah, which is presenting a bit of a weak picture as of now. All righ
 much.
 Moderator
 Thank you. The next question is from the line of Bryan Bergin from TD Cowen. Please go ahead.
-20
 Bryan Bergin
 Hi, good evening. Thank you. I wanted to ask on the margin expansion program. So I understand
 that this is a two-year initiative. Can you give us a sense of materiality to just how are you thinking
@@ -618,7 +597,6 @@ the environment, in the decision-making. We have seen some of the impact in some
 that we shared earlier. And we will see how that volume, discretionary work translates itself over
 time. So we baked in some range of possibilities into that. We wanted to see how those possibilities
 play out.
-21
 Bryan Bergin
 Thank you.
 Moderator
@@ -649,7 +627,6 @@ continue to re-skill and move up our fresher bench and rotate people through pro
 benefit, we continue to get.
 And like I said, the 70 bps benefit, which we are seeing is coming partly because of improved
 utilization.
-22
 Nitin Padmanabhan
 Sure. And lastly, the $2.1 bn deal that we announced, in which vertical is that? If you could clarify
 that would be helpful?
@@ -677,7 +654,6 @@ seen, we have not seen that kind of a change in commentary over the past three m
 other player per se. So would you like to basically give some colour on how readable is this
 environment, that has caused this deterioration to us and not to the other companies in the sector or
 the industry?
-23
 Salil Parekh
 So there, my sense is, if you look at our Q1 number, we have 1% quarter-on-quarter growth, which
 from what I have seen across the industry is, maybe one of the strongest quarter-on-quarter growth.
@@ -706,7 +682,6 @@ Got it. Great. Thanks for taking my question. And wish you all the best for the 
 Moderator
 Thank you. Ladies and gentlemen, that would be our last question for today. I now hand the
 conference back to the management for their closing remarks. Thank you, and over to you.
-24
 Salil Parekh
 Thanks. This is Salil. I just want to close out. Thank you, everyone, for joining us. In summary, for
 us, really, we have had a solid Q1, very good Q-on-Q growth, solid margins, excellent large deals
@@ -720,4 +695,3 @@ So thanks again, everyone, for joining in, and look forward to catching up at th
 Moderator
 Thank you very much, members of the management. Ladies and gentlemen, on behalf of Infosys,
 that concludes this conference. Thank you all for joining us and you may now disconnect your lines.
-25

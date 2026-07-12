@@ -8,6 +8,20 @@ BOILERPLATE_PATTERNS = [
     r"^\s*Disclaimer.*$",
     r"^\s*Transcript\s+generated\s+by.*$",
     r"^\s*www\..*$",
+    # TCS per-page footer (observed 168x across 7 TCS transcripts)
+    r"^Tata Consultancy Services Earnings Conference Call\s+[\d:]+\s+(?:hrs\s+)?IST\s*\(?[\d:]+\s*(?:hrs\s+)?US\s+ET\)?\s*\|?\s*\d*\s*$",
+    # INFY per-page header (observed 84x across 3 INFY transcripts)
+    r"^Infosys (?:Limited|Earnings Conference Call)\s*$",
+    # Bare page number line (observed 25x in INFY_Q1_2023)
+    r"^\s*\d{1,3}\s*$",
+    # Bar page marker "| 2", "| 12" (observed 69x across 3 TCS transcripts)
+    r"^\s*\|\s*\d{1,3}\s*$",
+    # Edited-readability note, often duplicated per-page (observed 13x)
+    r"^Note:\s*This transcript has been edited for readability and does not purport to be a verbatim record of the proceedings\.?\s*$",
+    # Operator script "press star then zero" (observed 18x)
+    r"press(?:ing)?\s+star\s+then\s+zero.*touchtone",
+    # Forward-looking safe-harbor boilerplate (observed 2x)
+    r"forward[- ]looking statement.*must be reviewed in conjunction with the risks",
 ]
 
 

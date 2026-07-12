@@ -42,7 +42,6 @@ our outlook for the future or which could be construed as a forward-looking
 statement must be reviewed in conjunction with the risks that the company
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 2
 faces. We have outlined these risks in the second slide of the quarterly fact
 sheet available on our website and emailed out to those who have subscribed
 on our mailing list. With that, I would like to turn the call over to Krithi.
@@ -83,7 +82,6 @@ offset by 60 basis points improvement on account of efficiency improvements
 through productivity and realization and a further 70 basis points
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 3
 improvement from reduction in subcontractor expenses. Currency gains
 accounted for the remaining 25 bps.
 Net income margin in Q3 was 19.4%. Our EPS grew 8.4% on a Y-o-Y basis.
@@ -123,7 +121,6 @@ making up 35.7% of the base. Over to you NGS for some color on segments
 and products.
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 4
 N G Subramaniam:
 Thank you, Milind. Happy New Year and Sankranti wishes to all of you. Let me
 walk you through our segmental performance. As a reminder, all growth
@@ -171,7 +168,6 @@ automated alerts and notifications, a rich and easy-to-use reporting
 dashboard and visualization.
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 5
 •
 TCS HOBS, our suite of products for communication service providers,
 had 1 new win and 2 go-lives during the quarter.
@@ -219,7 +215,6 @@ projects, where return on investment realization is immediate. We are closely
 partnering with our clients and leveraging our contextual knowledge to
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 6
 proactively identify solutions to business problems in these challenging times.
 This is, in turn, driving good deal momentum for us.
 Most enterprises at the time of the pandemic invested in digital capabilities
@@ -259,7 +254,6 @@ future-ready talent pool to help VMO2 to enhance its regional capacity while
 delivering a globally best-in-class experience for their users.
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 7
 Moving on to Operating Model Transformation: Our contextual knowledge
 has been instrumental in reimagining the client operations and the AI-
 powered TCS Cognix™ has been delivering superior business outcomes for our
@@ -311,7 +305,6 @@ discovery experience during shopping. TCS leveraged its contextual
 knowledge to develop this product feature that presents an engaging and
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 8
 exciting interface for customers and builds an exclusive appeal. The
 initiative has helped attract new customers, increased the mobile app
 downloads, frequency of interactions and improved customer
@@ -358,7 +351,6 @@ a core priority for organizations aiming to secure a resilient and responsible
 future and enhanced brand reputation. I'll now share a few examples of how
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 9
 we have played a pivotal role in assisting our clients in their sustainability
 journey. Clients are engaging us to develop innovative technology-led
 solutions with IoT, AI and advanced analytics, to reduce energy and resource
@@ -408,7 +400,6 @@ Our Products and Platforms are also being enhanced with differentiating
 capabilities leveraging Gen AI.
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 10
 o We have built a co-pilot for TCS Optumera™, our AI-powered retail
 strategic intelligence platform, for dynamic competitive pricing, new
 product trends, design and testing, visual merchandising, visual
@@ -454,7 +445,6 @@ earnings report review, industry and market trends, ratings, commentary,
 etc.
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 11
 We have engaged with clients for setting up Gen AI Centers of Excellence or
 AI offices and providing advisory services to scale proven use cases in a
 controlled fashion.
@@ -496,7 +486,6 @@ where it was 12 to 15 months ago. So, if we see these two facts in conjunction,
 Samir, is it fair to say that the margin improvement cycle has just started and
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 12
 it has more legs to go, despite headwinds from some of the large deal ramp
 ups?
 Samir Seksaria:
@@ -540,7 +529,6 @@ We have our next question from the line of Vibhor Singhal from Nuvama
 Equities.
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 13
 Vibhor Singhal:
 Hi, thanks for taking my question and congrats on a great margin
 performance. I've got two questions. The first question for Samir. I think we
@@ -587,7 +575,6 @@ K Krithivasan:
 Yes. That's the way I would also read it Vibhor.
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 14
 Moderator:
 Thank you. We have a next question from the line of Sandeep Shah from
 Equirus Securities. Please go ahead.
@@ -634,7 +621,6 @@ say, 2,000 sites worth of equipment, and they are in the different stages of
 installation and commissioning. At the same time, the data centers
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 15
 installations are all progressing as per plan. And it will get done over the next,
 let's say, four to six quarters as we envisage.
 Sandeep Shah:
@@ -682,7 +668,6 @@ knowledge in terms of delivery certainty. So, all these things matter. And the
 process that you want to deploy.
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 16
 So, what is your ability to bring in automation, your transformational
 capability, etc. So, you should be able to do everything. Just because we have
 a scale advantage, we don't win. We win because we have all the other
@@ -728,7 +713,6 @@ realization, but you have been able to do that. Is there anything going on with
 respect to client negotiations that has been helping you to benefit on
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 17
 margins? And is there a -- like this is over or this is going to continue in coming
 quarters as well?
 Samir Seksaria:
@@ -773,7 +757,6 @@ broad-based across markets. I would agree that BFSI is actually a positive
 thing from my perspective, and it will only further improve from here.
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 18
 Apurva Prasad:
 Got it. And Samir, my question to you is on margins. What further headwinds
 do you see as BSNL ramps up next quarter or any other headwinds that you
@@ -821,7 +804,6 @@ Thank you. And one last follow-up, if I may. You talked about your specific
 advantages on contextual knowledge and how the overall value that you
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 19
 provide to the customer and the solution. Could you tell us how many solution
 architects, overall software architects you have within your employee base,
 maybe a rough proportion.
@@ -868,7 +850,6 @@ around $10.5 billion on last 12 months basis. So more or less flattish, if I loo
 let's say, 3-year basis, in a way it gets reflected in revenue growth
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 20
 performance also in BFSI. Can you help us understand from a medium- to
 long-term perspective how one should look at BFSI growth trajectory?
 Second question is about non-CIO spending exposure. If you can help us
@@ -913,7 +894,6 @@ Dipesh:
 Thanks.
 Tata Consultancy Services Earnings Conference Call
 January 11, 2024, 19:30 hrs IST (09:00 hrs US ET)
-| 21
 Moderator:
 Thank you. Ladies and gentlemen, that was the last question for today. I now
 hand the conference over to the management for closing comments. Over to
