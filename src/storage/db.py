@@ -24,6 +24,17 @@ def init_db(db_path: str) -> sqlite3.Connection:
             UNIQUE(company, quarter, year, chunk_index)
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS scoring_runs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            transcript_id INTEGER NOT NULL,
+            model_name TEXT NOT NULL,
+            prompt_version TEXT NOT NULL,
+            scored_at TEXT NOT NULL,
+            raw_llm_response TEXT NOT NULL,
+            FOREIGN KEY (transcript_id) REFERENCES transcripts(id)
+        )
+    """)
     conn.commit()
     return conn
 
@@ -37,6 +48,18 @@ def store_transcript(conn, company, quarter, year, chunks, source_file):
             (company, quarter, year, chunk_index, chunk_text, word_count, source_file, extracted_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (company, quarter, year, idx, chunk, len(chunk.split()), source_file, now))
+    conn.commit()
+
+
+def store_scoring_run(conn, transcript_id, model_name, prompt_version, raw_response):
+    """Persist a scoring run with the raw LLM response for auditability."""
+    cur = conn.cursor()
+    now = datetime.now(timezone.utc).isoformat()
+    cur.execute("""
+        INSERT INTO scoring_runs
+        (transcript_id, model_name, prompt_version, scored_at, raw_llm_response)
+        VALUES (?, ?, ?, ?, ?)
+    """, (transcript_id, model_name, prompt_version, now, raw_response))
     conn.commit()
 
 
