@@ -112,3 +112,6 @@ All five dimensions are defined in `config.py`:
 - **Message Queues** — pipeline is batch, not stream.
 - **Docker / Kubernetes** — one Python script on one machine.
 - **PostgreSQL** — SQLite covers the data volume.
+
+
+soihfsioh ijsdoih di
