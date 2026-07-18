@@ -77,4 +77,3 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Company selector, quarter timeline, dimension sparklines
 - Drill-down to chunk-level quotes driving scores
 - Exportable finding cards
-ksiiudg 
