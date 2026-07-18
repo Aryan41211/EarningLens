@@ -33,4 +33,4 @@ Indian earnings call transcript analysis for red-flag detection across 5 credibi
 - `CHANGELOG.md` — add entries under the current phase
 - `data/findings/findings.md` — fill the template when you have a verified trend→stock-move case
 
-oodhfiuh hsiuhsh
+oodhfiuh 
