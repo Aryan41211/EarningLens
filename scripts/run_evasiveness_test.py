@@ -12,6 +12,7 @@ Usage:
 import sys
 import os
 import logging
+import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -30,6 +31,13 @@ setup_logger(LOG_PATH)
 
 def run_company(conn, company: str) -> None:
     quarters = ["Q1", "Q2", "Q3", "Q4"]
+
+    # ---- LLM run instrumentation totals (for Step 5) ----
+    total_llm_calls_attempted = 0  # count when Q&A is detected (LLM invoked)
+    total_tokens_used = 0
+    total_latency_seconds = 0.0
+    token_usage_events_with_total = 0
+    llm_failures = 0
     years = sorted(set(
         r[0] for r in conn.cursor().execute(
             "SELECT year FROM transcripts WHERE company = ?", (company.upper(),)
@@ -71,7 +79,12 @@ def run_company(conn, company: str) -> None:
                     print(f"      \"...{m['context']}...\"")
 
             print(f"\n  --- Full Combined Scoring ---")
+
+            # One LLM call is executed inside score_transcript_evasiveness()
+            # when Q&A is detected. Time that call here.
+            t0 = time.time()
             full = score_transcript_evasiveness(chunk_texts)
+            elapsed = time.time() - t0
 
             if full["qa_detected"]:
                 llm = full["llm_result"]
