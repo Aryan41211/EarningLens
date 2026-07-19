@@ -87,10 +87,33 @@ def run_company(conn, company: str) -> None:
             elapsed = time.time() - t0
 
             if full["qa_detected"]:
+                total_llm_calls_attempted += 1
                 llm = full["llm_result"]
+                total_latency_seconds += elapsed
+
+                print(f"  LLM call elapsed seconds: {elapsed:.3f}s")
+
+                if llm.get("usage") and llm["usage"].get("total_tokens") is not None:
+                    usage = llm["usage"]
+                    prompt_tokens = usage.get("prompt_tokens")
+                    completion_tokens = usage.get("completion_tokens")
+                    total_tokens = usage.get("total_tokens")
+
+                    print(
+                        "  LLM usage: "
+                        f"prompt_tokens={prompt_tokens}, completion_tokens={completion_tokens}, total_tokens={total_tokens}"
+                    )
+
+                    if total_tokens is not None:
+                        total_tokens_used += total_tokens
+                        token_usage_events_with_total += 1
+                else:
+                    print("  LLM usage: (not provided by provider/response)")
+
                 if llm.get("evasiveness_score") is not None:
                     print(f"  LLM Evasiveness Score: {llm['evasiveness_score']}/10")
                 else:
+                    llm_failures += 1
                     print(f"  LLM Evasiveness Score: SKIPPED ({llm.get('error', 'no LLM configured')})")
 
                 if llm.get("supporting_quotes"):
@@ -102,6 +125,19 @@ def run_company(conn, company: str) -> None:
 
     print(f"\n{'=' * 72}")
     print(f"DONE ({company})")
+
+    # ---- Step 5 aggregate totals ----
+    print(f"\n  === LLM Totals ({company}) ===")
+    print(f"  Total LLM calls attempted (Q&A detected): {total_llm_calls_attempted}")
+    print(f"  Total tokens used (sum of usage.total_tokens): {total_tokens_used}")
+    print(f"  Token events with total_tokens present: {token_usage_events_with_total}")
+    print(f"  Total elapsed latency seconds (sum over attempted calls): {total_latency_seconds:.3f}s")
+    if total_llm_calls_attempted > 0:
+        print(f"  Avg latency per attempted call: {total_latency_seconds / total_llm_calls_attempted:.3f}s")
+    else:
+        print("  Avg latency per attempted call: N/A")
+    print(f"  Failures/skips (evasiveness_score None for attempted calls): {llm_failures}")
+
     print(f"{'=' * 72}")
 
 
