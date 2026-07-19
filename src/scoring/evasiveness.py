@@ -177,6 +177,17 @@ def score_evasiveness_llm(chunks: list[str], model: str = None) -> dict:
     raw = response.choices[0].message.content
     logger.debug("LLM raw response: %s", raw[:500])
 
+    # OpenAI-compatible clients (including Groq) may include token usage.
+    # We pass usage through for later reporting in runner scripts.
+    usage = getattr(response, "usage", None)
+    usage_dict = None
+    if usage is not None:
+        usage_dict = {
+            "prompt_tokens": getattr(usage, "prompt_tokens", None),
+            "completion_tokens": getattr(usage, "completion_tokens", None),
+            "total_tokens": getattr(usage, "total_tokens", None),
+        }
+
     try:
         parsed = json.loads(raw)
     except json.JSONDecodeError:
@@ -201,6 +212,7 @@ def score_evasiveness_llm(chunks: list[str], model: str = None) -> dict:
         "evasiveness_score": score,
         "supporting_quotes": quotes,
         "raw_response": raw,
+        "usage": usage_dict,
     }
 
 
