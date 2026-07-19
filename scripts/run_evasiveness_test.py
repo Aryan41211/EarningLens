@@ -29,8 +29,11 @@ from src.utils.logging import setup_logger
 setup_logger(LOG_PATH)
 
 
-def run_company(conn, company: str) -> None:
+def run_company(conn, company: str, *, year: str | None = None, quarter: str | None = None) -> None:
     quarters = ["Q1", "Q2", "Q3", "Q4"]
+
+    if quarter:
+        quarters = [quarter]
 
     # ---- LLM run instrumentation totals (for Step 5) ----
     total_llm_calls_attempted = 0  # count when Q&A is detected (LLM invoked)
@@ -143,8 +146,21 @@ def run_company(conn, company: str) -> None:
 
 def main():
     company = sys.argv[1] if len(sys.argv) > 1 else "TCS"
+
+    # Optional CLI args (for single-quarter runs without changing scoring logic)
+    # Usage:
+    #   python scripts/run_evasiveness_test.py TCS --year 2025 --quarter Q4
+    year = None
+    quarter = None
+    if "--year" in sys.argv:
+        idx = sys.argv.index("--year")
+        year = int(sys.argv[idx + 1])
+    if "--quarter" in sys.argv:
+        idx = sys.argv.index("--quarter")
+        quarter = sys.argv[idx + 1]
+
     conn = init_db(str(DB_PATH))
-    run_company(conn, company)
+    run_company(conn, company, year=year, quarter=quarter)
     conn.close()
 
 
