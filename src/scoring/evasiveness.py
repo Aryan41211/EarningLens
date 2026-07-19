@@ -174,7 +174,7 @@ def score_evasiveness_llm(chunks: list[str], model: str = None) -> dict:
         max_tokens=800,
     )
 
-    raw = response.choices[0].message.content
+    raw: str = response.choices[0].message.content or ""
     logger.debug("LLM raw response: %s", raw[:500])
 
     # OpenAI-compatible clients (including Groq) may include token usage.
@@ -188,10 +188,11 @@ def score_evasiveness_llm(chunks: list[str], model: str = None) -> dict:
             "total_tokens": getattr(usage, "total_tokens", None),
         }
 
+    raw_str: str = raw
     try:
-        parsed = json.loads(raw)
+        parsed = json.loads(raw_str or "")
     except json.JSONDecodeError:
-        cleaned = raw.strip()
+        cleaned = raw_str.strip()
         if cleaned.startswith("```"):
             cleaned = cleaned.split("\n", 1)[-1]
             if cleaned.endswith("```"):
