@@ -21,6 +21,9 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - `.gitignore` — Added `data/earningslens.log`
+- `README.md` — Added CI badge, ARCHITECTURE link, updated project structure and design rules
+
+---
 
 ## [Unreleased] — Phase 1: PDF Extraction + Storage (in progress)
 
