@@ -16,7 +16,7 @@ import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from config import DB_PATH, LOG_PATH
+from config import DB_PATH, LOG_PATH, LLM_MODEL_NAME
 from src.storage.db import init_db, get_chunks
 from src.scoring.evasiveness import (
     score_transcript_evasiveness,
