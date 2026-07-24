@@ -115,6 +115,20 @@ def run_company(conn, company: str, *, year: str | None = None, quarter: str | N
 
                 if llm.get("evasiveness_score") is not None:
                     print(f"  LLM Evasiveness Score: {llm['evasiveness_score']}/10")
+
+                    # ---- FIX A: Persist to scoring_runs table ----
+                    # Get the transcript_id (first chunk's row ID serves as transcript identifier)
+                    transcript_id = chunks[0][0]
+                    prompt_version = "evasiveness-v1"
+                    raw_response = llm.get("raw_response", "")
+                    store_scoring_run(
+                        conn,
+                        transcript_id,
+                        LLM_MODEL_NAME,
+                        prompt_version,
+                        raw_response,
+                    )
+                    print(f"  [stored to scoring_runs: transcript_id={transcript_id}, model={LLM_MODEL_NAME}]")
                 else:
                     llm_failures += 1
                     print(f"  LLM Evasiveness Score: SKIPPED ({llm.get('error', 'no LLM configured')})")
