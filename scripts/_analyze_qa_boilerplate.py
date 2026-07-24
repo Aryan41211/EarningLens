@@ -63,3 +63,35 @@ for ci, ct in enumerate(qa_texts):
         chars = sum(m[1] for m in matches)
         total_analyst_char_savings += chars
         total_analyst_count += len(matches)
+        print(f"\nChunk {ci} ({len(ct.split())} words, {len(ct)} chars) — {len(matches)} match(es), ~{chars} chars:")
+        for m in matches[:5]:
+            print(f"  [{m[1]} chars] \"{m[0][:100]}...\"")
+
+print(f"\nTotal analyst matches across all chunks: {total_analyst_count}")
+print(f"Total char savings if stripped: {total_analyst_char_savings}")
+print(f"Estimated token savings (~4 chars/token): ~{total_analyst_char_savings // 4}")
+
+print()
+print("=" * 60)
+print("2. OPERATOR / MODERATOR TRANSITIONS")
+print("=" * 60)
+total_op_char_savings = 0
+total_op_count = 0
+for ci, ct in enumerate(qa_texts):
+    matches = []
+    for p in operator_patterns:
+        for m in re.finditer(p, ct):
+            matches.append((m.group(), len(m.group())))
+    if matches:
+        chars = sum(m[1] for m in matches)
+        total_op_char_savings += chars
+        total_op_count += len(matches)
+        print(f"\nChunk {ci}: {len(matches)} match(es), ~{chars} chars:")
+        for m in matches[:5]:
+            print(f"  [{m[1]} chars] \"{m[0][:120]}...\"")
+
+print(f"\nTotal operator matches: {total_op_count}")
+print(f"Total char savings if stripped: {total_op_char_savings}")
+print(f"Estimated token savings: ~{total_op_char_savings // 4}")
+
+print()
