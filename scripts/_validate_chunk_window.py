@@ -19,7 +19,7 @@ print(f"Total Q&A chunks: {len(qa_texts)}")
 for i, t in enumerate(qa_texts):
     print(f"  qa_texts[{i}] = {len(t.split())} words")
 
-# Search for quote fragments in each chunk
+
 searches = [
     ("guiding beacon", "Quote 1"),
     ("26%", "Quote 1"),
