@@ -5,9 +5,7 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased] — Production Infrastructure Additions
 
-### Added
 - `.github/workflows/test.yml` — CI runs `pytest tests/ -v` on every push and pull request
 - `config.py` now calls `load_dotenv()` on import — environment variables are loaded at startup
 - `config.py` — `LOG_PATH` and `MIN_EXTRACTED_WORDS` constants for logging and validation
