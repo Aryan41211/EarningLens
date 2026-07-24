@@ -5,7 +5,9 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — Production Infrastructure Additions
 
+### Added
 - `.github/workflows/test.yml` — CI runs `pytest tests/ -v` on every push and pull request
 - `config.py` now calls `load_dotenv()` on import — environment variables are loaded at startup
 - `config.py` — `LOG_PATH` and `MIN_EXTRACTED_WORDS` constants for logging and validation
@@ -15,12 +17,10 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `scripts/run_phase1.py` — Migrated from `print()` to structured logging via `logger`
 - `scripts/run_phase1.py` — PDF extraction validation: rejects extractions below 50 words with a logged warning, continues batch
 - `ARCHITECTURE.md` — Full architecture document: data flow diagram, phase map, design decisions, tradeoffs, non-goals
+- `scripts/run_evasiveness_test.py` — Now persists every successful LLM scoring response to `scoring_runs` table via `store_scoring_run()` (Fix A, commit 6d76ba2)
 
 ### Changed
 - `.gitignore` — Added `data/earningslens.log`
-- `README.md` — Added CI badge, ARCHITECTURE link, updated project structure and design rules
-
----
 
 ## [Unreleased] — Phase 1: PDF Extraction + Storage (in progress)
 
