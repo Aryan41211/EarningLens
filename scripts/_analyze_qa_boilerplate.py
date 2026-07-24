@@ -95,3 +95,60 @@ print(f"Total char savings if stripped: {total_op_char_savings}")
 print(f"Estimated token savings: ~{total_op_char_savings // 4}")
 
 print()
+print("=" * 60)
+print("3. FILLER TRANSITION PHRASES")
+print("=" * 60)
+total_fill_char_savings = 0
+total_fill_count = 0
+for ci, ct in enumerate(qa_texts):
+    matches = []
+    for p in filler_patterns:
+        for m in re.finditer(p, ct):
+            matches.append((m.group(), len(m.group())))
+    if matches:
+        chars = sum(m[1] for m in matches)
+        total_fill_char_savings += chars
+        total_fill_count += len(matches)
+
+print(f"Total filler matches: {total_fill_count}")
+print(f"Total char savings if stripped: {total_fill_char_savings}")
+print(f"Estimated token savings: ~{total_fill_char_savings // 4}")
+
+print()
+print("=" * 60)
+print("4. COMBINED ESTIMATE")
+print("=" * 60)
+total_chars = sum(len(ct) for ct in qa_texts)
+total_words = sum(len(ct.split()) for ct in qa_texts)
+total_savings = total_analyst_char_savings + total_op_char_savings + total_fill_char_savings
+print(f"  Total Q&A chars: {total_chars}")
+print(f"  Total Q&A words: {total_words}")
+print(f"  Estimated tokens (words*1.33): ~{int(total_words * 1.33)}")
+print(f"  Strippable chars: {total_savings}")
+print(f"  Strippable tokens: ~{total_savings // 4}")
+print(f"  % reduction: {total_savings / total_chars * 100:.1f}%")
+print(f"  If baseline ~6800 tokens, reduced to: ~{int(6800 * (1 - total_savings / total_chars))}")
+
+print()
+print("=" * 60)
+print("5. COST-ESTIMATE")
+print("=" * 60)
+# Cost of running without any reduction
+# Assume ~6800 tokens per call, 11 transcripts, 1 dimension
+total_tokens = 6800 * 11
+# gpt-4.1-mini pricing (approximate): $0.15/1M input, $0.60/1M output
+# Assume ~800 output tokens per call
+input_cost_per_1m = 0.15
+output_cost_per_1m = 0.60
+total_input_tokens = total_tokens
+total_output_tokens = 800 * 11
+print(f"  11 transcripts x 1 dimension:")
+print(f"  Total input tokens: ~{total_input_tokens}")
+print(f"  Total output tokens: ~{total_output_tokens}")
+print(f"  Estimated cost (gpt-4.1-mini): ${total_input_tokens/1_000_000 * input_cost_per_1m + total_output_tokens/1_000_000 * output_cost_per_1m:.4f}")
+print(f"  Estimated cost (gpt-4o-mini): ${total_input_tokens/1_000_000 * 0.15 + total_output_tokens/1_000_000 * 0.60:.4f}")
+print()
+print(f"  At ~15s per call, 11 calls = {11 * 15 // 60}min {11 * 15 % 60}s total latency")
+print(f"  Days to complete (if paced): < 1 day")
+
+conn.close()
