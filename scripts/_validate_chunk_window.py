@@ -1,4 +1,7 @@
-"""Fix B validation: verify all 3 supporting quotes fall within 'first 3 + last 2' window."""
+"""
+Fix B validation: verify deterministic DODGE_PHRASES keyword hits fall
+within the "first 3 + last 2" Q&A chunk window.
+
 import sys
 import os
 import re
