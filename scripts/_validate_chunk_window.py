@@ -2,6 +2,8 @@
 Fix B validation: verify deterministic DODGE_PHRASES keyword hits fall
 within the "first 3 + last 2" Q&A chunk window.
 
+NOTE: This validates ONLY keyword-based dodge-phrase matches (from
+DODGE_PHRASES in evasiveness.py). It does NOT validate LLM-generated
 import sys
 import os
 import re
