@@ -1,7 +1,16 @@
-"""Find TCS Q2 2023 LLM response in the log file and cross-reference against Q&A chunk indices."""
+"""
+Find TCS Q2 2023 LLM response in the log, extract supporting_quotes,
+and cross-reference each quote against Q&A chunk indices.
+
+NOTE: This validates LLM-generated supporting_quotes (free-text output)
+against the "first 3 + last 2" window. This is DISTINCT from
+_validate_chunk_window.py, which validates deterministic DODGE_PHRASES
+keyword hits against the same window. Windowing was ultimately rejected
+for the scoring pipeline because LLM-generated quotes (like Quote 2 here)
+fall outside the window — see CHANGELOG.md for that decision.
+"""
 import sys
 sys.path.insert(0, ".")
-import re
 import json
 from config import DB_PATH
 from src.storage.db import init_db, get_chunks
@@ -9,44 +18,31 @@ from src.scoring.evasiveness import find_qa_start_index
 
 # Load log data
 with open("data/earningslens.log", "r", errors="replace") as f:
-    lines = f.readlines()
+    log_text = f.read()
 
-# Get the 3 quotes from TCS Q2 2023 LLM runs (log line ~316, 359)
-# Find the line containing "We remain committed to our guiding beacon"
-target_lines = [l for l in lines if "We remain committed to our guiding beacon" in l and "TCV" in l]
-if not target_lines:
-    # Try other lines
-    target_lines = [l for l in lines if "guiding beacon" in l]
+# Find the line containing the LLM raw response JSON for TCS Q2 2023
+# Look for the content between "LLM raw response:" and the next log timestamp
+entries = log_text.split("LLM raw response: ")
+if len(entries) < 2:
+    print("ERROR: No 'LLM raw response' entries found in log.")
+    sys.exit(1)
 
-print(f"Found {len(target_lines)} candidate lines with guiding beacon")
-for ti, tl in enumerate(target_lines[:3]):
-    print(f"Candidate {ti}: {tl[:250]}")
+# Pick the first entry (TCS Q2 2023)
+raw = entries[1]
+# The JSON ends at the next newline (log writes the entire response on one line)
+json_str = raw.split("\n")[0].strip()
 
-# Extract quotes text from "supporting_quotes": [...] 
-# Find the JSON array after "supporting_quotes": 
-match = re.search(r'{"evasiveness_score": (\d+), "supporting_quotes": (\[.*?\])}', target_lines[0] if target_lines else "", re.DOTALL)
-if match:
-    score = match.group(1)
-    try:
-        quotes = json.loads(match.group(2))
-        print(f"\nParsed quotes (score={score}):")
-        for i, q in enumerate(quotes):
-            print(f"  Quote {i+1}: {q[:120]}...")
-    except json.JSONDecodeError as e:
-        print(f"JSON parse error: {e}")
-        print(f"Raw match: {match.group(2)[:200]}")
-        quotes = []
-else:
-    print("Could not extract supporting_quotes via regex, trying direct approach")
-    # Directly find the line
-    for l in lines:
-        if '"supporting_quotes"' in l and 'evasiveness_score' in l:
-            match = re.search(r'{"evasiveness_score": (\d+), "supporting_quotes": (\[.*?\])}', l, re.DOTALL)
-            if match:
-                quotes = json.loads(match.group(2))
-                break
-    else:
-        quotes = []
+try:
+    data = json.loads(json_str)
+    score = data.get("evasiveness_score")
+    quotes = data.get("supporting_quotes", [])
+    print(f"Parsed response: evasiveness_score={score}, {len(quotes)} quote(s)")
+    for i, q in enumerate(quotes):
+        print(f"  Quote {i+1}: {q[:120]}...")
+except json.JSONDecodeError as e:
+    print(f"JSON parse error: {e}")
+    print(f"First 300 chars of raw: {json_str[:300]}")
+    quotes = []
 
 # Now find which Q&A chunk each quote fragment belongs to
 conn = init_db(str(DB_PATH))
