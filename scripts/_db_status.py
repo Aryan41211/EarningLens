@@ -31,7 +31,7 @@ print()
 # List all runs
 cur.execute("""
     SELECT c.company, c.quarter, c.year, s.transcript_id,
-           s.scored_at, s.raw_response
+           s.scored_at, s.raw_llm_response
     FROM scoring_runs s
     JOIN transcripts c ON s.transcript_id = c.id
     ORDER BY c.company, c.year, c.quarter
