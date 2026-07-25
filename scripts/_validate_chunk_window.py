@@ -4,6 +4,13 @@ within the "first 3 + last 2" Q&A chunk window.
 
 NOTE: This validates ONLY keyword-based dodge-phrase matches (from
 DODGE_PHRASES in evasiveness.py). It does NOT validate LLM-generated
+supporting_quotes — that is done by _find_q2_2023_quotes.py.
+
+Windowing was ultimately rejected for the scoring pipeline because
+LLM-generated supporting_quotes (e.g., Quote 2 for TCS Q2 2023 at
+chunk index 4) fall outside the "first 3 + last 2" window.
+See CHANGELOG.md for that decision.
+"""
 import sys
 import os
 import re
