@@ -334,22 +334,30 @@ def test_forward_guidance_vagueness_returns_empty_when_not_configured():
 
 def test_scores_table_created():
     import tempfile
+    import os
     from src.storage.db import init_db
-    with tempfile.NamedTemporaryFile(suffix=".db") as f:
-        conn = init_db(f.name)
+    fd, path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    try:
+        conn = init_db(path)
         cur = conn.cursor()
         cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='scores'")
         row = cur.fetchone()
         assert row is not None
         assert row[0] == "scores"
         conn.close()
+    finally:
+        os.unlink(path)
 
 
 def test_store_score_and_get_scores():
     import tempfile
+    import os
     from src.storage.db import init_db, store_transcript, store_score, get_scores
-    with tempfile.NamedTemporaryFile(suffix=".db") as f:
-        conn = init_db(f.name)
+    fd, path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    try:
+        conn = init_db(path)
         # Insert a transcript first
         store_transcript(conn, "TCS", "Q1", 2025, ["chunk text here"], "TCS_Q1_2025.pdf")
         cur = conn.cursor()
@@ -365,13 +373,18 @@ def test_store_score_and_get_scores():
         assert rows[0][4] == "evasiveness"  # dimension
         assert rows[0][5] == 7  # score
         conn.close()
+    finally:
+        os.unlink(path)
 
 
 def test_store_score_upsert():
     import tempfile
+    import os
     from src.storage.db import init_db, store_transcript, store_score, get_scores
-    with tempfile.NamedTemporaryFile(suffix=".db") as f:
-        conn = init_db(f.name)
+    fd, path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    try:
+        conn = init_db(path)
         store_transcript(conn, "TCS", "Q1", 2025, ["chunk text here"], "TCS_Q1_2025.pdf")
         cur = conn.cursor()
         cur.execute("SELECT id FROM transcripts WHERE company='TCS' AND quarter='Q1' AND year=2025 LIMIT 1")
@@ -386,6 +399,8 @@ def test_store_score_upsert():
         assert len(rows) == 1
         assert rows[0][5] == 8  # latest score
         conn.close()
+    finally:
+        os.unlink(path)
 
 
 # ===========================================================
