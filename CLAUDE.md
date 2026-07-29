@@ -1,35 +1,63 @@
-# CLAUDE.md — Agent Instructions for EarningLens
+# CLAUDE.md — Start Here
 
-## Project
-Indian earnings call transcript analysis for red-flag detection across 5 credibility dimensions, quarter over quarter.
+> This is the entry point for any agent (or human) working on this project.
+> Read this first, then follow links below for depth on any topic.
 
-## Current Phase (from codebase)
-**Phase 1 — PDF extraction + SQLite storage (functional, not validated end-to-end)**
-- `src/extraction/`: pdf_extractor → cleaner → chunker
-- `src/storage/db.py`: transcripts table, CRUD
-- `scripts/run_phase1.py`: orchestrates pipeline
-- Run: `python scripts/run_phase1.py` (needs PDFs in `data/raw_pdfs/`)
+## What this project is
 
-## Hard Constraints (rules, not suggestions)
-1. **No LangGraph, no vector DBs, no RAG** — explicitly out of scope.
-2. **No Phase N+1 before Phase N works + tests pass** — sequential only.
-3. **No invented metrics** — only report numbers measured on a labeled test set.
-4. **Exactly 5 scoring dimensions** — evasiveness, sentiment shift, overpromising, complexity spike, forward guidance vagueness. Do not add without explicit request.
+EarningsLens is a single-user Python tool that scores Indian company earnings
+call transcripts for management credibility (evasiveness, sentiment shift,
+overpromising, complexity spikes, forward guidance vagueness) so a retail
+investor can spot red flags before they show up in the stock price.
 
-## Key File Locations (don't search, just know)
-- `config.py` — all paths, constants, filename regex, chunk target, dimension list
-- `data/earningslens.db` — SQLite (gitignored); schema in `src/storage/db.py:13-25`
-- `src/extraction/` — Phase 1 pipeline (pdf → clean → chunks)
-- `src/storage/` — persistence only
-- `src/scoring/` — Phase 2 (empty)
-- `src/trends/` — Phase 3 (empty, has `metrics.py` stub)
+Full context: [`PROJECT_CONTEXT.md`](./PROJECT_CONTEXT.md)
 
-## Data Directories (gitignored)
-- `data/raw_pdfs/` — drop transcripts here (`COMPANY_Q<n>_<year>.pdf`)
-- `data/processed/` — cleaned text output for inspection
-- Real PDFs never committed.
+## Hard rules (non-negotiable — see PROJECT_RULES.md for full list)
 
-## Update These When You Finish Meaningful Work
-- `CHANGELOG.md` — add entries under the current phase
-- `data/findings/findings.md` — fill the template when you have a verified trend→stock-move case
+- No LangChain / LangGraph. Direct OpenAI-compatible client calls only.
+- No vector DB, no RAG. Scoring is single-prompt, no retrieval.
+- Exactly 5 scoring dimensions. Do not add a 6th without an explicit request.
+- Sequential phases: do not start Phase N+1 work until Phase N is tested and green.
+- No `print()` in `src/` — use the structured logger.
+- Never commit real API keys. `.env` is gitignored; if a key ever lands in
+  git history, treat it as compromised and rotate it.
 
+## Current phase status (see PROJECT_STATUS.md for detail)
+
+| Phase | Status |
+|---|---|
+| 1 — Extraction & storage | ✅ Functional |
+| 2 — LLM scoring | 🟡 1 of 5 dimensions done (evasiveness) |
+| 3 — Trend detection | ⬜ Stub only |
+| 4 — Dashboard | ⬜ Empty |
+
+## Key files to read before touching code
+
+- `config.py` — single source of truth for paths/constants/regex/dimensions
+- `src/scoring/evasiveness.py` — most complex module, reference for the pattern
+  the other 4 dimensions should follow
+- `src/storage/db.py` — schema + CRUD
+
+## Doc map
+
+| Doc | Covers |
+|---|---|
+| PROJECT_CONTEXT.md | Problem, users, one-line & executive summary |
+| ARCHITECTURE.md | System design, data flow, runtime flow |
+| FOLDER_STRUCTURE.md | Directory/file responsibilities |
+| TECH_STACK.md | Languages, libraries, LLM/DB/API stack |
+| CODING_STANDARDS.md | Style & convention rules |
+| DEVELOPMENT_GUIDE.md | Setup, run, test, deploy |
+| DATASETS.md | DB schema, current data inventory |
+| PROJECT_STATUS.md | Phase-by-phase current state |
+| ROADMAP.md | Near-term planned work |
+| FUTURE_IDEAS.md | Later-stage / speculative ideas |
+| EXPERIMENTS.md | Research scripts & findings |
+| PROJECT_RULES.md | Hard constraints / non-goals |
+| PROJECT_MEMORY.md | Git history, known issues, tech debt, risks |
+
+## Naming note
+
+> TODO: confirm canonical project name — source notes used "EarningLens" and
+> "EarningsLens" interchangeably. This doc set standardizes on **EarningsLens**;
+> update if that's wrong.

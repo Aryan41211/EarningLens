@@ -3,6 +3,7 @@ All SQLite schema and CRUD lives here.
 This module does ONE thing: persistence. No PDF logic, no cleaning, no chunking.
 """
 
+import json
 import sqlite3
 from datetime import datetime, timezone
 
@@ -33,6 +34,21 @@ def init_db(db_path: str) -> sqlite3.Connection:
             scored_at TEXT NOT NULL,
             raw_llm_response TEXT NOT NULL,
             FOREIGN KEY (transcript_id) REFERENCES transcripts(id)
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS scores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            transcript_id INTEGER NOT NULL,
+            dimension TEXT NOT NULL,
+            score INTEGER NOT NULL,
+            supporting_quotes TEXT,
+            scored_at TEXT NOT NULL,
+            model_name TEXT NOT NULL,
+            prompt_version TEXT NOT NULL,
+            raw_llm_response TEXT NOT NULL,
+            FOREIGN KEY (transcript_id) REFERENCES transcripts(id),
+            UNIQUE(transcript_id, dimension)
         )
     """)
     conn.commit()
@@ -78,6 +94,40 @@ def get_chunks(conn, company: str, quarter: str = None, year: int = None):
         query += " AND year = ?"
         params.append(year)
     query += " ORDER BY year, quarter, chunk_index"
+    cur = conn.cursor()
+    cur.execute(query, params)
+    return cur.fetchall()
+
+
+def store_score(conn, transcript_id, dimension, score, supporting_quotes, model_name, prompt_version, raw_response):
+    """Persist a single dimension score. Uses INSERT OR REPLACE to handle re-scoring."""
+    cur = conn.cursor()
+    now = datetime.now(timezone.utc).isoformat()
+    cur.execute("""
+        INSERT OR REPLACE INTO scores
+        (transcript_id, dimension, score, supporting_quotes, scored_at, model_name, prompt_version, raw_llm_response)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (transcript_id, dimension, score, json.dumps(supporting_quotes), now, model_name, prompt_version, raw_response))
+    conn.commit()
+
+
+def get_scores(conn, company: str, quarter: str = None, year: int = None):
+    """Fetch scores joined with transcript metadata for a company."""
+    query = """
+        SELECT t.company, t.quarter, t.year, t.chunk_index,
+               s.dimension, s.score, s.supporting_quotes, s.scored_at
+        FROM scores s
+        JOIN transcripts t ON s.transcript_id = t.id
+        WHERE t.company = ?
+    """
+    params = [company.upper()]
+    if quarter:
+        query += " AND t.quarter = ?"
+        params.append(quarter)
+    if year:
+        query += " AND t.year = ?"
+        params.append(year)
+    query += " ORDER BY t.year, t.quarter, s.dimension"
     cur = conn.cursor()
     cur.execute(query, params)
     return cur.fetchall()

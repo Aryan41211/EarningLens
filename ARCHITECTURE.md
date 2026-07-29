@@ -1,116 +1,75 @@
-# EarningsLens Architecture
+# ARCHITECTURE.md
 
-## End-to-End Data Flow
+## Overview
+
+A strictly sequential 4-phase pipeline. Each phase is a separate module tree
+that only talks to the next stage through SQLite — modules never import
+across phase boundaries.
 
 ```
-data/raw_pdfs/      ──►  src/extraction/pdf_extractor.py   ──►  raw text
-       │                                                              │
-       │                                                    src/extraction/cleaner.py
-       │                                                              │
-       │                                                     clean text (no boilerplate)
-       │                                                              │
-       │                                                    src/extraction/chunker.py
-       │                                                              │
-       │                                                    ~600-word chunks
-       │                                                              │
-       └──────────────────────────►  src/storage/db.py  ◄─────────────┘
-                                            │
-                                     data/earningslens.db
-                                     (transcripts table)
-                                            │
-                               ──►  src/scoring/ (Phase 2)
-                                     LLM prompt + per-dimension scoring
-                                            │
-                                     data/earningslens.db
-                                     (scores table + scoring_runs table)
-                                            │
-                               ──►  src/trends/ (Phase 3)
-                                     cross-quarter aggregation
-                                            │
-                               ──►  src/dashboard/ (Phase 4)
-                                     Streamlit dashboard
+data/raw_pdfs/
+    │  (COMPANY_Q<n>_<year>.pdf)
+    ▼
+src/extraction/pdf_extractor.py      → raw text, [PAGE_BREAK]-joined pages
+    │                                    + filename metadata parse
+    ▼  (reject if < 50 words)
+src/utils/text_cleaning.py           → boilerplate stripped (headers,
+    │                                    footers, page numbers, disclaimers)
+    ▼  (also written to data/processed/ for inspection)
+src/extraction/chunker.py            → ~600-word paragraph-aware chunks
+    ▼
+src/storage/db.py                    → SQLite `transcripts` table
+    ▼  (Phase 2 — manual trigger)
+src/scoring/evasiveness.py           → keyword matching + LLM scoring
+    ▼
+src/storage/db.py                    → SQLite `scoring_runs` table
+    ▼  (Phase 3 — not implemented)
+src/trends/metrics.py                → QoQ deltas, rolling averages,
+                                         trend labels, drop detection
+    ▼  (Phase 4 — not implemented)
+src/dashboard/                       → Streamlit UI
 ```
 
-## Phase Map
+## Key architectural principles
 
-| Phase | What it does | Status |
-|-------|-------------|--------|
-| 1 — Extraction | PDF → clean text → chunks → SQLite | Functional, not validated end-to-end |
-| 2 — Scoring | LLM-based scoring across 5 dimensions via prompt | Not started |
-| 3 — Trends | Cross-quarter aggregation, spike detection, alerting | Not started |
-| 4 — Dashboard | Streamlit UI with company selector, sparklines, drill-down | Not started |
+- **Module isolation by responsibility**: extraction never touches storage
+  internals; storage never imports PyMuPDF; scoring never imports extraction.
+- **Scripts orchestrate, modules implement**: everything in `scripts/` is
+  composition only — no business logic lives there.
+- **`config.py` is the single source of truth** for paths, constants, regex,
+  scoring dimensions, and LLM settings. No module hardcodes a path.
+- **Auditability over convenience**: every LLM call's raw JSON response is
+  persisted in `scoring_runs`, even though this makes querying scores by
+  dimension currently require parsing JSON rather than a clean column.
 
-## Why SQLite instead of PostgreSQL
+## Runtime flow — Phase 1 (`scripts/run_phase1.py`)
 
-PostgreSQL solves concurrent writer workloads, network-accessible databases,
-and terabyte-scale storage. This project has none of those requirements:
+1. Import `config.py` → `load_dotenv()` loads `.env`.
+2. `setup_logger()` — file handler at DEBUG, console handler at INFO.
+3. `init_db()` — creates `transcripts` / `scoring_runs` tables if absent.
+4. Discover `*.pdf` in `data/raw_pdfs/`, sorted alphabetically.
+5. Per PDF: parse filename metadata → extract text → validate (≥50 words) →
+   clean → write to `data/processed/` → chunk → `store_transcript()`
+   (deletes stale chunks for that company/quarter/year before inserting).
+6. Close DB connection.
 
-- Single-user (the developer runs the pipeline on one machine).
-- Dataset is a few hundred transcripts at most. A SQLite file easily holds all
-  extracted text, scores, and metadata.
-- Zero operational overhead. No installation, no daemon, no connection pooling.
+## Runtime flow — Phase 2 (`scripts/run_evasiveness_test.py [COMPANY]`)
 
-SQLite is the right choice until this project genuinely needs concurrent writes
-or a network-accessible database — which, realistically, it never will.
+1. Load all quarters for the company from SQLite.
+2. `get_chunks()` → all chunks for a transcript.
+3. `find_qa_start_index()` — regex-detects where Q&A begins (variants of
+   "first question from the line of…").
+4. `score_evasiveness_keywords()` — deterministic dodge-phrase matching,
+   restricted to Q&A chunks only (prepared remarks are skipped to avoid
+   safe-harbor boilerplate false positives).
+5. `score_evasiveness_llm()` — sends Q&A chunks to Groq's
+   `llama-3.3-70b-versatile` via an OpenAI-compatible client, temperature
+   0.1, requests a 1–10 score plus supporting quotes as JSON.
+6. `store_scoring_run()` persists the run (model, prompt version, raw
+   response) to `scoring_runs`.
 
-## Why no Vector Database
+## Design decisions
 
-Vector databases serve similarity search over embeddings (RAG, semantic search).
-This project doesn't need either:
-
-- Scoring is done by prompting an LLM with chunk text directly. No retrieval step.
-- The "search" use case is filtering by company/quarter/year, which SQL handles
-  natively with indexed columns.
-- Adding a vector DB would introduce a second storage system for no benefit.
-
-## Why no LangChain / LangGraph
-
-LangChain and LangGraph are orchestration frameworks for complex LLM chains
-and agent loops. This project's LLM interaction is a single prompt → score
-per chunk:
-
-- No chain-of-thought decomposition.
-- No tool-calling.
-- No multi-step agent reasoning.
-- No conditional branching between LLM calls.
-
-A direct `requests.post()` or `openai` client call is simpler, faster to debug,
-and removes an entire dependency surface (version mismatches, abstractions that
-leak, prompt template quirks). The scoring module will use the `openai` Python
-package directly with a well-structured prompt.
-
-## Scoring Dimensions
-
-All five dimensions are defined in `config.py`:
-
-1. **evasiveness** — LLM-based. Measures non-answers, deflection, overly vague responses.
-2. **sentiment_shift** — LLM-based. Detects tone changes compared to previous quarters.
-3. **overpromising** — LLM-based. Flags aggressive guidance, unrealistic targets.
-4. **complexity_spike** — Rule + LLM hybrid. Uses Flesch readability (rule) + LLM judgment on jargon density.
-5. **forward_guidance_vagueness** — LLM-based. Scores how specific/measurable forward-looking statements are.
-
-## Design Decisions
-
-| Decision | Rationale |
-|----------|-----------|
-| `config.py` as single source of truth | Every path, regex, and constant lives here. No module hardcodes a path. |
-| Extraction never touches storage | `src/extraction/` returns text. `src/storage/` persists it. They don't import each other. |
-| `scripts/` only orchestrates | Scripts sequence calls. Real logic lives in `src/`. |
-| `python-dotenv` at startup | Environment variables loaded once in `config.py`. No hardcoded secrets. |
-| Structured logging to file + console | `data/earningslens.log` at DEBUG level, console at INFO. Makes debugging API calls feasible. |
-| `scoring_runs` metadata table | Every LLM call is recorded with model name, prompt version, and raw JSON response. Enables auditing when scores change. |
-| Filename-bound metadata | Company, quarter, year parsed from filename convention `COMPANY_Q<n>_<year>.pdf`. Consistent naming is a precondition. |
-| Paragraph-aware chunking | Chunks respect paragraph boundaries. No sentence is split mid-way. Each chunk is self-contained for scoring. |
-| PDF extraction validation | Extractions below 50 words are rejected with a logged warning. The pipeline continues with remaining files. |
-
-## What is NOT in this architecture
-
-- **Authentication / Authorization** — single-user research tool.
-- **Vector Database** — no retrieval or RAG use case.
-- **LangChain / LangGraph** — single-prompt scoring, no orchestration needed.
-- **MLflow / Model Registry** — model choice is a config variable, not a tracking problem.
-- **Message Queues** — pipeline is batch, not stream.
-- **Docker / Kubernetes** — one Python script on one machine.
-- **PostgreSQL** — SQLite covers the data volume.
-
-
+See `PROJECT_RULES.md` for the full enumerated list of hard constraints and
+their rationale (SQLite over Postgres, no vector DB, no LangChain, Q&A-only
+keyword scoring, no chunk windowing, etc.).
