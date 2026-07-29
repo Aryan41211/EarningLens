@@ -47,13 +47,21 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — Phase 2: Intelligence Engine (LLM Scoring)
 
-*Planned — not started*
+### Added
+- `src/scoring/sentiment_shift.py` — LLM-based scoring for tone/attitude shifts across transcript sections
+- `src/scoring/complexity_spike.py` — LLM-based scoring for jargon density, nested qualifiers, and language obfuscation
+- `src/scoring/overpromising.py` — LLM-based scoring for aggressive guidance, unrealistic targets, and aspirational claims
+- `src/scoring/forward_guidance_vagueness.py` — LLM-based scoring for vague forward-looking statements without numbers/timelines
+- `src/scoring/__init__.py` — Scoring orchestrator that runs all 5 dimensions and stores results in the `scores` table
+- `src/storage/db.py` — `scores` table DDL in `init_db()`, `store_score()` with INSERT OR REPLACE for re-scoring, `get_scores()` with joins
+- `tests/test_scoring_dimensions.py` — Unit tests for all 4 new dimensions (LLM mocked), `scores` table CRUD tests, orchestrator import test
 
-### To be added
-- `src/scoring/` — LLM-based scoring across 5 dimensions (evasiveness, sentiment shift, overpromising, complexity spike, forward guidance vagueness)
-- Prompt templates + few-shot examples derived from `notebooks/reading-notes.md`
-- Scored chunks stored in new `scores` table (FK to transcripts)
-- Evaluation harness against manual labels
+### Design decisions
+- All 4 new dimensions follow the same module pattern as `evasiveness.py`: system prompt + `_build_prompt()` + `score_<dimension>_llm()` + `score_transcript_<dimension>()`
+- Each dimension has a unique system prompt with dimension-specific red-flag patterns (NOT copy-pasted from evasiveness)
+- New dimensions use ALL chunks (not Q&A-only) — sentiment, complexity, overpromising, and guidance vagueness appear across the full transcript
+- `scores` table uses `UNIQUE(transcript_id, dimension)` with INSERT OR REPLACE to handle re-scoring without duplicates
+- The orchestrator (`__init__.py`) is the only file that imports both scoring modules AND `db.py`, maintaining the module boundary rule
 
 ---
 
