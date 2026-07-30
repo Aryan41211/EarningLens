@@ -34,7 +34,7 @@ Full context: [`PROJECT_CONTEXT.md`](./PROJECT_CONTEXT.md)
 ## Key files to read before touching code
 
 - `config.py` — single source of truth for paths/constants/regex/dimensions..
-- `src/scoring/evasiveness.py` — most complex module, reference for the pattern
+- `src/scoring/evasiveness.py` — most complex module, reference for the pattern.
   the other 4 dimensions should follow..
 - `src/storage/db.py` — schema + CRUD.
 
