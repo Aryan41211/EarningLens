@@ -17,7 +17,7 @@ Full context: [`PROJECT_CONTEXT.md`](./PROJECT_CONTEXT.md)
 - No LangChain / LangGraph. Direct OpenAI-compatible client calls only.
 - No vector DB, no RAG. Scoring is single-prompt, no retrieval.
 - Exactly 5 scoring dimensions. Do not add a 6th without an explicit request.
-- Sequential phases: do not start Phase N+1 work until Phase N is tested and green.
+- Sequential phases: do not start Phase N+1 work until Phase N is tested and green
 - No `print()` in `src/` — use the structured logger.
 - Never commit real API keys. `.env` is gitignored; if a key ever lands in
   git history, treat it as compromised and rotate it.
