@@ -149,7 +149,7 @@ def main():
         print("\n[DRY RUN] The following transcripts would be scored:")
         for company, quarter, year in transcripts:
             transcript_id, chunk_texts = assemble_chunks(conn, company, quarter, year)
-            print(f"  {company} {q} {year} — {len(chunk_texts)} chunks, transcript_id={transcript_id}")
+            print(f"  {company} {quarter} {year} — {len(chunk_texts)} chunks, transcript_id={transcript_id}")
         print(f"\nDimensions: {', '.join(SCORE_DIMENSIONS)}")
         print(f"Model: {model}")
         print(f"Total LLM calls needed: {len(transcripts) * len(SCORE_DIMENSIONS)}")
