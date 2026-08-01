@@ -5,8 +5,8 @@ Runs evasiveness, sentiment_shift, complexity_spike, overpromising,
 and forward_guidance_vagueness against every transcript in the DB.
 Results are persisted to the scores table.
 
-Handles token limits by windowing chunks for non-evasiveness dimensions
-(evasiveness already restricts to Q&A-only chunks internally).
+Every transcript is processed as a single complete document.
+No chunk windowing, no positional selection, no truncation.
 
 Usage:
     python scripts/run_all_scoring.py                    # score all transcripts
@@ -20,7 +20,6 @@ import sys
 import os
 import argparse
 import logging
-import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -35,28 +34,6 @@ from src.utils.logging import setup_logger
 
 
 logger = logging.getLogger("earningslens")
-
-CHUNKS_PER_WINDOW = 5
-MAX_RETRIES = 3
-RETRY_BASE_DELAY = 60  # seconds — start with 60s for daily limits
-
-
-def is_rate_limit_error(exc):
-    return "429" in str(exc) or "rate_limit_exceeded" in str(exc)
-
-
-def retry_on_rate_limit(fn, *args, **kwargs):
-    """Call fn with retries on 429 rate limit errors, using exponential backoff."""
-    for attempt in range(MAX_RETRIES):
-        try:
-            return fn(*args, **kwargs)
-        except Exception as e:
-            if is_rate_limit_error(e) and attempt < MAX_RETRIES - 1:
-                delay = RETRY_BASE_DELAY * (2 ** attempt)
-                logger.warning("    Rate limited (attempt %d/%d). Waiting %ds...", attempt + 1, MAX_RETRIES, delay)
-                time.sleep(delay)
-            else:
-                raise
 
 DIMENSION_SCORERS = {
     "evasiveness": score_transcript_evasiveness,
@@ -96,58 +73,20 @@ def assemble_chunks(conn, company, quarter, year):
     return transcript_id, chunk_texts
 
 
-def score_with_windowing(scorer_fn, chunks, dimension, window_size=CHUNKS_PER_WINDOW):
-    if not chunks:
-        return {"score": None, "supporting_quotes": [], "raw_response": "", "error": "No chunks"}
-
-    if len(chunks) <= window_size:
-        return retry_on_rate_limit(scorer_fn, chunks)
-
-    scores = []
-    all_quotes = []
-    all_raw = []
-
-    step = max(1, window_size // 2)
-    for start in range(0, len(chunks), step):
-        window = chunks[start:start + window_size]
-        if len(window) < 2:
-            break
-
-        logger.info("      Window chunks %d-%d of %d", start, start + len(window), len(chunks))
-        result = retry_on_rate_limit(scorer_fn, window)
-        score_key = SCORE_KEY_MAP[dimension]
-        score_val = result.get(score_key)
-        if score_val is not None:
-            scores.append(score_val)
-        if "supporting_quotes" in result:
-            all_quotes.extend(result["supporting_quotes"])
-        if "raw_response" in result:
-            all_raw.append(result["raw_response"])
-
-    if not scores:
-        return scorer_fn(chunks[-window_size:])
-
-    avg_score = round(sum(scores) / len(scores))
-    return {
-        "score": avg_score,
-        "supporting_quotes": all_quotes[:3],
-        "raw_response": "\n---window---\n".join(all_raw),
-    }
-
-
 def score_dimension(conn, transcript_id, dimension, chunks, model):
+    """Score a single dimension for a transcript. Sends all chunks as a complete document."""
     scorer = DIMENSION_SCORERS[dimension]
     score_key = SCORE_KEY_MAP[dimension]
 
     if dimension == "evasiveness":
-        result = retry_on_rate_limit(scorer, chunks)
+        result = scorer(chunks)
         llm_result = result.get("llm_result", result)
         score_value = llm_result.get(score_key)
         quotes = llm_result.get("supporting_quotes", [])
         raw = llm_result.get("raw_response", "")
     else:
-        result = score_with_windowing(scorer, chunks, dimension)
-        score_value = result.get("score") or result.get(score_key)
+        result = scorer(chunks)
+        score_value = result.get(score_key)
         quotes = result.get("supporting_quotes", [])
         raw = result.get("raw_response", "")
 
@@ -281,7 +220,7 @@ def main():
             print(f"  {company} {quarter} {year} -- {len(chunk_texts)} chunks, transcript_id={transcript_id}")
         print(f"\nDimensions: {', '.join(SCORE_DIMENSIONS)}")
         print(f"Model: {model}")
-        print(f"Total LLM calls needed: ~{len(transcripts) * len(SCORE_DIMENSIONS)} (windowing may add more)")
+        print(f"Total LLM calls needed: {len(transcripts) * len(SCORE_DIMENSIONS)}")
         conn.close()
         return
 
