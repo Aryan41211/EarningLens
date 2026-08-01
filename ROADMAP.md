@@ -5,20 +5,16 @@ are listed in the order they should be tackled, not by convenience._
 
 ## Immediate next steps (finish Phase 2)
 
-1. Add a dedicated `scores` table (per-dimension, per-transcript, queryable
-   columns) instead of relying on JSON parsing from `scoring_runs` —
-   this unblocks Phase 3 trend math.
-2. Implement the remaining 4 scoring dimensions, following the pattern
-   established in `src/scoring/evasiveness.py`:
-   - Sentiment shift
-   - Overpromising
-   - Complexity spike (Flesch readability formula planned as a rule-based
-     complement to the LLM call)
-   - Forward guidance vagueness
-3. Start populating `notebooks/reading-notes.md` with real human-labeled
+1. **Complete INFY evasiveness scoring** — 4 quarters remain unscored.
+   Use `scripts/run_evasiveness_test.py` or `run_all_scoring.py --company INFY`.
+2. **Validate non-evasiveness dimensions on real transcripts** — score a
+   small set (e.g., 2-3 TCS quarters) for sentiment_shift, complexity_spike,
+   overpromising, and forward_guidance_vagueness. Review output for prompt
+   quality, scoring consistency, and edge cases.
+3. **Populate `notebooks/reading-notes.md`** with real human-labeled
    examples — needed to build any evaluation harness.
-4. Build a lightweight evaluation harness comparing LLM scores against the
-   human labels above.
+4. **Build a lightweight evaluation harness** comparing LLM scores against
+   the human labels above.
 
 ## Phase 3 — Trend detection
 
