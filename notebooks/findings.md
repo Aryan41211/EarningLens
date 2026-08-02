@@ -1,156 +1,341 @@
-# Findings
+# Findings — Human Review
 
-> Empty templates for documenting evaluation findings.
-> Fill these in as you review the evasiveness scores against the transcripts.
+> Document your findings here. Use one template per finding.
+> Mark severity as: **Critical** / **Major** / **Minor** / **Info**
 
 ---
 
 ## Finding 1
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:** (fix scoring / fix prompt / false positive / no action)
+
+> ________________________________________________
 
 ---
 
 ## Finding 2
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 3
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 4
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 5
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 6
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 7
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 8
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 9
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 10
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 11
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 12
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 13
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 14
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
 
 ## Finding 15
 
-Observation:
+**Severity:** ___
+**Transcript(s):** ___
+**Dimension:** Evasiveness
+**Location:** Quote #_, lines _-_
 
-Evidence:
+**What the LLM said:**
 
-Potential Impact:
+> ________________________________________________
+
+**What I observe:**
+
+> ________________________________________________
+
+**Action:**
+
+> ________________________________________________
 
 ---
+
+## Summary Stats
+
+| Metric | Count |
+|---|---|
+| Critical findings | ___ |
+| Major findings | ___ |
+| Minor findings | ___ |
+| Info notes | ___ |
+| Total findings | ___ |
+
+**Key patterns observed:**
+
+> ________________________________________________
+> ________________________________________________
+
+**Recommended next steps:**
+
+> ________________________________________________
+> ________________________________________________
