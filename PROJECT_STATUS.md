@@ -1,6 +1,6 @@
 # PROJECT_STATUS.md
 
-_Last synced with repository state ~July 31, 2026. Update this file whenever
+_Last synced with repository state ~August 2, 2026. Update this file whenever
 phase status changes — it should always reflect current reality, not the plan._
 
 ## Phase 1 — Extraction & Storage: ✅ Functional
@@ -21,8 +21,8 @@ parsing. However, only Evasiveness has been validated on real transcripts.
 
 | Dimension | Implementation | Production validation |
 |---|---|---|
-| Evasiveness | ✅ Complete (keyword + LLM) | 7/11 transcripts scored (all TCS). INFY not yet scored. |
-| Sentiment shift | ✅ Complete (LLM only) | 0/11 — zero production validation |
+| Evasiveness | ✅ Complete (keyword + LLM) | 11/11 transcripts scored (7 TCS + 4 INFY). 0/11 human-reviewed. |
+| Sentiment shift | ✅ Complete (LLM only) | 1/11 (TCS Q2 2023 test run). 0/11 human-reviewed. |
 | Complexity spike | ✅ Complete (LLM only) | 0/11 — zero production validation |
 | Overpromising | ✅ Complete (LLM only) | 0/11 — zero production validation |
 | Forward guidance vagueness | ✅ Complete (LLM only) | 0/11 — zero production validation |
@@ -46,9 +46,11 @@ parsing. However, only Evasiveness has been validated on real transcripts.
 
 ### Current DB state
 
-- 7 TCS transcripts scored for evasiveness (Q2 2023, Q3 2023, Q1-Q3 2024, Q1 2025, Q4 2025)
-- 0 INFY transcripts scored for any dimension
-- 0 transcripts scored for sentiment_shift, complexity_spike, overpromising, or forward_guidance_vagueness
+- 11 transcripts scored for evasiveness (7 TCS + 4 INFY)
+- 1 transcript scored for sentiment_shift (TCS Q2 2023 — test run)
+- 0 transcripts scored for complexity_spike, overpromising, or forward_guidance_vagueness
+- 25 scoring_runs in audit trail
+- 0/11 transcripts have been human-reviewed
 
 ## Phase 3 — Trend Detection: ⬜ Stub only
 
@@ -79,12 +81,13 @@ dependencies.
 
 ## What's explicitly not done yet
 
-- INFY evasiveness scoring (4 quarters remaining)
-- Production validation of sentiment_shift, complexity_spike, overpromising, forward_guidance_vagueness
+- Human review of evasiveness scores (0/11 reviewed)
+- Production validation of complexity_spike, overpromising, forward_guidance_vagueness (0 transcripts each)
 - Prompt quality assessment for non-evasiveness dimensions
 - Any trend computation
 - Any dashboard
 - Evaluation harness against human-labeled data
 - End-to-end integration test
+- Cleanup of 6 temporary analysis scripts in `scripts/`
 
 See `ROADMAP.md` for what's next and in what order.

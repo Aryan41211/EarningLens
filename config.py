@@ -47,7 +47,7 @@ LLM_API_KEY = os.environ.get("LLM_API_KEY", "")
 LLM_API_BASE_URL = os.environ.get("LLM_API_BASE_URL", "")  # OpenAI-compatible endpoint
 LLM_MODEL_NAME = os.environ.get("LLM_MODEL_NAME", "")
 
-# ---------- Scoring dimensions (Phase 2 reference - not implemented yet) ----------
+# ---------- Scoring dimensions (Phase 2) ----------
 SCORE_DIMENSIONS = [
     "evasiveness",
     "sentiment_shift",

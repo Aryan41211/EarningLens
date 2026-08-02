@@ -6,7 +6,7 @@ retail investors before red flags turn into stock price crashes.
 
 [![Tests](https://github.com/Aryan41211/EarningLens/actions/workflows/test.yml/badge.svg)](https://github.com/Aryan41211/EarningLens/actions/workflows/test.yml)
 
-## Status: Phase 1 (PDF extraction + storage) — in progress
+## Status: Phase 2 (LLM Scoring) — in progress
 [CHANGELOG](CHANGELOG.md) · [ARCHITECTURE](ARCHITECTURE.md)
 
 ## Project Structure
@@ -23,7 +23,7 @@ earningslens/
 ├── src/
 │   ├── extraction/        # PDF -> text -> clean -> chunks (Phase 1)
 │   ├── storage/           # SQLite schema + CRUD (Phase 1)
-│   ├── scoring/           # LLM scoring engine (Phase 2, not built yet)
+│   ├── scoring/           # LLM scoring engine (Phase 2 — evasiveness validated)
 │   ├── dashboard/         # Streamlit dashboard (Phase 3, not built yet)
 │   └── utils/             # Logging, shared text cleaning helpers
 ├── scripts/
