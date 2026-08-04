@@ -21,7 +21,7 @@ parsing. However, only Evasiveness has been validated on real transcripts.
 
 | Dimension | Implementation | Production validation |
 |---|---|---|
-| Evasiveness | ✅ Complete (keyword + LLM) | 11/11 transcripts scored (7 TCS + 4 INFY). 0/11 human-reviewed. |
+| Evasiveness | ✅ Complete (keyword + LLM) | **11/11 transcripts scored** (7 TCS + 4 INFY). 0/11 human-reviewed. |
 | Sentiment shift | ✅ Complete (LLM only) | 1/11 (TCS Q2 2023 test run). 0/11 human-reviewed. |
 | Complexity spike | ✅ Complete (LLM only) | 0/11 — zero production validation |
 | Overpromising | ✅ Complete (LLM only) | 0/11 — zero production validation |
@@ -46,7 +46,7 @@ parsing. However, only Evasiveness has been validated on real transcripts.
 
 ### Current DB state
 
-- 11 transcripts scored for evasiveness (7 TCS + 4 INFY)
+- **11/11 transcripts scored for evasiveness** (7 TCS + 4 INFY)
 - 1 transcript scored for sentiment_shift (TCS Q2 2023 — test run)
 - 0 transcripts scored for complexity_spike, overpromising, or forward_guidance_vagueness
 - 25 scoring_runs in audit trail
