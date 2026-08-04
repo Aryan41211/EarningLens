@@ -5,16 +5,16 @@ are listed in the order they should be tackled, not by convenience._
 
 ## Immediate next steps (finish Phase 2)
 
-1. **Complete INFY evasiveness scoring** — 4 quarters remain unscored.
-   Use `scripts/run_evasiveness_test.py` or `run_all_scoring.py --company INFY`.
-2. **Validate non-evasiveness dimensions on real transcripts** — score a
+1. **Validate non-evasiveness dimensions on real transcripts** — score a
    small set (e.g., 2-3 TCS quarters) for sentiment_shift, complexity_spike,
    overpromising, and forward_guidance_vagueness. Review output for prompt
    quality, scoring consistency, and edge cases.
-3. **Populate `notebooks/reading-notes.md`** with real human-labeled
+2. **Populate `notebooks/reading-notes.md`** with real human-labeled
    examples — needed to build any evaluation harness.
-4. **Build a lightweight evaluation harness** comparing LLM scores against
+3. **Build a lightweight evaluation harness** comparing LLM scores against
    the human labels above.
+
+*Note: INFY evasiveness scoring is complete — all 4 quarters already scored.*
 
 ## Phase 3 — Trend detection
 

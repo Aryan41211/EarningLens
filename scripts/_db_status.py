@@ -22,7 +22,7 @@ cur.execute("""
 scored = set(cur.fetchall())
 print(f"Unique company/quarters scored: {len(scored)}")
 for s in sorted(scored):
-    print(f"  ✅ {s[0]} {s[1]} {s[2]}")
+    print(f"  [OK] {s[0]} {s[1]} {s[2]}")
 print()
 
 # Load latest score per transcript
@@ -63,11 +63,11 @@ for t in all_transcripts:
         missing.append(key)
 
 if missing:
-    print(f"\n❌ MISSING scores ({len(missing)}):")
+    print(f"\n[MISSING] scores ({len(missing)}):")
     for m in missing:
         print(f"  {m}")
 else:
-    print("\n✅ ALL transcripts scored!")
+    print("\n[OK] ALL transcripts scored!")
 print()
 
 # Full comparison table
