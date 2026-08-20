@@ -32,9 +32,10 @@ lost across sessions._
   not be caught.
 - **Keyword false positives risk**: boilerplate patterns are TCS/INFY-tuned;
   onboarding new companies may need additional pattern tuning.
-- **No `scores` table yet**: per-dimension scores currently only exist
-  inside `scoring_runs.raw_llm_response` as JSON — querying trends requires
-  parsing that JSON each time.
+- **`scores` table exists but 4 of 5 dimensions unvalidated**: per-dimension
+  scores are stored in the `scores` table, but only evasiveness has been
+  validated against real transcripts. The other 4 dimensions have zero
+  production validation.
 - **Extraction not fully end-to-end verified**: nobody has confirmed exact
   expected chunk counts across all 11 PDFs against the pipeline output.
 - **Stray artifacts**: an old `cleaner.py` wrapper was removed in favor of
@@ -45,8 +46,8 @@ lost across sessions._
 
 ## Technical debt
 
-- 4 of 5 scoring dimensions unimplemented (hard constraint says finish
-  these before Phase 3 — see `PROJECT_RULES.md`)
+- 4 of 5 scoring dimensions implemented but not validated on real data
+  (see `PROJECT_STATUS.md` for validation status)
 - `src/trends/metrics.py` — all 4 functions are stubs
 - `config.py` declares `COMPANIES` (4 companies) but only 2 are actually
   used/enforced anywhere
@@ -59,11 +60,9 @@ lost across sessions._
 
 ## Risks
 
-- **Security — flagged, needs action**: earlier project notes referenced a
-  Groq API key present in `.env`. Regardless of `.gitignore` status today,
-  if that key was ever committed to git history, it must be treated as
-  compromised and rotated. This file intentionally does not reproduce any
-  key value.
+- **Security — previously flagged, resolved**: git history was checked for
+  API key exposure (T0). No `.env` was ever committed and no actual key
+  values appear in git history. The `.env` file is properly gitignored.
 - **Groq free-tier rate limits** could bottleneck batch scoring once more
   transcripts or dimensions are added.
 - **Single point of failure on Q&A regex detection** — see Known Issues.
