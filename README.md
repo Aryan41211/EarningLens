@@ -27,9 +27,13 @@ earningslens/
 │   ├── dashboard/         # Streamlit dashboard (Phase 3, not built yet)
 │   └── utils/             # Logging, shared text cleaning helpers
 ├── scripts/
-│   └── run_phase1.py      # Orchestrates extraction -> storage
+│   ├── run_phase1.py      # Orchestrates extraction -> storage
+│   ├── run_evasiveness_test.py  # Manual evasiveness scoring runner
+│   └── run_all_scoring.py  # All 5 dimensions scoring runner
 └── tests/
-    └── test_extraction.py
+    ├── test_extraction.py  # Filename parsing, cleaning, chunking
+    ├── test_scoring.py     # Keyword matching, Q&A detection, mocked LLM scoring
+    └── test_scoring_dimensions.py  # 4 new dimensions (mocked), DB CRUD tests
 ```
 
 ## Setup
