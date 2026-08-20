@@ -27,7 +27,7 @@ Full context: [`PROJECT_CONTEXT.md`](./PROJECT_CONTEXT.md)
 | Phase | Status |
 |---|---|
 | 1 — Extraction & storage | ✅ Functional |
-| 2 — LLM scoring | 🟡 1 of 5 dimensions done (evasiveness) |
+| 2 — LLM scoring | 🟡 All 5 modules implemented; only evasiveness validated on real data |
 | 3 — Trend detection | ⬜ Stub only |
 | 4 — Dashboard | ⬜ Empty |
 
