@@ -1,6 +1,6 @@
 # PROJECT_STATUS.md
 
-_Last synced with repository state ~August 2, 2026. Update this file whenever
+_Last synced with repository state ~August 21, 2026. Update this file whenever
 phase status changes — it should always reflect current reality, not the plan._
 
 ## Phase 1 — Extraction & Storage: ✅ Functional
@@ -9,58 +9,59 @@ phase status changes — it should always reflect current reality, not the plan.
 - Validated against 11 real transcripts (7 TCS, 4 INFY)
 - Filename metadata parsing, boilerplate stripping, paragraph-aware
   chunking, stale-chunk deduplication all implemented and tested
-- Not yet confirmed: a true integration test running the full pipeline
-  against real PDFs in CI (current tests use unit-level fixtures)
 
-## Phase 2 — LLM Scoring: 🟡 Partial (1 of 5 validated)
+## Phase 2 — LLM Scoring: 🟡 Partial (1 of 5 validated on real data)
 
 All 5 scoring modules are **implemented** with real LLM prompts and JSON
-parsing. However, only Evasiveness has been validated on real transcripts.
+parsing. Shared LLM scorer with chunk batching and retry logic.
+Only Evasiveness has been validated on real transcripts.
 
 ### Validation status
 
 | Dimension | Implementation | Production validation |
 |---|---|---|
-| Evasiveness | ✅ Complete (keyword + LLM) | **11/11 transcripts scored** (7 TCS + 4 INFY). 0/11 human-reviewed. |
-| Sentiment shift | ✅ Complete (LLM only) | 1/11 (TCS Q2 2023 test run). 0/11 human-reviewed. |
-| Complexity spike | ✅ Complete (LLM only) | 0/11 — zero production validation |
-| Overpromising | ✅ Complete (LLM only) | 0/11 — zero production validation |
-| Forward guidance vagueness | ✅ Complete (LLM only) | 0/11 — zero production validation |
-
-### What "implemented but not validated" means
-
-- Modules exist in `src/scoring/` with real system prompts, JSON parsing,
-  score clamping (1-10), and supporting quote extraction
-- Unit tests exist with mocked LLM calls (46 tests pass)
-- **No real transcript has been scored** for these 4 dimensions
-- Prompt quality, scoring consistency, and edge-case behaviour are unknown
-- These should not be treated as production-ready until validated against
-  real transcripts with human review
+| Evasiveness | ✅ Complete (keyword + LLM) | **11/11 transcripts scored**. 0/11 human-reviewed. |
+| Sentiment shift | ✅ Complete (LLM only) | 2/11 scored (TCS Q1 2025, TCS Q2 2023). 0/11 human-reviewed. |
+| Complexity spike | ✅ Complete (LLM only) | 1/11 scored (TCS Q1 2025). 0/11 human-reviewed. |
+| Overpromising | ✅ Complete (LLM only) | 1/11 scored (TCS Q1 2025). 0/11 human-reviewed. |
+| Forward guidance vagueness | ✅ Complete (LLM only) | 2/11 scored (TCS Q1 2025, INFY Q1 2023). 0/11 human-reviewed. |
 
 ### Scoring infrastructure
 
 - `scores` table exists in SQLite (per-dimension, per-transcript, queryable)
 - `scoring_runs` table stores raw LLM responses for audit trail
-- `scripts/run_all_scoring.py` runs all 5 dimensions across transcripts
-- `scripts/run_evasiveness_test.py` runs evasiveness-only with detailed output
+- `scripts/run_all_scoring.py` runs all 5 dimensions with `--skip-existing` and `--model` flags
+- Shared `_llm_dimension_scorer.py` handles chunk batching (2000-word batches), exponential backoff retry, `<think>` tag stripping
+- `openai/gpt-oss-20b` model validated as working with Groq free tier (8000 TPM)
 
 ### Current DB state
 
 - **11/11 transcripts scored for evasiveness** (7 TCS + 4 INFY)
-- 1 transcript scored for sentiment_shift (TCS Q2 2023 — test run)
-- 0 transcripts scored for complexity_spike, overpromising, or forward_guidance_vagueness
-- 25 scoring_runs in audit trail
-- 0/11 transcripts have been human-reviewed
+- **20 total scores** across all dimensions
+- TCS Q1 2025 has all 5 dimensions scored
+- Other transcripts have 1-3 dimensions scored
+- Full scoring of all 11 transcripts × 5 dimensions requires additional LLM runs
 
-## Phase 3 — Trend Detection: ⬜ Stub only
+## Phase 3 — Trend Detection: ✅ Functional
 
-`src/trends/metrics.py` has 4 function signatures (QoQ delta, rolling
-averages, trend labels, drop detection), all raising `NotImplementedError`.
+All 4 trend functions implemented and tested (22 tests pass):
+- `compute_qoq_score_change` — quarter-over-quarter deltas per company
+- `compute_rolling_3q_average` — rolling 3-quarter averages
+- `compute_trend_label` — IMPROVING / STABLE / DETERIORATING labels
+- `find_biggest_single_quarter_drop` — largest score increase (worsening) per company/metric
+- `load_scores_from_db` — pivots SQLite scores into analysis DataFrame
+- `scripts/run_trends.py` — CLI for trend analysis (text and JSON output)
 
-## Phase 4 — Dashboard: ⬜ Not started
+## Phase 4 — Dashboard: ✅ Functional
 
-`src/dashboard/__init__.py` is empty. Streamlit not yet added to
-dependencies.
+Streamlit dashboard (`src/dashboard/app.py`) with:
+- Company selector sidebar
+- **Scores tab**: line chart of all dimensions, latest trend labels
+- **Trends tab**: QoQ delta bar chart, rolling 3-quarter average line chart
+- **Alerts tab**: biggest single-quarter worsening events, cross-company trend summary
+- **Raw Data tab**: full data table, supporting quotes drill-down
+- Run with: `streamlit run src/dashboard/app.py`
+- Dashboard dependencies in `requirements-dashboard.txt` (streamlit, plotly)
 
 ## Completed features (cumulative)
 
@@ -71,23 +72,22 @@ dependencies.
 - Extraction validation (reject <50-word extracts)
 - Structured logging (file DEBUG + console INFO)
 - CI via GitHub Actions (pytest on every push/PR)
-- All 5 scoring dimension modules implemented with LLM prompts
+- All 5 scoring dimension modules with LLM prompts
+- Shared LLM scorer with chunk batching, retry, thinking-tag stripping
 - Evasiveness keyword matching + LLM scoring, with full audit trail
 - Q&A section boundary detection
 - `scores` table (per-dimension, per-transcript persistence)
-- Manual CLI runner for evasiveness scoring
-- Unified scoring runner for all 5 dimensions
-- 46+ unit tests across extraction and scoring, LLM calls fully mocked
+- Unified scoring runner for all 5 dimensions with `--model` and `--skip-existing`
+- 69+ unit tests across extraction, scoring, and trends
+- Trend analysis: QoQ deltas, rolling averages, trend labels, drop detection
+- Streamlit dashboard with interactive charts and drill-down
 
 ## What's explicitly not done yet
 
-- Human review of evasiveness scores (0/11 reviewed)
-- Production validation of complexity_spike, overpromising, forward_guidance_vagueness (0 transcripts each)
+- Human review of scores (0 transcripts reviewed)
+- Complete scoring of all 11 transcripts × 5 dimensions (currently 20/55 scores)
 - Prompt quality assessment for non-evasiveness dimensions
-- Any trend computation
-- Any dashboard
 - Evaluation harness against human-labeled data
-- End-to-end integration test
-- Cleanup of 6 temporary analysis scripts in `scripts/`
+- End-to-end integration test for the full pipeline
 
 See `ROADMAP.md` for what's next and in what order.

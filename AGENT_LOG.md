@@ -16,3 +16,8 @@ One line per completed or skipped task.
 | T9 | completed | `64e2749` | Added integration test for scoring pipeline with mocked LLM |
 | T10 | completed | `31c5449` | Removed 7 one-off analysis scripts from scripts/ |
 | T11 | completed | `c7170c0` | Committed human review annotations to reading-notes.md |
+| T12 | completed | `b71a2c8` | Created AGENT_LOG.md with task history |
+| T13 | completed | `f7d031f` | Fixed `--model` flag, added chunk batching/retry/thinking-tag stripping to shared scorer |
+| T14 | completed | `d2f7a99` | Phase 3: trend detection — QoQ deltas, rolling averages, trend labels, drop detection |
+| T15 | completed | `dc1af41` | Phase 4: Streamlit dashboard with scores, trends, alerts, drill-down |
+| T16 | completed | (this session) | Updated PROJECT_STATUS.md, scored 20 dimensions across 11 transcripts |
