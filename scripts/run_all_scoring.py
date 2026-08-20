@@ -72,13 +72,13 @@ def score_dimension(conn, transcript_id, dimension, chunks, model):
     score_key = SCORE_KEY_MAP[dimension]
 
     if dimension == "evasiveness":
-        result = scorer(chunks)
+        result = scorer(chunks, model=model)
         llm_result = result.get("llm_result", result)
         score_value = llm_result.get(score_key)
         quotes = llm_result.get("supporting_quotes", [])
         raw = llm_result.get("raw_response", "")
     else:
-        result = scorer(chunks)
+        result = scorer(chunks, model=model)
         score_value = result.get(score_key)
         quotes = result.get("supporting_quotes", [])
         raw = result.get("raw_response", "")

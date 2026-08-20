@@ -11,8 +11,6 @@ import json
 import logging
 from collections import Counter
 
-from config import LLM_API_KEY, LLM_API_BASE_URL, LLM_MODEL_NAME
-
 logger = logging.getLogger("earningslens")
 
 
@@ -150,76 +148,24 @@ def _build_qa_prompt(chunks: list[str]) -> str:
 
 def score_evasiveness_llm(chunks: list[str], model: str | None = None) -> dict:
     """Score evasiveness using LLM API. Only Q&A chunks should be passed in."""
-    if not LLM_API_KEY or not LLM_API_BASE_URL:
-        logger.warning("LLM not configured (missing API_KEY or API_BASE_URL). Returning empty.")
-        return {"evasiveness_score": None, "supporting_quotes": [], "error": "LLM not configured"}
-
-    try:
-        from openai import OpenAI
-    except ImportError:
-        logger.warning("openai package not installed. Run: pip install openai")
-        return {"evasiveness_score": None, "supporting_quotes": [], "error": "openai not installed"}
-
-    used_model = model or LLM_MODEL_NAME
-    client = OpenAI(api_key=LLM_API_KEY, base_url=LLM_API_BASE_URL)
-
-    logger.info("Calling LLM evasiveness scoring — model=%s, chunks=%d", used_model, len(chunks))
-    response = client.chat.completions.create(
-        model=used_model,
-        messages=[
-            {"role": "system", "content": EVASIVENESS_SYSTEM_PROMPT},
-            {"role": "user", "content": _build_qa_prompt(chunks)},
-        ],
-        temperature=0.1,
-        max_tokens=800,
+    from src.scoring._llm_dimension_scorer import score_dimension_llm
+    return score_dimension_llm(
+        chunks,
+        dimension_name="evasiveness",
+        system_prompt=EVASIVENESS_SYSTEM_PROMPT,
+        score_key="evasiveness_score",
+        user_prompt_instruction=(
+            "Score management evasiveness — whether they are dodging questions, "
+            "giving non-answers, pivoting to prepared remarks, or otherwise avoiding "
+            "direct answers to analyst questions."
+        ),
+        model=model,
     )
-
-    raw: str = response.choices[0].message.content or ""
-    logger.debug("LLM raw response: %s", raw[:500])
-
-    # OpenAI-compatible clients (including Groq) may include token usage.
-    # We pass usage through for later reporting in runner scripts.
-    usage = getattr(response, "usage", None)
-    usage_dict = None
-    if usage is not None:
-        usage_dict = {
-            "prompt_tokens": getattr(usage, "prompt_tokens", None),
-            "completion_tokens": getattr(usage, "completion_tokens", None),
-            "total_tokens": getattr(usage, "total_tokens", None),
-        }
-
-    raw_str: str = raw
-    try:
-        parsed = json.loads(raw_str or "")
-    except json.JSONDecodeError:
-        cleaned = raw_str.strip()
-        if cleaned.startswith("```"):
-            cleaned = cleaned.split("\n", 1)[-1]
-            if cleaned.endswith("```"):
-                cleaned = cleaned[:-3]
-        try:
-            parsed = json.loads(cleaned)
-        except json.JSONDecodeError:
-            logger.warning("LLM returned invalid JSON: %s", raw[:300])
-            return {"evasiveness_score": None, "supporting_quotes": [], "raw_response": raw, "error": "Invalid JSON from LLM"}
-
-    if not isinstance(parsed.get("evasiveness_score"), (int, float)):
-        return {"evasiveness_score": None, "supporting_quotes": [], "raw_response": raw, "error": "Missing evasiveness_score"}
-
-    score = max(1, min(10, round(parsed["evasiveness_score"])))
-    quotes = parsed.get("supporting_quotes", [])[:3]
-
-    return {
-        "evasiveness_score": score,
-        "supporting_quotes": quotes,
-        "raw_response": raw,
-        "usage": usage_dict,
-    }
 
 
 # ---- Combined scoring ----
 
-def score_transcript_evasiveness(chunks: list[str]) -> dict:
+def score_transcript_evasiveness(chunks: list[str], model: str | None = None) -> dict:
     """Full evasiveness scoring: keyword count + Q&A detection + LLM score.
     Keyword matching is restricted to Q&A chunks only to avoid
     safe-harbor boilerplate false positives in prepared remarks."""
@@ -235,7 +181,7 @@ def score_transcript_evasiveness(chunks: list[str]) -> dict:
 
     qa_chunks = chunks[qa_start:]
     kw_result = score_evasiveness_keywords(qa_chunks)
-    llm_result = score_evasiveness_llm(qa_chunks)
+    llm_result = score_evasiveness_llm(qa_chunks, model=model)
 
     return {
         "keyword_result": kw_result,
