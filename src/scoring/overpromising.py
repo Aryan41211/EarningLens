@@ -6,15 +6,7 @@ without numbers, promises of "significant upside" with no quantifiable driver,
 and aspirational language presented as certainty.
 """
 
-import json
-import logging
-
-from config import LLM_API_KEY, LLM_API_BASE_URL, LLM_MODEL_NAME
-
-logger = logging.getLogger("earningslens")
-
-
-# ---- LLM Scoring ----
+from src.scoring._llm_dimension_scorer import score_dimension_llm
 
 OVERPROMISING_SYSTEM_PROMPT = """You are an analyst evaluating management overpromising during earnings calls.
 
@@ -43,83 +35,29 @@ Format:
 
 Each supporting_quote must be an exact verbatim sentence or short paragraph from the transcript that demonstrates the overpromising. Maximum 3 quotes."""  # noqa: E501
 
+_SCORE_KEY = "overpromising_score"
+_USER_INSTRUCTION = (
+    "Score management overpromising — whether management is making aggressive "
+    "claims, unrealistic targets, or aspirational promises without evidence."
+)
+
 
 def _build_prompt(chunks: list[str]) -> str:
     """Build the user prompt from transcript chunks."""
-    transcript_text = "\n\n".join(chunks)
-    return (
-        "Below is an earnings call transcript (or a section of one). "
-        "Score management overpromising — whether management is making aggressive "
-        "claims, unrealistic targets, or aspirational promises without evidence.\n\n"
-        "TRANSCRIPT:\n\n"
-        f"{transcript_text}"
-    )
+    from src.scoring._llm_dimension_scorer import _build_user_prompt
+    return _build_user_prompt(chunks, _USER_INSTRUCTION)
 
 
 def score_overpromising_llm(chunks: list[str], model: str = None) -> dict:
     """Score overpromising using LLM API."""
-    if not LLM_API_KEY or not LLM_API_BASE_URL:
-        logger.warning("LLM not configured (missing API_KEY or API_BASE_URL). Returning empty.")
-        return {"overpromising_score": None, "supporting_quotes": [], "error": "LLM not configured"}
-
-    try:
-        from openai import OpenAI
-    except ImportError:
-        logger.warning("openai package not installed. Run: pip install openai")
-        return {"overpromising_score": None, "supporting_quotes": [], "error": "openai not installed"}
-
-    used_model = model or LLM_MODEL_NAME
-    client = OpenAI(api_key=LLM_API_KEY, base_url=LLM_API_BASE_URL)
-
-    logger.info("Calling LLM overpromising scoring — model=%s, chunks=%d", used_model, len(chunks))
-    response = client.chat.completions.create(
-        model=used_model,
-        messages=[
-            {"role": "system", "content": OVERPROMISING_SYSTEM_PROMPT},
-            {"role": "user", "content": _build_prompt(chunks)},
-        ],
-        temperature=0.1,
-        max_tokens=800,
+    return score_dimension_llm(
+        chunks,
+        dimension_name="overpromising",
+        system_prompt=OVERPROMISING_SYSTEM_PROMPT,
+        score_key=_SCORE_KEY,
+        user_prompt_instruction=_USER_INSTRUCTION,
+        model=model,
     )
-
-    raw: str = response.choices[0].message.content or ""
-    logger.debug("LLM raw response (overpromising): %s", raw[:500])
-
-    usage = getattr(response, "usage", None)
-    usage_dict = None
-    if usage is not None:
-        usage_dict = {
-            "prompt_tokens": getattr(usage, "prompt_tokens", None),
-            "completion_tokens": getattr(usage, "completion_tokens", None),
-            "total_tokens": getattr(usage, "total_tokens", None),
-        }
-
-    try:
-        parsed = json.loads(raw or "")
-    except json.JSONDecodeError:
-        cleaned = raw.strip()
-        if cleaned.startswith("```"):
-            cleaned = cleaned.split("\n", 1)[-1]
-            if cleaned.endswith("```"):
-                cleaned = cleaned[:-3]
-        try:
-            parsed = json.loads(cleaned)
-        except json.JSONDecodeError:
-            logger.warning("LLM returned invalid JSON (overpromising): %s", raw[:300])
-            return {"overpromising_score": None, "supporting_quotes": [], "raw_response": raw, "error": "Invalid JSON from LLM"}
-
-    if not isinstance(parsed.get("overpromising_score"), (int, float)):
-        return {"overpromising_score": None, "supporting_quotes": [], "raw_response": raw, "error": "Missing overpromising_score"}
-
-    score = max(1, min(10, round(parsed["overpromising_score"])))
-    quotes = parsed.get("supporting_quotes", [])[:3]
-
-    return {
-        "overpromising_score": score,
-        "supporting_quotes": quotes,
-        "raw_response": raw,
-        "usage": usage_dict,
-    }
 
 
 def score_transcript_overpromising(chunks: list[str]) -> dict:

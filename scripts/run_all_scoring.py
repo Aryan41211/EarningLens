@@ -30,6 +30,7 @@ from src.scoring.sentiment_shift import score_sentiment_shift_llm
 from src.scoring.complexity_spike import score_complexity_spike_llm
 from src.scoring.overpromising import score_overpromising_llm
 from src.scoring.forward_guidance_vagueness import score_forward_guidance_vagueness_llm
+from src.scoring import SCORE_KEY_MAP
 from src.utils.logging import setup_logger
 
 
@@ -41,14 +42,6 @@ DIMENSION_SCORERS = {
     "complexity_spike": score_complexity_spike_llm,
     "overpromising": score_overpromising_llm,
     "forward_guidance_vagueness": score_forward_guidance_vagueness_llm,
-}
-
-SCORE_KEY_MAP = {
-    "evasiveness": "evasiveness_score",
-    "sentiment_shift": "sentiment_shift_score",
-    "complexity_spike": "complexity_spike_score",
-    "overpromising": "overpromising_score",
-    "forward_guidance_vagueness": "forward_guidance_vagueness_score",
 }
 
 
