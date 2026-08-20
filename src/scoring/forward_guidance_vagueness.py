@@ -49,7 +49,7 @@ def _build_prompt(chunks: list[str]) -> str:
     return _build_user_prompt(chunks, _USER_INSTRUCTION)
 
 
-def score_forward_guidance_vagueness_llm(chunks: list[str], model: str = None) -> dict:
+def score_forward_guidance_vagueness_llm(chunks: list[str], model: str | None = None) -> dict:
     """Score forward guidance vagueness using LLM API."""
     return score_dimension_llm(
         chunks,

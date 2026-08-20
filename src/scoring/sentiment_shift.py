@@ -45,7 +45,7 @@ def _build_prompt(chunks: list[str]) -> str:
     return _build_user_prompt(chunks, _USER_INSTRUCTION)
 
 
-def score_sentiment_shift_llm(chunks: list[str], model: str = None) -> dict:
+def score_sentiment_shift_llm(chunks: list[str], model: str | None = None) -> dict:
     """Score sentiment shift using LLM API."""
     return score_dimension_llm(
         chunks,

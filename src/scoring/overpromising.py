@@ -48,7 +48,7 @@ def _build_prompt(chunks: list[str]) -> str:
     return _build_user_prompt(chunks, _USER_INSTRUCTION)
 
 
-def score_overpromising_llm(chunks: list[str], model: str = None) -> dict:
+def score_overpromising_llm(chunks: list[str], model: str | None = None) -> dict:
     """Score overpromising using LLM API."""
     return score_dimension_llm(
         chunks,

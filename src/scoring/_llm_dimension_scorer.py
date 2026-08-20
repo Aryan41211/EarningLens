@@ -28,8 +28,9 @@ def _parse_llm_json(raw: str, score_key: str) -> dict | None:
     """Try to parse LLM response as JSON, handling markdown fences.
     Returns parsed dict or None on failure."""
     try:
-        return json.loads(raw or "")
-    except json.JSONDecodeError:
+        result: dict = json.loads(raw or "")
+        return result
+    except (json.JSONDecodeError, ValueError):
         pass
     cleaned = raw.strip()
     if cleaned.startswith("```"):
@@ -37,8 +38,9 @@ def _parse_llm_json(raw: str, score_key: str) -> dict | None:
         if cleaned.endswith("```"):
             cleaned = cleaned[:-3]
     try:
-        return json.loads(cleaned)
-    except json.JSONDecodeError:
+        result2: dict = json.loads(cleaned)
+        return result2
+    except (json.JSONDecodeError, ValueError):
         return None
 
 

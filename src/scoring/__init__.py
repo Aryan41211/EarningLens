@@ -35,7 +35,7 @@ SCORE_KEY_MAP = {
 }
 
 
-def score_transcript_all(conn, transcript_id: int, chunks: list[str], model: str = None) -> dict:
+def score_transcript_all(conn, transcript_id: int, chunks: list[str], model: str | None = None) -> dict:
     """Run all 5 dimensions against chunks and store results in the scores table.
 
     Args:

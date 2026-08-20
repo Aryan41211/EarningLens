@@ -148,7 +148,7 @@ def _build_qa_prompt(chunks: list[str]) -> str:
     )
 
 
-def score_evasiveness_llm(chunks: list[str], model: str = None) -> dict:
+def score_evasiveness_llm(chunks: list[str], model: str | None = None) -> dict:
     """Score evasiveness using LLM API. Only Q&A chunks should be passed in."""
     if not LLM_API_KEY or not LLM_API_BASE_URL:
         logger.warning("LLM not configured (missing API_KEY or API_BASE_URL). Returning empty.")
