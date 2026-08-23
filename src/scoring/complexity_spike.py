@@ -47,7 +47,9 @@ def _build_prompt(chunks: list[str]) -> str:
     return _build_user_prompt(chunks, _USER_INSTRUCTION)
 
 
-def score_complexity_spike_llm(chunks: list[str], model: str | None = None) -> dict:
+def score_complexity_spike_llm(
+    chunks: list[str], model: str | None = None, prompt_version: str | None = None
+) -> dict:
     """Score complexity spike using LLM API."""
     return score_dimension_llm(
         chunks,
@@ -59,9 +61,11 @@ def score_complexity_spike_llm(chunks: list[str], model: str | None = None) -> d
     )
 
 
-def score_transcript_complexity_spike(chunks: list[str], model: str | None = None) -> dict:
+def score_transcript_complexity_spike(
+    chunks: list[str], model: str | None = None, prompt_version: str | None = None
+) -> dict:
     """Full complexity spike scoring using LLM on all chunks."""
-    llm_result = score_complexity_spike_llm(chunks, model=model)
+    llm_result = score_complexity_spike_llm(chunks, model=model, prompt_version=prompt_version)
     return {
         "qa_detected": False,
         "chunks_used": len(chunks),

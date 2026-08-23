@@ -130,6 +130,34 @@ a "score" is model choice rather than signal. See `KNOWN_ISSUES.md` BLOCKER-2.
 
 ---
 
+## 1.5 A trap to avoid when revising the prompt
+
+`evasiveness-v2` was written to address the failure modes in § 1.2. It is
+tempting to re-run the evaluation on the same 11 labels and report the new
+number as the result.
+
+**That number would be contaminated.** Those 11 transcripts are the only
+labelled data, and they informed the prompt's design — measuring on them is
+measuring on the training set. A v2 that scores better may simply have absorbed
+the eleven answers.
+
+v2 was deliberately written from the *stated principles* in the review ("a
+refusal with a reason is not a dodge", "tone is not evasiveness") rather than
+from the eleven scores, which limits the leakage but does not remove it.
+
+Honest options, in order of strength:
+
+1. **Label more transcripts and hold them out.** The clean answer. Label before
+   seeing any LLM score.
+2. **Split the existing 11.** Use a handful to inspect failure modes and keep
+   the rest untouched for measurement. With n=11 both halves are tiny, but it
+   is honest.
+3. **Report v1 and v2 side by side and label the v2 figure as in-sample.** The
+   weakest option, acceptable only if stated as such every time it is quoted.
+
+Whichever is chosen, record it here. A number without its provenance is what
+got this project into trouble the first time.
+
 ## 2. What would move the result
 
 The evaluation runs and the answer is negative. The useful question is no
@@ -137,12 +165,22 @@ longer "how do we measure this" but "what would make it pass".
 
 In rough order of expected value:
 
-1. **Fix the prompt's biggest failure mode.** § 1.2 shows the model cannot
-   distinguish a refusal *with a stated reason* from a dodge. The human treats
-   those very differently; the prompt never asks the model to. Adding that
-   distinction, bumping `prompt_version` to `evasiveness-v2`, re-scoring, and
-   re-running the evaluation is a tight loop that this repository now supports
-   end to end.
+1. ✅ **Prompt revised — `evasiveness-v2` written, unproven.** It addresses the
+   four measured failures: a reasoned refusal is explicitly not a dodge; tone
+   is explicitly not evasiveness; the model is pushed to use the full 1–10
+   range (LLM scores spanned 4–7, human 2–9); and it is told to weigh the
+   proportion of questions handled rather than the worst single moment.
+
+   Registered alongside v1 in `src/scoring/prompts.py`. **v1 remains the
+   default** — switching silently would invalidate the existing series without
+   anyone choosing to. Run it with:
+
+   ```bash
+   python scripts/run_all_scoring.py --dimension evasiveness        --prompt-version evasiveness-v2
+   ```
+
+   Then evaluate, mindful of § 1.5. Whether v2 is actually better is unmeasured
+   — it costs ~220k tokens to find out, just over one day of free-tier budget.
 2. **Reconsider batch averaging.** LLM scores cluster in 4–7 while human scores
    span 2–9. Averaging 4–5 independent batch judgements pulls everything toward
    the middle, which caps how well any prompt can correlate

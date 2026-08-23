@@ -132,6 +132,70 @@ Format:
 Each supporting_quote must be an exact verbatim sentence or short paragraph from the transcript that demonstrates the evasion. Maximum 3 quotes."""  # noqa: E501
 
 
+EVASIVENESS_SYSTEM_PROMPT_V2 = """You are an analyst evaluating how directly management answers analyst questions during an earnings call.
+
+Score evasiveness 1-10. Higher means more evasive.
+
+THE CENTRAL DISTINCTION
+
+Not answering is not the same as evading. Separate two things:
+
+  (a) Does management give the substance asked for?
+  (b) If not, do they say plainly why not?
+
+A clear, reasoned decline is NOT evasive. "We don't disclose segment margins"
+or "we don't give quarterly guidance, only annual" states a policy and leaves
+the analyst correctly informed about what they will and won't get. Score these
+LOW (2-4) even though the question went unanswered.
+
+What IS evasive is the appearance of an answer that carries no information:
+restating prepared remarks, answering a different question, retreating to
+process ("we are evaluating"), or a stream of qualifiers that commits to
+nothing. The analyst leaves unable to tell whether an answer was given.
+
+Ask of each non-answer: could a listener state the reason it was not answered?
+If yes, that is a boundary. If no, that is a dodge.
+
+SCALE
+
+1-2  Consistently direct. Specific numbers, timelines and metrics.
+3-4  Mostly direct. Some things declined, but the reason is stated each time.
+     A guidance range with the reasoning behind it belongs here, not higher.
+5-6  Mixed. Real answers on some questions, unexplained deflection on others.
+7-8  Mostly deflection. Repeated non-answers with no reason offered; prepared
+     remarks recycled in place of a response.
+9-10 Near-total. Almost nothing asked for is provided or explained.
+
+USE THE WHOLE SCALE. A genuinely transparent call is a 2, not a 5. Do not
+cluster in the middle to be safe — a score that is never low and never high
+carries no information.
+
+WEIGH THE WHOLE Q&A, NOT THE WORST MOMENT
+
+Judge the proportion of questions handled well against those deflected. One
+sharp refusal in an otherwise open call is not a high score. Recurring
+deflection across many questions is, even if each instance is polite.
+
+DO NOT PENALISE
+
+- Declining with a stated reason or a consistent disclosure policy
+- Ranges and scenarios that come with the reasoning behind them
+- Genuine uncertainty that is named as uncertainty ("we don't know yet, it
+  depends on X") — this is candour, not evasion
+- Brevity, bluntness or an abrupt manner. Tone is not evasiveness. A curt but
+  informative answer scores LOW; a warm, fluent answer that says nothing
+  scores HIGH.
+
+Judge only management's answers. Ignore the moderator and the analysts' own
+questions.
+
+You MUST return ONLY valid JSON. No explanation, no markdown, no backticks.
+Format:
+{"evasiveness_score": <int 1-10>, "supporting_quotes": ["quote 1", "quote 2", "quote 3"]}
+
+Each supporting_quote must be an exact verbatim sentence from the transcript that best justifies the score. Maximum 3 quotes."""  # noqa: E501
+
+
 def _build_qa_prompt(chunks: list[str]) -> str:
     """Build the user prompt from Q&A chunks, preserving speaker labels."""
     transcript_text = "\n\n".join(chunks)
@@ -146,13 +210,18 @@ def _build_qa_prompt(chunks: list[str]) -> str:
     )
 
 
-def score_evasiveness_llm(chunks: list[str], model: str | None = None) -> dict:
+def score_evasiveness_llm(
+    chunks: list[str], model: str | None = None, prompt_version: str | None = None
+) -> dict:
     """Score evasiveness using LLM API. Only Q&A chunks should be passed in."""
     from src.scoring._llm_dimension_scorer import score_dimension_llm
+    from src.scoring.prompts import get_prompt
+
+    system_prompt, _ = get_prompt("evasiveness", prompt_version)
     return score_dimension_llm(
         chunks,
         dimension_name="evasiveness",
-        system_prompt=EVASIVENESS_SYSTEM_PROMPT,
+        system_prompt=system_prompt,
         score_key="evasiveness_score",
         user_prompt_instruction=(
             "Score management evasiveness — whether they are dodging questions, "
@@ -165,7 +234,9 @@ def score_evasiveness_llm(chunks: list[str], model: str | None = None) -> dict:
 
 # ---- Combined scoring ----
 
-def score_transcript_evasiveness(chunks: list[str], model: str | None = None) -> dict:
+def score_transcript_evasiveness(
+    chunks: list[str], model: str | None = None, prompt_version: str | None = None
+) -> dict:
     """Full evasiveness scoring: keyword count + Q&A detection + LLM score.
     Keyword matching is restricted to Q&A chunks only to avoid
     safe-harbor boilerplate false positives in prepared remarks."""
@@ -181,7 +252,7 @@ def score_transcript_evasiveness(chunks: list[str], model: str | None = None) ->
 
     qa_chunks = chunks[qa_start:]
     kw_result = score_evasiveness_keywords(qa_chunks)
-    llm_result = score_evasiveness_llm(qa_chunks, model=model)
+    llm_result = score_evasiveness_llm(qa_chunks, model=model, prompt_version=prompt_version)
 
     return {
         "keyword_result": kw_result,

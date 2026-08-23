@@ -30,6 +30,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from config import DB_PATH, LOG_PATH, LLM_MODEL_NAME, SCORE_DIMENSIONS
 from src.storage.db import init_db, get_chunks
 from src.scoring import score_transcript_all
+from src.scoring.prompts import available_versions, resolve_version
 from src.scoring._llm_dimension_scorer import DailyQuotaExhausted
 from src.utils.logging import setup_logger
 
@@ -160,15 +161,37 @@ def main():
                         help="Skip transcripts already scored ON THE TARGET MODEL for every requested "
                              "dimension. Use this to resume a sweep without re-paying for work already done.")
     parser.add_argument("--model", type=str, help="Override the default LLM model from config")
+    parser.add_argument("--prompt-version", action="append", metavar="VERSION", default=None,
+                        help="Use a specific prompt version, e.g. evasiveness-v2 (repeatable). "
+                             "Defaults to each dimension's registered default. Scores are stored "
+                             "with the version actually used, so v1 and v2 series stay distinct.")
+    parser.add_argument("--list-prompts", action="store_true",
+                        help="List registered prompt versions and exit")
     parser.add_argument("--dimension", action="append", metavar="NAME",
                         help="Score only this dimension (repeatable). Default: all 5. "
                              "Narrowing is how a complete single-dimension series fits in a daily token budget.")
     args = parser.parse_args()
 
+    if args.list_prompts:
+        for d in SCORE_DIMENSIONS:
+            print(f"{d}: {', '.join(available_versions(d))}  (default: {resolve_version(d)})")
+        return
+
     dimensions = args.dimension or list(SCORE_DIMENSIONS)
     unknown = [d for d in dimensions if d not in SCORE_DIMENSIONS]
     if unknown:
         parser.error(f"unknown dimension(s): {', '.join(unknown)}. Choose from: {', '.join(SCORE_DIMENSIONS)}")
+
+    # Map each requested version to its dimension by name prefix, then validate.
+    prompt_versions: dict[str, str] = {}
+    for requested in args.prompt_version or []:
+        owner = next((d for d in dimensions if requested.startswith(f"{d}-")), None)
+        if owner is None:
+            parser.error(f"--prompt-version {requested!r} does not match any selected dimension")
+        try:
+            prompt_versions[owner] = resolve_version(owner, requested)
+        except ValueError as e:
+            parser.error(str(e))
 
     setup_logger(LOG_PATH)
     conn = init_db(str(DB_PATH))
@@ -210,6 +233,8 @@ def main():
             transcript_id, chunk_texts = assemble_chunks(conn, company, quarter, year)
             print(f"  {company} {quarter} {year} -- {len(chunk_texts)} chunks, transcript_id={transcript_id}")
         print(f"\nDimensions: {', '.join(dimensions)}")
+        print("Prompt versions: " + ", ".join(
+            prompt_versions.get(d) or resolve_version(d) for d in dimensions))
         print(f"Model: {model}")
         planned = len(transcripts) * len(dimensions)
         print(f"Dimension-scores to produce: {planned}")
@@ -234,7 +259,8 @@ def main():
 
         try:
             results = score_transcript_all(
-                conn, transcript_id, chunk_texts, model=args.model, dimensions=dimensions
+                conn, transcript_id, chunk_texts, model=args.model,
+                dimensions=dimensions, prompt_versions=prompt_versions,
             )
         except DailyQuotaExhausted as e:
             quota_exhausted = True

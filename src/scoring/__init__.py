@@ -14,6 +14,7 @@ from src.scoring.complexity_spike import score_transcript_complexity_spike
 from src.scoring.overpromising import score_transcript_overpromising
 from src.scoring.forward_guidance_vagueness import score_transcript_forward_guidance_vagueness
 from src.scoring._llm_dimension_scorer import DailyQuotaExhausted
+from src.scoring.prompts import resolve_version
 from src.storage.db import store_score
 from config import LLM_MODEL_NAME
 
@@ -45,6 +46,7 @@ def score_transcript_all(
     chunks: list[str],
     model: str | None = None,
     dimensions: list[str] | None = None,
+    prompt_versions: dict[str, str] | None = None,
 ) -> dict:
     """Run the scoring dimensions against chunks and store results.
 
@@ -57,6 +59,10 @@ def score_transcript_all(
             this is how a complete series for one dimension can be built inside
             a constrained token budget — a full sweep costs roughly five times
             as much (see KNOWN_ISSUES.md BLOCKER-4).
+        prompt_versions: Optional {dimension: version} override. Defaults come
+            from src.scoring.prompts.DEFAULT_VERSIONS. The version actually
+            used is what gets stored, so a score can always be traced to the
+            exact prompt that produced it.
 
     Returns:
         dict mapping dimension name -> {"score", "error", "result"}. `score` is
@@ -66,6 +72,10 @@ def score_transcript_all(
     unknown = [d for d in selected if d not in DIMENSION_MODULES]
     if unknown:
         raise ValueError(f"Unknown dimension(s): {', '.join(unknown)}")
+
+    # Resolve up front so an unknown version fails before any tokens are spent.
+    requested = prompt_versions or {}
+    versions = {d: resolve_version(d, requested.get(d)) for d in selected}
     # The model actually used, so the model_name we record matches the model
     # that produced the score. Recording the requested override while the
     # scorer silently fell back to the configured default is what made the
@@ -78,7 +88,7 @@ def score_transcript_all(
         logger.info("Scoring dimension=%s for transcript_id=%d", dimension, transcript_id)
 
         try:
-            result = scorer(chunks, model=model)
+            result = scorer(chunks, model=model, prompt_version=versions[dimension])
         except DailyQuotaExhausted:
             # No point continuing: every remaining dimension will fail the same
             # way. Let the caller stop and report honestly.
@@ -114,7 +124,7 @@ def score_transcript_all(
             score_value,
             quotes,
             used_model,
-            f"{dimension}-v1",
+            versions[dimension],
             raw,
         )
         logger.info("    %s: %d/10", dimension, score_value)

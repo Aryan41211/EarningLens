@@ -45,7 +45,9 @@ def _build_prompt(chunks: list[str]) -> str:
     return _build_user_prompt(chunks, _USER_INSTRUCTION)
 
 
-def score_sentiment_shift_llm(chunks: list[str], model: str | None = None) -> dict:
+def score_sentiment_shift_llm(
+    chunks: list[str], model: str | None = None, prompt_version: str | None = None
+) -> dict:
     """Score sentiment shift using LLM API."""
     return score_dimension_llm(
         chunks,
@@ -57,9 +59,11 @@ def score_sentiment_shift_llm(chunks: list[str], model: str | None = None) -> di
     )
 
 
-def score_transcript_sentiment_shift(chunks: list[str], model: str | None = None) -> dict:
+def score_transcript_sentiment_shift(
+    chunks: list[str], model: str | None = None, prompt_version: str | None = None
+) -> dict:
     """Full sentiment shift scoring using LLM on all chunks."""
-    llm_result = score_sentiment_shift_llm(chunks, model=model)
+    llm_result = score_sentiment_shift_llm(chunks, model=model, prompt_version=prompt_version)
     return {
         "qa_detected": False,
         "chunks_used": len(chunks),

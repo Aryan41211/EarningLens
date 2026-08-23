@@ -27,6 +27,11 @@ never a 0, never a default — so an absent row means "not scored", not "clean".
 
 ## 2. The five dimensions
 
+Registered prompt versions: `python scripts/run_all_scoring.py --list-prompts`.
+Evasiveness has two — `evasiveness-v1` (the default, and what every stored
+score used) and `evasiveness-v2`, written to fix the failures measured in
+`EVALUATION.md` § 1.2 and not yet run against real transcripts.
+
 | Dimension | What it detects | Method | Input scope |
 |---|---|---|---|
 | `evasiveness` | Dodges, non-answers, pivots to prepared remarks | Keyword matching **+** LLM | Q&A chunks only |
@@ -139,9 +144,11 @@ Practical rules:
 
 1. Pin one model in `.env` and score a full sweep with it. Do not mix models
    inside a dimension, ever.
-2. Bump `prompt_version` whenever a system prompt changes. It is currently
-   hard-coded as `f"{dimension}-v1"` in both runners — change the prompt and
-   the version stops meaning anything.
+2. Bump `prompt_version` whenever a system prompt changes. This is now
+   enforced rather than remembered: prompts live in `src/scoring/prompts.py`
+   keyed by version, and `tests/test_prompts.py` pins a checksum per version,
+   so editing a prompt without registering a new one fails the suite. The
+   version stored on a score is the version actually used.
 3. Changing a model or a prompt invalidates the whole series for that
    dimension. Re-score everything; do not append.
 4. Before reading any trend, check the slice is single-model:

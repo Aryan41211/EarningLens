@@ -49,7 +49,9 @@ def _build_prompt(chunks: list[str]) -> str:
     return _build_user_prompt(chunks, _USER_INSTRUCTION)
 
 
-def score_forward_guidance_vagueness_llm(chunks: list[str], model: str | None = None) -> dict:
+def score_forward_guidance_vagueness_llm(
+    chunks: list[str], model: str | None = None, prompt_version: str | None = None
+) -> dict:
     """Score forward guidance vagueness using LLM API."""
     return score_dimension_llm(
         chunks,
@@ -61,9 +63,11 @@ def score_forward_guidance_vagueness_llm(chunks: list[str], model: str | None = 
     )
 
 
-def score_transcript_forward_guidance_vagueness(chunks: list[str], model: str | None = None) -> dict:
+def score_transcript_forward_guidance_vagueness(
+    chunks: list[str], model: str | None = None, prompt_version: str | None = None
+) -> dict:
     """Full forward guidance vagueness scoring using LLM on all chunks."""
-    llm_result = score_forward_guidance_vagueness_llm(chunks, model=model)
+    llm_result = score_forward_guidance_vagueness_llm(chunks, model=model, prompt_version=prompt_version)
     return {
         "qa_detected": False,
         "chunks_used": len(chunks),
