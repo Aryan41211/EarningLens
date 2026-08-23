@@ -600,3 +600,31 @@ def test_store_score_records_transcript_identity():
     row = conn.execute("SELECT company, quarter, year FROM scores").fetchone()
     assert row == ("INFY", "Q3", 2024)
     conn.close()
+
+
+def test_scores_remain_readable_by_identity_after_reingest():
+    """The real incident: `run_phase1.py --help` re-ingested (no argparse), moving
+    every chunk rowid. Scores survived because identity lives on the score row,
+    but any query still joining on transcript_id returned nothing.
+
+    Guards the read path the summary output uses.
+    """
+    from src.storage.db import init_db, store_transcript, store_score
+
+    conn = init_db(":memory:")
+    store_transcript(conn, "TCS", "Q1", 2025, ["a", "b"], "TCS_Q1_2025.pdf")
+    tid = conn.execute("SELECT id FROM transcripts WHERE chunk_index=0").fetchone()[0]
+    store_score(conn, tid, "evasiveness", 7, ["q"], "m", "evasiveness-v1", "{}")
+
+    store_transcript(conn, "TCS", "Q1", 2025, ["a", "b"], "TCS_Q1_2025.pdf")
+
+    joined = conn.execute(
+        "SELECT COUNT(*) FROM scores s JOIN transcripts t ON s.transcript_id = t.id"
+    ).fetchone()[0]
+    by_identity = conn.execute(
+        "SELECT COUNT(*) FROM scores WHERE company IS NOT NULL"
+    ).fetchone()[0]
+
+    assert joined == 0, "precondition: the rowid join is genuinely broken"
+    assert by_identity == 1, "identity read must still find the score"
+    conn.close()

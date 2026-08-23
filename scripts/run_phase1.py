@@ -7,6 +7,7 @@ Usage:
     (reads from data/raw_pdfs/, writes to data/earningslens.db)
 """
 
+import argparse
 import sys
 import os
 import logging
@@ -45,12 +46,31 @@ def write_processed_text(pdf_filename: str, cleaned_text: str) -> None:
 
 
 def main():
+    # This script had no argument parsing, so any flag -- including --help --
+    # fell straight through to a full re-ingest. Passing --help expecting usage
+    # text and getting a rewrite of every chunk row is a genuine footgun.
+    parser = argparse.ArgumentParser(
+        description="Phase 1: extract PDFs in data/raw_pdfs/ into chunks in SQLite.",
+        epilog="Re-running is safe: scores carry their own (company, quarter, year) "
+               "and survive the chunk rowid change.",
+    )
+    parser.add_argument("--dry-run", action="store_true",
+                        help="List the PDFs that would be processed, then exit")
+    args = parser.parse_args()
+
     setup_logger(LOG_PATH)
     conn = init_db(str(DB_PATH))
     pdf_files = [f for f in os.listdir(RAW_PDFS_DIR) if f.lower().endswith(".pdf")]
 
     if not pdf_files:
         logger.warning("No PDFs found in %s", RAW_PDFS_DIR)
+        return
+
+    if args.dry_run:
+        print(f"[DRY RUN] {len(pdf_files)} PDF(s) would be processed:")
+        for filename in sorted(pdf_files):
+            print(f"  {filename}")
+        conn.close()
         return
 
     logger.info("Found %d PDF(s). Processing...", len(pdf_files))

@@ -94,17 +94,19 @@ def get_scored_on_model(conn, dimensions, model):
 
 
 def print_summary(conn, company_filter=None):
+    # Read identity from the score row. Joining on transcript_id breaks the
+    # moment Phase 1 is re-run: rowids change and every score silently vanishes
+    # from the summary, which is exactly what happened here.
     query = """
-        SELECT t.company, t.quarter, t.year,
-               s.dimension, s.score, s.model_name, s.scored_at
-        FROM scores s
-        JOIN transcripts t ON s.transcript_id = t.id
+        SELECT company, quarter, year, dimension, score, model_name, scored_at
+        FROM scores
+        WHERE company IS NOT NULL
     """
     params = []
     if company_filter:
-        query += " WHERE t.company = ?"
+        query += " AND company = ?"
         params.append(company_filter.upper())
-    query += " ORDER BY t.company, t.year, t.quarter, s.dimension"
+    query += " ORDER BY company, year, quarter, dimension"
 
     cur = conn.cursor()
     cur.execute(query, params)
