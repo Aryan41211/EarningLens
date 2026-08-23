@@ -64,7 +64,7 @@ same score. Treat the keyword output as evidence to read, not as a signal.
 | Setting | Value | Where |
 |---|---|---|
 | Endpoint | Groq, OpenAI-compatible (`LLM_API_BASE_URL`) | `.env` |
-| Model | `LLM_MODEL_NAME` — **currently pins a retired model, see below** | `.env` |
+| Model | `openai/gpt-oss-120b` — pinned **2026-08-23** | `.env` |
 | Temperature | 0.1 | `_llm_dimension_scorer.py` |
 | `max_tokens` | 800 | `_llm_dimension_scorer.py` |
 | Output | JSON: score + up to 3 verbatim supporting quotes | system prompt |
@@ -113,19 +113,27 @@ different models, and the dashboard's top alert is a pure artifact of that mix
 INFY Q1 2024 scored 6 under `llama-3.3-70b-versatile` and 2 under
 `openai/gpt-oss-20b` — same chunks, same `evasiveness-v1` prompt.
 
+### Pinned model history
+
+| Date pinned | Model | Note |
+|---|---|---|
+| 2026-08-23 | `openai/gpt-oss-120b` | Current. Largest available on the key. Self-consistency spread 0 over 5 runs (`EVALUATION.md` § 3.3). |
+| until 2026-08-23 | `llama-3.3-70b-versatile` | **Retired by Groq, now 404s.** Produced 8 of the 11 original evasiveness scores, which are unreproducible (`KNOWN_ISSUES.md` BLOCKER-3). |
+
+Also used ad hoc before the pin, and the reason the original series was
+invalid: `openai/gpt-oss-20b`, `allam-2-7b`.
+
 ### Model availability is not guaranteed
 
-As of 2026-08-23 the pinned `llama-3.3-70b-versatile` returns 404 from Groq —
-it has been retired, and it produced 8 of the 11 evasiveness scores. Those
-scores can no longer be reproduced or extended (`KNOWN_ISSUES.md` BLOCKER-3).
+A hosted model name is a dependency that can disappear without notice —
+`llama-3.3-70b-versatile` did, taking the reproducibility of most of the
+original score series with it. Record the model **and the date it was pinned**
+in the table above whenever it changes, and treat a full re-score as the
+expected response to a retirement rather than an emergency.
 
-A hosted model name is a dependency that can disappear without notice. Record
-the model **and the date it was pinned** here whenever it changes, and treat
-re-scoring as the expected response to a retirement rather than an emergency.
-
-Available on the current key: `openai/gpt-oss-120b`, `openai/gpt-oss-20b`,
-`openai/gpt-oss-safeguard-20b`, `qwen/qwen3.6-27b`, `allam-2-7b`,
-`groq/compound`, `groq/compound-mini`.
+Available on the current key as of 2026-08-23: `openai/gpt-oss-120b`,
+`openai/gpt-oss-20b`, `openai/gpt-oss-safeguard-20b`, `qwen/qwen3.6-27b`,
+`allam-2-7b`, `groq/compound`, `groq/compound-mini`.
 
 Practical rules:
 
