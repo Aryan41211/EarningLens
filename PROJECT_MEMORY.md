@@ -23,6 +23,11 @@ lost across sessions._
   `_validate_chunk_window.py`, `_analyze_qa_boilerplate.py`).
 - Single branch (`main`), single remote (`origin/main`) throughout.
 
+> **Verified defects now live in `KNOWN_ISSUES.md`** (rewritten 2026-08-23 from
+> a live audit of the code and database). The lists below are kept for the
+> historical/architectural context they carry; where the two disagree,
+> `KNOWN_ISSUES.md` is measured and this file is remembered.
+
 ## Known issues
 
 - **Filename rigidity**: any PDF not matching `COMPANY_Q<n>_<year>.pdf` is
@@ -46,12 +51,19 @@ lost across sessions._
 
 ## Technical debt
 
-- 4 of 5 scoring dimensions implemented but not validated on real data
-  (see `PROJECT_STATUS.md` for validation status)
-- `src/trends/metrics.py` — all 4 functions are stubs
+- **No dimension is validated on real data.** Evasiveness has been reviewed by
+  a human on all 11 transcripts and came back at 4.6/10 mean accuracy; the
+  other 4 have 1–4 data points and no review at all.
+- **`scores` mixes three models**, so no stored series is a valid time series
+  (KNOWN_ISSUES.md BLOCKER-2)
+- **`scores.transcript_id` is a chunk rowid**; a Phase 1 re-run orphans every
+  score (HIGH-2)
+- ~~`src/trends/metrics.py` — all 4 functions are stubs~~ — implemented in
+  `d2f7a99`; the CLI wrapper around them still crashes on import (BLOCKER-1)
 - `config.py` declares `COMPANIES` (4 companies) but only 2 are actually
   used/enforced anywhere
-- No evaluation harness against human-labeled data yet
+- No evaluation harness against human-labeled data yet, and the labels that
+  exist are prose, not numbers (`EVALUATION.md`)
 - `scripts/_*.py` research scripts are ad-hoc, not structured as reusable
   CLI tools
 - No `pyproject.toml`, `.pre-commit-config.yaml`, or `.editorconfig`
@@ -66,9 +78,14 @@ lost across sessions._
 - **Groq free-tier rate limits** could bottleneck batch scoring once more
   transcripts or dimensions are added.
 - **Single point of failure on Q&A regex detection** — see Known Issues.
-- **No real evaluation yet** — LLM scores are currently unvalidated against
-  any human judgment; don't treat current evasiveness scores as
-  ground-truth-accurate until `reading-notes.md` is populated and compared.
+- **No real evaluation yet** — and the one human review that exists is
+  *negative*: the reviewer agreed with the LLM's evasiveness score on 3 of 11
+  transcripts. Do not treat any current score as ground-truth-accurate. See
+  `EVALUATION.md`.
+- **Model drift inside the data.** Scores were produced across at least three
+  models over several sessions with no re-scoring in between. INFY Q1 2024
+  evasiveness reads 6 in the review notes and 2 in the DB today. Any analysis
+  written against the current DB will be wrong in ways that look plausible.
 - **Commit history noise** makes `git log` a weak tool for understanding
   intent during this period — rely on this file and `ROADMAP.md`/
   `PROJECT_STATUS.md` instead of archaeology through commits where possible.

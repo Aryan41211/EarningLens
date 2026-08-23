@@ -15,11 +15,17 @@ SQLite, and scores management credibility via LLM prompting across 5 fixed
 dimensions. It's a solo-developer, single-user, locally-run batch pipeline —
 not a service.
 
-Status in short: Phase 1 (extraction/storage) is functional and has ingested
-11 real transcripts (7 TCS, 4 INFY, Q1 2023–Q4 2025). Phase 2 (scoring) has
-1 of 5 dimensions built — evasiveness, via deterministic keyword matching
-plus an LLM call to Groq's `llama-3.3-70b-versatile`. Phases 3 (trends) and
-4 (dashboard) are stubs.
+Status in short (verified 2026-08-23): all four phases have shipped code.
+Phase 1 has ingested 11 real transcripts (7 TCS, 4 INFY, Q1 2023–Q4 2025).
+Phase 2 has all 5 dimension modules built, but only 20 of a possible 55 scores
+exist and they span three different models. Phase 3's functions work while its
+CLI crashes on import; Phase 4's dashboard runs but its headline alert is an
+artifact of the model mixing.
+
+**Nothing is validated.** The only human review — all 11 evasiveness
+transcripts — judged the LLM's score accurate on 3 of them. Treat the current
+output as a working pipeline with unproven numbers, not as a credibility
+signal. See `KNOWN_ISSUES.md` and `EVALUATION.md`.
 
 ## Problem statement
 
