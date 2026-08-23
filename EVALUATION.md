@@ -124,18 +124,41 @@ Ranking matters more than absolute calibration here. The product's claim is
 Directional agreement on deltas is therefore the metric that decides whether
 Phase 3 means anything.
 
-### 3.3 Self-consistency (no human labels required — run this first)
+### 3.3 Self-consistency — run, result positive
 
-Cheap, and it bounds everything else:
+`scripts/run_self_consistency.py` scores one transcript N times with the same
+model and prompt and reports the spread. The spread is the noise floor: any
+quarter-over-quarter movement smaller than it is indistinguishable from the
+model talking to itself.
 
-1. Score one transcript **5 times** at temperature 0.1, same model, same prompt.
-2. Report the spread (min, max, standard deviation).
+**Result — TCS Q1 2025, evasiveness, `openai/gpt-oss-120b`, 5 runs:**
 
-If the model's own spread is ±2 points, then the trend thresholds
-(`±1.5` in `src/trends/metrics.py`) are inside the noise floor and every
-IMPROVING/DETERIORATING label is coin-flipping. This single experiment can
-invalidate Phase 3 in about ten LLM calls and should be run before any further
-scoring work.
+```
+  scores : [8, 8, 8, 8, 8]
+  mean   : 8.00
+  range  : 8-8  (spread 0)
+  stdev  : 0.00
+```
+
+Identical every time. At temperature 0.1 this model is effectively
+deterministic on this transcript, so the `±1.5` trend thresholds in
+`src/trends/metrics.py` sit **above** the noise floor rather than inside it.
+Phase 3's IMPROVING/DETERIORATING labels are therefore capable of carrying
+signal — which was the open question that blocked everything downstream.
+
+Two caveats worth keeping:
+
+- One transcript, one dimension. Repeat on others before generalising; the
+  script takes `--company/--quarter/--year/--dimension/--runs`.
+- Determinism is not accuracy. The model returns the same answer every time;
+  the human review says that answer is often the wrong one. Consistency makes
+  the trend layer *meaningful*, not *correct*.
+
+Worth noting: this same transcript scored 6 under `llama-3.3-70b-versatile`,
+7 under `allam-2-7b`, and 8 under `openai/gpt-oss-120b`. Run-to-run variance is
+zero; **cross-model variance is 2 points.** The model choice matters far more
+than sampling noise, which is exactly why the comparability rule in
+`SCORING_METHODOLOGY.md` § 4 exists.
 
 ### 3.4 Model comparison
 
