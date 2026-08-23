@@ -155,9 +155,11 @@ FROM scores GROUP BY dimension, model_name, prompt_version;
 
 ## 5. What a score is not
 
-- **Not calibrated.** No score has been checked against a human number. The
-  only human review rated the LLM's accuracy at 4.6/10 on average
-  (`EVALUATION.md`).
+- **Measured against human judgement, and failing.** Evasiveness scores were
+  compared to 11 human labels: MAE 1.73, Spearman 0.10, within-2 0.64,
+  directional agreement 0.50 — every target missed. Spearman 0.10 means the
+  ordering is close to unrelated to the human's. Do not present a score as a
+  credibility signal (`EVALUATION.md` § 0).
 - **Not a measure of intent.** The prompt cannot distinguish "refusing to
   disclose, with a stated policy reason" from "dodging". The human reviewer
   repeatedly made that distinction; the model does not.

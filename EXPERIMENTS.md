@@ -42,14 +42,35 @@ development for sanity-checking ingestion without opening a SQLite client
 directly. Most recently touched script in git history (as of the last
 sync — see `PROJECT_MEMORY.md`).
 
-## Human review of evasiveness scores — run, result negative
+## Evaluation of evasiveness scores — run, result negative
+
+Metrics against the 11 human labels (`scripts/run_evaluation.py --dimension
+evasiveness --against reviewed`):
+
+| Metric | Measured | Target | |
+|---|---|---|---|
+| MAE | 1.73 | ≤ 1.5 | FAIL |
+| Spearman | 0.10 | ≥ 0.6 | FAIL |
+| Within 2 points | 0.64 | ≥ 0.7 | FAIL |
+| Directional agreement | 0.50 | ≥ 0.7 | FAIL |
+
+Spearman 0.10 says the model barely ranks transcripts in the human's order.
+Directional agreement 0.50, over 4 adjacent-quarter comparisons, is a coin flip
+on the product's actual claim. Full caveats in `EVALUATION.md` § 0.
+
+## Human review of evasiveness scores
 
 All 11 evasiveness-scored transcripts were read and reviewed by hand
-(`notebooks/reading-notes.md`): three LLM supporting quotes each, a 1–10 rating
-of the LLM's accuracy, a written justification, and a verdict.
+(`notebooks/reading-notes.md`): three LLM supporting quotes each, the
+reviewer's own 1–10 evasiveness score, a written justification, and a verdict.
 
-**Result: mean accuracy rating 4.6/10; the reviewer agreed with the LLM's score
-on 3 of 11 transcripts (all 4 INFY reviews came back "Doesn't match").**
+**Result: the LLM matched the human score exactly on 3 of 11, was within one
+point on 6 of 11, and every INFY transcript was off by 3 or more.**
+
+The review field was originally labelled "Accuracy" and was misread for a time
+as a rating of the LLM. It is the reviewer's own evasiveness score — confirmed,
+and corroborated by the gap-to-verdict correspondence holding perfectly across
+all 11 rows.
 
 Failure modes the review surfaced — the model cannot distinguish:
 

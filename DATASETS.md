@@ -119,15 +119,14 @@ _Measured 2026-08-23._
 ## Labeled data
 
 `notebooks/reading-notes.md` holds a **completed** human review of all 11
-evasiveness-scored transcripts: LLM supporting quotes, a 1–10 rating of the
-LLM's accuracy, a written justification, a missed-context note, and a verdict
-for each. Mean accuracy rating 4.6/10; verdicts 3 Matches / 3 Partially /
-5 Doesn't match.
+evasiveness-scored transcripts: LLM supporting quotes, **the reviewer's own
+1–10 evasiveness score**, a written justification, a missed-context note, and a
+verdict for each.
 
-It is not yet machine-readable, and it records how *wrong* the LLM was rather
-than what the correct score is — the "Your Score" column is blank for all 11.
-`EVALUATION.md` § 3.1 specifies the `notebooks/labels.csv` format needed before
-any error metric can be computed.
+`notebooks/labels.csv` is the machine-readable export — the project's ground
+truth, and what `scripts/run_evaluation.py` reads. `confidence` is `medium`
+throughout because the reviews were written with the LLM's score visible, which
+anchors judgement.
 
 `notebooks/evaluation_summary.md` carries score-distribution and
 keyword-vs-LLM divergence tables. Note that three of its LLM scores are now

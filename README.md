@@ -110,11 +110,13 @@ Full operational detail, cost estimates, health checks, and troubleshooting:
 
 ## Notes & Findings
 
-- [notebooks/reading-notes.md](notebooks/reading-notes.md) — Completed human
-  review of all 11 evasiveness-scored transcripts. The reviewer rated the LLM's
-  accuracy at **4.6/10 on average** and agreed with its score on 3 of 11.
-  This is the project's current headline result; see
-  [EVALUATION.md](EVALUATION.md).
+- **[EVALUATION.md](EVALUATION.md) — the headline result.** Evasiveness
+  scoring was measured against 11 human labels and **failed all four targets**
+  (Spearman 0.10 — essentially no ability to rank transcripts). This is the
+  project's most important finding.
+- [notebooks/reading-notes.md](notebooks/reading-notes.md) — the human review
+  behind it: 11 transcripts read, scored, and justified in writing.
+- [notebooks/labels.csv](notebooks/labels.csv) — those scores, machine-readable.
 - [notebooks/evaluation_summary.md](notebooks/evaluation_summary.md) — Score
   distribution and keyword-vs-LLM divergence tables.
 - [data/findings/findings.md](data/findings/findings.md) — The single

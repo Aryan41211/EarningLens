@@ -51,24 +51,31 @@ lost across sessions._
 
 ## Technical debt
 
-- **No dimension is validated on real data.** Evasiveness has been reviewed by
-  a human on all 11 transcripts and came back at 4.6/10 mean accuracy; the
-  other 4 have 1–4 data points and no review at all.
-- **`scores` mixes three models**, so no stored series is a valid time series
-  (KNOWN_ISSUES.md BLOCKER-2)
-- **`scores.transcript_id` is a chunk rowid**; a Phase 1 re-run orphans every
-  score (HIGH-2)
-- ~~`src/trends/metrics.py` — all 4 functions are stubs~~ — implemented in
-  `d2f7a99`; the CLI wrapper around them still crashes on import (BLOCKER-1)
-- `config.py` declares `COMPANIES` (4 companies) but only 2 are actually
-  used/enforced anywhere
-- No evaluation harness against human-labeled data yet, and the labels that
-  exist are prose, not numbers (`EVALUATION.md`)
-- `scripts/_*.py` research scripts are ad-hoc, not structured as reusable
-  CLI tools
-- No `pyproject.toml`, `.pre-commit-config.yaml`, or `.editorconfig`
-- No type checking configured (mypy/pyright)
-- CI is single-config (no matrix testing, no coverage reporting)
+_Refreshed 2026-08-23. Struck items were resolved in the audit; see
+`KNOWN_ISSUES.md` for the status table._
+
+**Open**
+
+- **Evasiveness scoring does not reproduce human judgement** — Spearman 0.10
+  against 11 labels. The prompt cannot tell a reasoned refusal from a dodge.
+  This is the substantive problem the project now has (`EVALUATION.md`).
+- **`scores` mixes four models**, so no stored series is yet valid. Detected
+  and announced, but the data still needs a single-model sweep (BLOCKER-2/4).
+- **A full re-scoring sweep costs ~5 days of free-tier quota** (BLOCKER-4).
+- 4 of 5 dimensions have 1–5 data points and no human review at all.
+- No `pyproject.toml`, `.pre-commit-config.yaml`, or `.editorconfig`.
+- CI is single-config (no matrix testing, no coverage reporting).
+
+**Resolved**
+
+- ~~`src/trends/metrics.py` functions are stubs~~ — implemented `d2f7a99`;
+  the CLI that wrapped them, which had never once run, fixed `a1e05ca`.
+- ~~`scores.transcript_id` is a chunk rowid; a Phase 1 re-run orphans every
+  score~~ — identity columns added and backfilled `20c5842`.
+- ~~No evaluation harness, and the labels are prose not numbers~~ — harness
+  built `918b8dd`; the labels turned out to exist all along `1ddea00`.
+- ~~`config.COMPANIES` declared but unused~~ — removed `6732851`.
+- ~~No type checking configured~~ — mypy runs in CI, `scripts/` byte-compiled.
 
 ## Risks
 
@@ -78,10 +85,10 @@ lost across sessions._
 - **Groq free-tier rate limits** could bottleneck batch scoring once more
   transcripts or dimensions are added.
 - **Single point of failure on Q&A regex detection** — see Known Issues.
-- **No real evaluation yet** — and the one human review that exists is
-  *negative*: the reviewer agreed with the LLM's evasiveness score on 3 of 11
-  transcripts. Do not treat any current score as ground-truth-accurate. See
-  `EVALUATION.md`.
+- **Evaluation run, result negative.** Evasiveness scores measured against the
+  11 human labels fail all four targets, most importantly Spearman 0.10 — the
+  model barely ranks transcripts in the human's order. Do not treat any current
+  score as accurate. See `EVALUATION.md` § 0.
 - **Model drift inside the data.** Scores were produced across at least three
   models over several sessions with no re-scoring in between. INFY Q1 2024
   evasiveness reads 6 in the review notes and 2 in the DB today. Any analysis

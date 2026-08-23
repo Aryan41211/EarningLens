@@ -42,12 +42,15 @@ The re-scoring sweep stopped partway: a full sweep needs ~1.1M tokens against a
 BLOCKER-4). Re-run `scripts/run_all_scoring.py` as budget frees; it stops
 cleanly and exits 3 rather than failing silently.
 
-> **Correction (Aug 23):** earlier versions of this file recorded "0/11
-> human-reviewed" across the board. `notebooks/reading-notes.md` in fact holds a
-> completed review of all 11 evasiveness transcripts — accuracy rating,
-> justification, missed-context note, and verdict for each. Mean accuracy
-> rating **4.6/10**; verdicts 3 Matches / 3 Partially / 5 Doesn't match. See
-> `EVALUATION.md`.
+> **Correction (Aug 23), twice over.** This file first recorded "0/11
+> human-reviewed"; `notebooks/reading-notes.md` in fact held a completed review
+> of all 11 evasiveness transcripts. It was then recorded as an "accuracy
+> rating" of the LLM; it is actually the reviewer's **own evasiveness score**,
+> confirmed with the reviewer. The project's ground truth existed the whole
+> time and was documented as missing. Now exported to `notebooks/labels.csv`.
+>
+> **Evaluation result:** MAE 1.73, Spearman 0.10, within-2 0.64, directional
+> agreement 0.50 — all four targets failed (`EVALUATION.md` § 0).
 
 ### Scoring infrastructure
 

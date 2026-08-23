@@ -18,7 +18,7 @@ and history live in `PROJECT_MEMORY.md`; forward plans live in `ROADMAP.md`.
 | HIGH-3 — QoQ maths ignores calendar gaps | HIGH | ✅ Fixed `f2074f6` |
 | MEDIUM-1 — sort key collapses the company column | MEDIUM | ✅ Fixed `f2074f6` |
 | MEDIUM-2 — 4 of 5 dimensions have almost no data | MEDIUM | ⛔ Open — needs a scoring sweep, blocked by BLOCKER-3 |
-| MEDIUM-3 — human review documented as nonexistent | MEDIUM | ✅ Docs corrected; numeric labels still missing |
+| MEDIUM-3 — human review documented as nonexistent | MEDIUM | ✅ Fixed `1ddea00` — labels existed all along, now in `labels.csv` |
 | MEDIUM-4 — two divergent score-all implementations | MEDIUM | ✅ Fixed `e1d8a14` |
 | LOW batch | LOW | ✅ L-1/2/3/4/5/6 fixed; L-7..L-12 docs corrected |
 
@@ -334,9 +334,18 @@ examples."
 justification, missed-context notes, and a verdict for each. It is the most
 valuable artifact in the repository and the docs record it as outstanding work.
 
-The one real gap: the "Your Score" column is still blank — the reviewer rated
-*how good the LLM's score was*, not what the score should have been. See
-`EVALUATION.md`.
+**Resolved, and worse than first described.** The per-transcript field was
+labelled "Accuracy" and was read — by this document included — as a rating of
+the LLM. It is the reviewer's own evasiveness score, confirmed with them and
+corroborated by the gap-to-verdict correspondence holding across all 11 rows.
+
+So the project's ground truth existed from the start and was recorded as
+missing work in three separate documents. The field is relabelled and exported
+to `notebooks/labels.csv`; the evaluation now runs (`EVALUATION.md` § 0).
+
+Worth keeping as a lesson: an ambiguous field label cost this project its own
+evidence, and the audit that found the other issues initially propagated the
+misreading rather than catching it.
 
 ---
 
