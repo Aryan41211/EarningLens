@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from config import DB_PATH, SCORE_DIMENSIONS
 from src.storage.db import init_db
 from src.trends.metrics import (
+    check_score_comparability,
     load_scores_from_db,
     compute_qoq_score_change,
     compute_rolling_3q_average,
@@ -29,11 +30,31 @@ def main():
     parser.add_argument("--company", type=str, help="Filter to a specific company")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
     parser.add_argument("--db", type=str, default=str(DB_PATH), help="Database path")
+    parser.add_argument(
+        "--strict", action="store_true",
+        help="Exit instead of reporting trends if any dimension spans multiple models",
+    )
     args = parser.parse_args()
 
     conn = init_db(args.db)
-    scores_df = load_scores_from_db(conn)
+    comparability = check_score_comparability(conn)
+    try:
+        scores_df = load_scores_from_db(conn, strict=args.strict)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        conn.close()
+        sys.exit(2)
     conn.close()
+
+    if not comparability.empty:
+        print("!" * 78, file=sys.stderr)
+        print("WARNING: these dimensions are not valid time series.", file=sys.stderr)
+        for _, row in comparability.iterrows():
+            print(f"  {row['dimension']}: {row['variants']} model/prompt variants "
+                  f"-- {row['detail']}", file=sys.stderr)
+        print("Deltas below measure the model change, not the company. "
+              "Re-score with a single pinned model.", file=sys.stderr)
+        print("!" * 78 + "\n", file=sys.stderr)
 
     if scores_df.empty:
         print("No scores found in database. Run scoring first.", file=sys.stderr)
