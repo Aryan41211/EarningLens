@@ -141,9 +141,25 @@ def test_complexity_spike_prompt_non_empty():
     assert "Jargon-heavy paragraph." in prompt
 
 
-def test_complexity_spike_score_key_in_result():
+@patch.dict("os.environ", {"LLM_API_KEY": "test-key", "LLM_API_BASE_URL": "https://test.api"})
+@patch("openai.OpenAI", autospec=True)
+def test_complexity_spike_score_key_in_result(mock_openai_class):
+    import importlib
+    import config
+    importlib.reload(config)
+    import src.scoring.complexity_spike
+    importlib.reload(src.scoring.complexity_spike)
     from src.scoring.complexity_spike import score_transcript_complexity_spike
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.return_value = _mock_openai_response(
+        json.dumps({"complexity_spike_score": 4, "supporting_quotes": []})
+    )
+    mock_openai_class.return_value = mock_client
+
     result = score_transcript_complexity_spike(["Test chunk."])
+    # The mock must have been used — a real network call means the patch missed.
+    assert mock_client.chat.completions.create.called
     assert "llm_result" in result
     assert "chunks_used" in result
 
@@ -212,9 +228,25 @@ def test_overpromising_prompt_non_empty():
     assert "Growth claims." in prompt
 
 
-def test_overpromising_score_key_in_result():
+@patch.dict("os.environ", {"LLM_API_KEY": "test-key", "LLM_API_BASE_URL": "https://test.api"})
+@patch("openai.OpenAI", autospec=True)
+def test_overpromising_score_key_in_result(mock_openai_class):
+    import importlib
+    import config
+    importlib.reload(config)
+    import src.scoring.overpromising
+    importlib.reload(src.scoring.overpromising)
     from src.scoring.overpromising import score_transcript_overpromising
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.return_value = _mock_openai_response(
+        json.dumps({"overpromising_score": 3, "supporting_quotes": []})
+    )
+    mock_openai_class.return_value = mock_client
+
     result = score_transcript_overpromising(["Test chunk."])
+    # The mock must have been used — a real network call means the patch missed.
+    assert mock_client.chat.completions.create.called
     assert "llm_result" in result
     assert "chunks_used" in result
 
@@ -283,9 +315,25 @@ def test_forward_guidance_vagueness_prompt_non_empty():
     assert "Forward looking statement." in prompt
 
 
-def test_forward_guidance_vagueness_score_key_in_result():
+@patch.dict("os.environ", {"LLM_API_KEY": "test-key", "LLM_API_BASE_URL": "https://test.api"})
+@patch("openai.OpenAI", autospec=True)
+def test_forward_guidance_vagueness_score_key_in_result(mock_openai_class):
+    import importlib
+    import config
+    importlib.reload(config)
+    import src.scoring.forward_guidance_vagueness
+    importlib.reload(src.scoring.forward_guidance_vagueness)
     from src.scoring.forward_guidance_vagueness import score_transcript_forward_guidance_vagueness
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.return_value = _mock_openai_response(
+        json.dumps({"forward_guidance_vagueness_score": 6, "supporting_quotes": []})
+    )
+    mock_openai_class.return_value = mock_client
+
     result = score_transcript_forward_guidance_vagueness(["Test chunk."])
+    # The mock must have been used — a real network call means the patch missed.
+    assert mock_client.chat.completions.create.called
     assert "llm_result" in result
     assert "chunks_used" in result
 
@@ -431,3 +479,81 @@ def test_orchestrator_imports():
     assert "forward_guidance_vagueness" in DIMENSION_MODULES
     assert len(DIMENSION_MODULES) == 5
     assert len(SCORE_KEY_MAP) == 5
+
+
+# ===========================================================
+# Score identity survives re-ingest (KNOWN_ISSUES.md HIGH-2)
+# ===========================================================
+
+def test_scores_survive_transcript_reingest():
+    """Re-running Phase 1 must not destroy existing scores.
+
+    `transcripts` is a chunks table, so scores were filed under the rowid of
+    chunk 0. store_transcript() deletes and re-inserts chunks and AUTOINCREMENT
+    never reuses rowids, so a re-ingest silently orphaned every score -- they
+    vanished from the JOIN with no error and no warning.
+
+    Verified against a copy of the real database: re-ingesting a single
+    transcript orphaned 5 of its 20 scores.
+    """
+    import sqlite3
+    from src.storage.db import init_db, store_transcript, store_score, get_scores
+
+    conn = init_db(":memory:")
+    store_transcript(conn, "TCS", "Q1", 2025, ["chunk a", "chunk b"], "TCS_Q1_2025.pdf")
+    tid = conn.execute("SELECT id FROM transcripts WHERE chunk_index=0").fetchone()[0]
+    store_score(conn, tid, "evasiveness", 7, ["q"], "model-a", "evasiveness-v1", "{}")
+
+    assert len(get_scores(conn, "TCS")) == 1
+
+    # Re-ingest the same transcript: chunk rowids change
+    store_transcript(conn, "TCS", "Q1", 2025, ["chunk a", "chunk b"], "TCS_Q1_2025.pdf")
+    new_tid = conn.execute("SELECT id FROM transcripts WHERE chunk_index=0").fetchone()[0]
+    assert new_tid != tid, "rowid should have changed; otherwise this test proves nothing"
+
+    # The old join would now return zero rows
+    orphaned = conn.execute(
+        "SELECT COUNT(*) FROM scores s LEFT JOIN transcripts t ON s.transcript_id = t.id "
+        "WHERE t.id IS NULL"
+    ).fetchone()[0]
+    assert orphaned == 1, "precondition: the rowid link is genuinely broken"
+
+    # ...but the score is still reachable by identity
+    rows = get_scores(conn, "TCS")
+    assert len(rows) == 1
+    assert rows[0][4] == "evasiveness"
+    assert rows[0][5] == 7
+    conn.close()
+
+
+def test_rescoring_after_reingest_replaces_rather_than_duplicates():
+    """A re-score after a re-ingest must update the row, not add a second one."""
+    from src.storage.db import init_db, store_transcript, store_score, get_scores
+
+    conn = init_db(":memory:")
+    store_transcript(conn, "TCS", "Q1", 2025, ["chunk a"], "TCS_Q1_2025.pdf")
+    tid = conn.execute("SELECT id FROM transcripts WHERE chunk_index=0").fetchone()[0]
+    store_score(conn, tid, "evasiveness", 7, ["q"], "model-a", "evasiveness-v1", "{}")
+
+    store_transcript(conn, "TCS", "Q1", 2025, ["chunk a"], "TCS_Q1_2025.pdf")
+    new_tid = conn.execute("SELECT id FROM transcripts WHERE chunk_index=0").fetchone()[0]
+    store_score(conn, new_tid, "evasiveness", 3, ["q2"], "model-b", "evasiveness-v1", "{}")
+
+    rows = get_scores(conn, "TCS")
+    assert len(rows) == 1, f"expected one row per (transcript, dimension), got {len(rows)}"
+    assert rows[0][5] == 3
+    conn.close()
+
+
+def test_store_score_records_transcript_identity():
+    """company/quarter/year must be resolved from transcript_id and persisted."""
+    from src.storage.db import init_db, store_transcript, store_score
+
+    conn = init_db(":memory:")
+    store_transcript(conn, "INFY", "Q3", 2024, ["chunk"], "INFY_Q3_2024.pdf")
+    tid = conn.execute("SELECT id FROM transcripts WHERE chunk_index=0").fetchone()[0]
+    store_score(conn, tid, "overpromising", 5, [], "model-a", "overpromising-v1", "{}")
+
+    row = conn.execute("SELECT company, quarter, year FROM scores").fetchone()
+    assert row == ("INFY", "Q3", 2024)
+    conn.close()

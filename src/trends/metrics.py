@@ -136,11 +136,13 @@ def load_scores_from_db(conn, strict: bool = False) -> pd.DataFrame:
                 + ". Re-score these dimensions with a single pinned model."
             )
 
+    # Read identity from the score row, not from a join to the chunks table:
+    # chunk rowids change on re-ingest, the company/quarter/year do not.
     query = """
-        SELECT t.company, t.quarter, t.year, s.dimension, s.score
-        FROM scores s
-        JOIN transcripts t ON s.transcript_id = t.id
-        ORDER BY t.company, t.year, t.quarter, s.dimension
+        SELECT company, quarter, year, dimension, score
+        FROM scores
+        WHERE company IS NOT NULL
+        ORDER BY company, year, quarter, dimension
     """
     rows = pd.read_sql_query(query, conn)
     if rows.empty:

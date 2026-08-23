@@ -211,11 +211,10 @@ with tab_raw:
     conn2 = init_db(str(DB_PATH))
     cur = conn2.cursor()
     cur.execute("""
-        SELECT t.company, t.quarter, t.year, s.dimension, s.score, s.supporting_quotes
-        FROM scores s
-        JOIN transcripts t ON s.transcript_id = t.id
-        WHERE t.company = ?
-        ORDER BY t.year, t.quarter, s.dimension
+        SELECT company, quarter, year, dimension, score, supporting_quotes
+        FROM scores
+        WHERE company = ?
+        ORDER BY year, quarter, dimension
     """, (selected_company,))
     rows = cur.fetchall()
     conn2.close()
