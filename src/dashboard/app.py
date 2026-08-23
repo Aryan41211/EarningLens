@@ -20,6 +20,7 @@ import plotly.graph_objects as go
 from config import DB_PATH, SCORE_DIMENSIONS
 from src.storage.db import init_db
 from src.trends.metrics import (
+    check_score_comparability,
     load_scores_from_db,
     compute_qoq_score_change,
     compute_rolling_3q_average,
@@ -36,12 +37,35 @@ st.set_page_config(
 
 # ---------- Load data ----------
 conn = init_db(str(DB_PATH))
+comparability = check_score_comparability(conn)
 scores_df = load_scores_from_db(conn)
 conn.close()
 
 if scores_df.empty:
     st.warning("No scores found in database. Run scoring first (Phase 2).")
     st.stop()
+
+
+def render_comparability_warning():
+    """Show which dimensions are not valid time series.
+
+    Rendered on every tab that displays a delta, because a reader who lands on
+    Alerts should not have to visit another tab to learn the alert is an
+    artifact.
+    """
+    if comparability.empty:
+        return
+    dims = ", ".join(comparability["dimension"])
+    with st.container():
+        st.error(
+            f"**These scores are not comparable across quarters: {dims}.**  \n"
+            "They were produced by different models, so the changes below partly "
+            "measure the model switch rather than the company. Re-score each "
+            "dimension with a single pinned model before drawing conclusions."
+        )
+        with st.expander("Which models?"):
+            for _, row in comparability.iterrows():
+                st.markdown(f"- **{row['dimension']}** — {row['detail']}")
 
 # ---------- Sidebar: company selector ----------
 st.sidebar.title("EarningsLens")
@@ -62,6 +86,7 @@ tab_scores, tab_trends, tab_drops, tab_raw = st.tabs(
 
 # ---- Tab 1: Scores ----
 with tab_scores:
+    render_comparability_warning()
     st.subheader("Quarterly Scores")
 
     # Build a display dataframe with readable column names
@@ -106,6 +131,7 @@ with tab_scores:
 
 # ---- Tab 2: Trends ----
 with tab_trends:
+    render_comparability_warning()
     st.subheader("Quarter-over-Quarter Changes")
 
     qoq = compute_qoq_score_change(company_df)
@@ -150,6 +176,7 @@ with tab_trends:
 
 # ---- Tab 3: Alerts ----
 with tab_drops:
+    render_comparability_warning()
     st.subheader("Biggest Single-Quarter Score Increases (Worsening)")
     drops = find_biggest_single_quarter_drop(scores_df)
     company_drops = drops[drops["company"] == selected_company] if not drops.empty else pd.DataFrame()
