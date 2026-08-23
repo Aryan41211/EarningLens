@@ -58,7 +58,6 @@ different LLMs inside one time series, which makes every trend delta suspect.
 | **SCORING_METHODOLOGY.md** | **What a score means and when two scores may be compared** |
 | **EVALUATION.md** | **How to prove the scores work; existing human-review evidence** |
 | **RUNBOOK.md** | **Exact commands, health checks, troubleshooting** |
-| KNOWN_ISSUES status table | Which defects are fixed and which remain |
 | PROJECT_CONTEXT.md | Problem, users, one-line & executive summary |
 | ARCHITECTURE.md | System design, data flow, runtime flow |
 | FOLDER_STRUCTURE.md | Directory/file responsibilities |

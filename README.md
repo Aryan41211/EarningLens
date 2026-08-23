@@ -8,19 +8,29 @@ retail investors before red flags turn into stock price crashes.
 
 ## Status
 
-All four phases have shipped code; none is finished. 11 transcripts are
-ingested, 20 of a possible 55 dimension-scores exist, and **no score has been
-validated** — the one human review that exists judged the LLM accurate on 3 of
-11 transcripts.
+All four phases work. The pipeline is sound; **the data in it is not yet
+trustworthy**, and the tooling now says so rather than hiding it.
 
 | Phase | State |
 |---|---|
-| 1 — Extraction & storage | Functional |
-| 2 — LLM scoring | 5 modules implemented, 20/55 scores, unvalidated |
-| 3 — Trend detection | Functions work; the CLI crashes on import |
-| 4 — Dashboard | Runs; top alert is currently a model artifact |
+| 1 — Extraction & storage | Functional — 11 transcripts ingested |
+| 2 — LLM scoring | Functional — 24/55 scores, spread across 4 models |
+| 3 — Trend detection | Functional — gap-aware deltas, mixed-model guard |
+| 4 — Dashboard | Functional — warns when scores aren't comparable |
+| 5 — Evaluation | Built — waiting on human labels |
 
-Start with **[KNOWN_ISSUES.md](KNOWN_ISSUES.md)** — two blockers are open.
+Two things stand between this and a defensible result:
+
+1. **No dimension is complete on a single model**, so no trend is valid yet.
+   Blocked on token budget, not code: a full sweep costs ~1.1M tokens against a
+   200k/day free tier. Resume with
+   `python scripts/run_all_scoring.py --dimension evasiveness --skip-scored`.
+2. **`notebooks/labels.csv` has no `human_score` values.** The review rated how
+   accurate the LLM was but never recorded what the score should have been, so
+   error cannot be computed. Eleven numbers, transcripts already read.
+
+Start with **[KNOWN_ISSUES.md](KNOWN_ISSUES.md)** — it carries a status table
+of every defect found and whether it is fixed.
 
 [RUNBOOK](RUNBOOK.md) · [EVALUATION](EVALUATION.md) · [SCORING_METHODOLOGY](SCORING_METHODOLOGY.md) · [ARCHITECTURE](ARCHITECTURE.md) · [CHANGELOG](CHANGELOG.md)
 
