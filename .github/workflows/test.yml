@@ -13,8 +13,13 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - run: pip install -r requirements.txt
 
       - run: pytest tests/ -v
+
+      # mypy.ini has existed since 25da380 but was never enforced, so its
+      # findings accumulated silently. Keep it in CI so that cannot recur.
+      - run: pip install mypy
+      - run: mypy src/
