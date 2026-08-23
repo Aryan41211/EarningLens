@@ -95,6 +95,31 @@ of roughly 2,500 tokens each. On Groq's free tier (8000 TPM) the built-in
 backoff paces this; budget 20–40 minutes and do not run two sweeps
 concurrently.
 
+### Budget: a full sweep does not fit in one day
+
+Measured: ~20,000 tokens per dimension-score. Groq's free tier caps **tokens
+per day at 200,000**. So a full 11 x 5 sweep is ~1.1M tokens — about five days
+of quota (`KNOWN_ISSUES.md` BLOCKER-4). `--dry-run` prints the estimate:
+
+```
+Dimension-scores to produce: 55
+Estimated tokens: ~1,100,000 (5.5 days of free-tier budget)
+```
+
+Scope the run to what fits, and build one *complete* series rather than five
+partial ones — an incomplete series is worth nothing to the trend layer:
+
+```bash
+# one dimension across every transcript (~180k tokens, fits one day)
+python scripts/run_all_scoring.py --dimension evasiveness --skip-scored
+```
+
+`--skip-scored` skips transcripts already scored **on the target model**, so
+this command is the resume command too: run it again after a quota exhaustion
+and it picks up exactly where it stopped, never re-paying for finished work.
+Exit 3 means the budget is spent; everything already written is kept. Safe to
+run on a loop or a scheduler — a run with no budget costs one small failed call.
+
 ### The rule that matters
 
 **Do not mix models.** Every score in a dimension must come from one
