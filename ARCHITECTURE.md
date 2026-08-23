@@ -20,15 +20,24 @@ src/extraction/chunker.py            → ~600-word paragraph-aware chunks
     ▼
 src/storage/db.py                    → SQLite `transcripts` table
     ▼  (Phase 2 — manual trigger)
-src/scoring/evasiveness.py           → keyword matching + LLM scoring
-    ▼
-src/storage/db.py                    → SQLite `scoring_runs` table
-    ▼  (Phase 3 — not implemented)
+src/scoring/evasiveness.py           → keyword matching + LLM (Q&A chunks only)
+src/scoring/sentiment_shift.py       → LLM (all chunks)
+src/scoring/complexity_spike.py      → LLM (all chunks)
+src/scoring/overpromising.py         → LLM (all chunks)
+src/scoring/forward_guidance_vagueness.py → LLM (all chunks)
+    │   all five route through src/scoring/_llm_dimension_scorer.py
+    ▼   (batching, retry, JSON parse, 1-10 clamp)
+src/storage/db.py                    → SQLite `scores` + `scoring_runs`
+    ▼  (Phase 3)
 src/trends/metrics.py                → QoQ deltas, rolling averages,
                                          trend labels, drop detection
-    ▼  (Phase 4 — not implemented)
-src/dashboard/                       → Streamlit UI
+    ▼  (Phase 4)
+src/dashboard/app.py                 → Streamlit UI
 ```
+
+Phases 3 and 4 are implemented as of `d2f7a99` / `dc1af41`. Neither is
+trustworthy yet: the Phase 3 CLI crashes on import and the score series feeding
+both mixes three models. See `KNOWN_ISSUES.md`.
 
 ## Key architectural principles
 
@@ -39,8 +48,9 @@ src/dashboard/                       → Streamlit UI
 - **`config.py` is the single source of truth** for paths, constants, regex,
   scoring dimensions, and LLM settings. No module hardcodes a path.
 - **Auditability over convenience**: every LLM call's raw JSON response is
-  persisted in `scoring_runs`, even though this makes querying scores by
-  dimension currently require parsing JSON rather than a clean column.
+  persisted — in `scoring_runs` and again on each `scores` row, alongside the
+  model name and prompt version. This is the only reason the three-model
+  contamination in the current data was diagnosable after the fact.
 
 ## Runtime flow — Phase 1 (`scripts/run_phase1.py`)
 
@@ -67,6 +77,15 @@ src/dashboard/                       → Streamlit UI
    0.1, requests a 1–10 score plus supporting quotes as JSON.
 6. `store_scoring_run()` persists the run (model, prompt version, raw
    response) to `scoring_runs`.
+
+## Runtime flow — Phases 3 & 4
+
+`load_scores_from_db()` pivots the `scores` table into one row per
+`(company, quarter, year)` with a column per dimension, then the four trend
+functions derive `<dim>_delta`, `<dim>_ma3`, and `<dim>_trend` columns from it.
+`scripts/run_trends.py` and `src/dashboard/app.py` are two consumers of the same
+functions — the dashboard does not go through the CLI, which is why it works
+while the CLI does not.
 
 ## Design decisions
 
