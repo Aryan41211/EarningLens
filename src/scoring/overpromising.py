@@ -60,9 +60,9 @@ def score_overpromising_llm(chunks: list[str], model: str | None = None) -> dict
     )
 
 
-def score_transcript_overpromising(chunks: list[str]) -> dict:
+def score_transcript_overpromising(chunks: list[str], model: str | None = None) -> dict:
     """Full overpromising scoring using LLM on all chunks."""
-    llm_result = score_overpromising_llm(chunks)
+    llm_result = score_overpromising_llm(chunks, model=model)
     return {
         "qa_detected": False,
         "chunks_used": len(chunks),

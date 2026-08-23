@@ -24,25 +24,12 @@ import logging
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from config import DB_PATH, LOG_PATH, LLM_MODEL_NAME, SCORE_DIMENSIONS
-from src.storage.db import init_db, get_chunks, store_score
-from src.scoring.evasiveness import score_transcript_evasiveness
-from src.scoring.sentiment_shift import score_sentiment_shift_llm
-from src.scoring.complexity_spike import score_complexity_spike_llm
-from src.scoring.overpromising import score_overpromising_llm
-from src.scoring.forward_guidance_vagueness import score_forward_guidance_vagueness_llm
-from src.scoring import SCORE_KEY_MAP
+from src.storage.db import init_db, get_chunks
+from src.scoring import score_transcript_all
 from src.utils.logging import setup_logger
 
 
 logger = logging.getLogger("earningslens")
-
-DIMENSION_SCORERS = {
-    "evasiveness": score_transcript_evasiveness,
-    "sentiment_shift": score_sentiment_shift_llm,
-    "complexity_spike": score_complexity_spike_llm,
-    "overpromising": score_overpromising_llm,
-    "forward_guidance_vagueness": score_forward_guidance_vagueness_llm,
-}
 
 
 def get_unique_transcripts(conn, company=None):
@@ -64,38 +51,6 @@ def assemble_chunks(conn, company, quarter, year):
     transcript_id = rows[0][0]
     chunk_texts = [r[5] for r in rows]
     return transcript_id, chunk_texts
-
-
-def score_dimension(conn, transcript_id, dimension, chunks, model):
-    """Score a single dimension for a transcript. Sends all chunks as a complete document."""
-    scorer = DIMENSION_SCORERS[dimension]
-    score_key = SCORE_KEY_MAP[dimension]
-
-    if dimension == "evasiveness":
-        result = scorer(chunks, model=model)
-        llm_result = result.get("llm_result", result)
-        score_value = llm_result.get(score_key)
-        quotes = llm_result.get("supporting_quotes", [])
-        raw = llm_result.get("raw_response", "")
-    else:
-        result = scorer(chunks, model=model)
-        score_value = result.get(score_key)
-        quotes = result.get("supporting_quotes", [])
-        raw = result.get("raw_response", "")
-
-    if score_value is not None:
-        store_score(
-            conn, transcript_id, dimension, score_value,
-            quotes, model, f"{dimension}-v1", raw,
-        )
-        logger.info("    %s: %d/10", dimension, score_value)
-        return True
-    else:
-        error_msg = "unknown"
-        if isinstance(result, dict):
-            error_msg = result.get("error") or result.get("llm_result", {}).get("error", "no score returned")
-        logger.warning("    %s: FAILED (%s)", dimension, error_msg)
-        return False
 
 
 def get_scored_transcripts(conn):
@@ -229,14 +184,8 @@ def main():
             fail_count += 1
             continue
 
-        transcript_success = 0
-        for dimension in SCORE_DIMENSIONS:
-            try:
-                ok = score_dimension(conn, transcript_id, dimension, chunk_texts, model)
-                if ok:
-                    transcript_success += 1
-            except Exception as e:
-                logger.error("    %s error: %s", dimension, e)
+        results = score_transcript_all(conn, transcript_id, chunk_texts, model=args.model)
+        transcript_success = sum(1 for r in results.values() if r["score"] is not None)
 
         if transcript_success == len(SCORE_DIMENSIONS):
             success_count += 1

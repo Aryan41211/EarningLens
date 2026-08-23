@@ -61,9 +61,9 @@ def score_forward_guidance_vagueness_llm(chunks: list[str], model: str | None = 
     )
 
 
-def score_transcript_forward_guidance_vagueness(chunks: list[str]) -> dict:
+def score_transcript_forward_guidance_vagueness(chunks: list[str], model: str | None = None) -> dict:
     """Full forward guidance vagueness scoring using LLM on all chunks."""
-    llm_result = score_forward_guidance_vagueness_llm(chunks)
+    llm_result = score_forward_guidance_vagueness_llm(chunks, model=model)
     return {
         "qa_detected": False,
         "chunks_used": len(chunks),

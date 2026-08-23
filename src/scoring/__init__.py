@@ -14,6 +14,7 @@ from src.scoring.complexity_spike import score_transcript_complexity_spike
 from src.scoring.overpromising import score_transcript_overpromising
 from src.scoring.forward_guidance_vagueness import score_transcript_forward_guidance_vagueness
 from src.storage.db import store_score
+from config import LLM_MODEL_NAME
 
 logger = logging.getLogger("earningslens")
 
@@ -47,38 +48,54 @@ def score_transcript_all(conn, transcript_id: int, chunks: list[str], model: str
         model: Optional LLM model override.
 
     Returns:
-        dict mapping dimension name -> score result dict.
+        dict mapping dimension name -> {"score", "error", "result"}. `score` is
+        None when the dimension failed; `error` carries why.
     """
-    results = {}
+    # The model actually used, so the model_name we record matches the model
+    # that produced the score. Recording the requested override while the
+    # scorer silently fell back to the configured default is what made the
+    # existing `scores` rows untrustworthy.
+    used_model = model or LLM_MODEL_NAME or "unknown"
+
+    results: dict[str, dict] = {}
     for dimension, scorer in DIMENSION_MODULES.items():
         logger.info("Scoring dimension=%s for transcript_id=%d", dimension, transcript_id)
-        result = scorer(chunks)
 
-        # Extract score from the dimension-specific result key
+        try:
+            result = scorer(chunks, model=model)
+        except Exception as e:
+            logger.error("    %s error: %s", dimension, e)
+            results[dimension] = {"score": None, "error": str(e), "result": None}
+            continue
+
+        # Some dimensions nest the LLM payload under "llm_result"; others return
+        # it flat. Accept both so callers do not have to know which is which.
         score_key = SCORE_KEY_MAP[dimension]
         llm_result = result.get("llm_result", result)
         score_value = llm_result.get(score_key)
         quotes = llm_result.get("supporting_quotes", [])
         raw = llm_result.get("raw_response", "")
 
-        if score_value is not None:
-            store_score(
-                conn,
-                transcript_id,
-                dimension,
-                score_value,
-                quotes,
-                model or "unknown",
-                f"{dimension}-v1",
-                raw,
-            )
-            logger.info("Stored %s score=%d for transcript_id=%d", dimension, score_value, transcript_id)
-        else:
+        if score_value is None:
+            error = llm_result.get("error") or "no score returned"
             logger.warning(
-                "No score returned for dimension=%s transcript_id=%d — error=%s",
-                dimension, transcript_id, llm_result.get("error", "unknown"),
+                "    %s: FAILED (%s) for transcript_id=%d",
+                dimension, error, transcript_id,
             )
+            results[dimension] = {"score": None, "error": error, "result": result}
+            continue
 
-        results[dimension] = result
+        store_score(
+            conn,
+            transcript_id,
+            dimension,
+            score_value,
+            quotes,
+            used_model,
+            f"{dimension}-v1",
+            raw,
+        )
+        logger.info("    %s: %d/10", dimension, score_value)
+        results[dimension] = {"score": score_value, "error": None, "result": result}
 
     return results

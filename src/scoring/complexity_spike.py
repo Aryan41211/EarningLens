@@ -59,9 +59,9 @@ def score_complexity_spike_llm(chunks: list[str], model: str | None = None) -> d
     )
 
 
-def score_transcript_complexity_spike(chunks: list[str]) -> dict:
+def score_transcript_complexity_spike(chunks: list[str], model: str | None = None) -> dict:
     """Full complexity spike scoring using LLM on all chunks."""
-    llm_result = score_complexity_spike_llm(chunks)
+    llm_result = score_complexity_spike_llm(chunks, model=model)
     return {
         "qa_detected": False,
         "chunks_used": len(chunks),

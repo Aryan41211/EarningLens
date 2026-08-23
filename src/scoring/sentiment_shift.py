@@ -57,9 +57,9 @@ def score_sentiment_shift_llm(chunks: list[str], model: str | None = None) -> di
     )
 
 
-def score_transcript_sentiment_shift(chunks: list[str]) -> dict:
+def score_transcript_sentiment_shift(chunks: list[str], model: str | None = None) -> dict:
     """Full sentiment shift scoring using LLM on all chunks."""
-    llm_result = score_sentiment_shift_llm(chunks)
+    llm_result = score_sentiment_shift_llm(chunks, model=model)
     return {
         "qa_detected": False,
         "chunks_used": len(chunks),
