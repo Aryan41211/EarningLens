@@ -19,7 +19,17 @@ from config import SCORE_DIMENSIONS
 
 logger = logging.getLogger("earningslens")
 
-# Thresholds for trend labeling (score-change magnitude to flag a trend)
+# Thresholds for trend labelling (score-change magnitude to flag a trend).
+#
+# These are only meaningful if they sit above the model's own run-to-run noise:
+# if scoring the same transcript twice can differ by 2 points, a "DETERIORATING"
+# label is the model talking to itself. Measured on 2026-08-23 with
+# scripts/run_self_consistency.py -- openai/gpt-oss-120b, temperature 0.1,
+# TCS Q1 2025 evasiveness, 5 runs: scores [8,8,8,8,8], spread 0.
+#
+# So +/-1.5 clears the noise floor comfortably for this model. Re-measure and
+# revisit these if the pinned model changes; cross-model variance on that same
+# transcript was 2 points, which would swamp them (EVALUATION.md section 3.3).
 _IMPROVE_THRESHOLD = -1.5   # QoQ delta <= this → IMPROVING (score went down = good)
 _DETERIORATE_THRESHOLD = 1.5  # QoQ delta >= this → DETERIORATING (score went up = bad)
 

@@ -24,14 +24,12 @@ NOTEBOOKS_DIR = PROJECT_ROOT / "notebooks"
 # Expected PDF filename pattern: COMPANY_Q<n>_<year>.pdf  e.g. TCS_Q1_2025.pdf
 FILENAME_PATTERN = r"^([A-Za-z0-9&]+)_(Q[1-4])_(\d{4})$"
 
-# Common company tickers and quarter values used throughout the project.
-COMPANIES = [
-    "TCS",
-    "INFY",
-    "WIPRO",
-    "HDFCBANK",
-]
-QUARTERS = ["Q1", "Q2", "Q3", "Q4"]
+# NOTE: COMPANIES and QUARTERS were removed here. Neither was read anywhere in
+# src/, scripts/, or tests/, and COMPANIES listed two companies (WIPRO,
+# HDFCBANK) that have never been ingested -- so the "supported companies" list
+# was a claim nothing enforced and nothing honoured. Ingestion accepts any
+# ticker matching FILENAME_PATTERN, and the valid quarters are already encoded
+# in that regex. Add a real watchlist here only if something validates against it.
 
 # ---------- Logging ----------
 LOG_PATH = DATA_DIR / "earningslens.log"
