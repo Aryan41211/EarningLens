@@ -8,9 +8,10 @@ Usage:
 
 import argparse
 import json
+import os
 import sys
 
-import pandas as pd
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from config import DB_PATH, SCORE_DIMENSIONS
 from src.storage.db import init_db
@@ -39,7 +40,7 @@ def main():
         sys.exit(1)
 
     if args.company:
-        scores_df = scores_df[scores_df["company"].upper() == args.company.upper()]
+        scores_df = scores_df[scores_df["company"].str.upper() == args.company.upper()]
         if scores_df.empty:
             print(f"No scores found for {args.company}.", file=sys.stderr)
             sys.exit(1)
