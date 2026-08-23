@@ -1,4 +1,18 @@
+"""Ad-hoc DB status check: scored transcripts, counts, and ingest coverage.
+
+Debug script — print() is acceptable here, unlike in src/.
+See RUNBOOK.md section 7 for the equivalent one-liner health checks.
+
+Usage:
+    python scripts/check_db_status.py
+"""
+
+import os
 import sqlite3
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 from config import DB_PATH
 
 conn = sqlite3.connect(str(DB_PATH))

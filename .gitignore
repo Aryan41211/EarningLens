@@ -8,3 +8,10 @@ data/earningslens.log
 *.egg-info/
 venv/
 .venv/
+
+# Empty scaffolding from an eval framework that was never set up
+.deepeval/
+
+# Local database backups (see RUNBOOK.md section 8)
+data/*.db.bak-*
+data/*.sqbpro
