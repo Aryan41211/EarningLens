@@ -24,7 +24,14 @@ only a WARNING in the log:
 ```
 LLM_API_KEY=<groq key>
 LLM_API_BASE_URL=https://api.groq.com/openai/v1
-LLM_MODEL_NAME=llama-3.3-70b-versatile
+LLM_MODEL_NAME=openai/gpt-oss-120b
+```
+
+Confirm the model is actually reachable before scoring — provider model names
+get retired, and a stale one 404s every call:
+
+```bash
+python scripts/check_models.py
 ```
 
 `.env` is gitignored. If a key ever lands in a commit, rotate it — deleting the
@@ -53,11 +60,10 @@ Expect ~16–18 chunks and ~8,000–9,000 words per transcript. A transcript wit
 2 chunks means extraction or cleaning failed — read `data/processed/<name>.txt`
 before scoring it.
 
-> **Warning — read before re-running.** `store_transcript()` deletes and
-> re-inserts chunks, which assigns new rowids. Because `scores.transcript_id`
-> points at the first chunk's rowid, re-running this script **silently orphans
-> every existing score** (`KNOWN_ISSUES.md` HIGH-2). Back up
-> `data/earningslens.db` first, and plan to re-score afterwards.
+> Re-running is safe: chunks are deleted and re-inserted, but scores carry
+> their own `(company, quarter, year)` and survive the rowid change. Backing up
+> `data/earningslens.db` first is still cheap insurance (§ 8) — the scores in it
+> cost real API calls.
 
 ---
 
@@ -76,7 +82,7 @@ python scripts/run_all_scoring.py                        # everything
 python scripts/run_all_scoring.py --company TCS          # one company
 python scripts/run_all_scoring.py --company INFY --year 2024
 python scripts/run_all_scoring.py --skip-existing        # only transcripts missing all 5
-python scripts/run_all_scoring.py --model llama-3.3-70b-versatile
+python scripts/run_all_scoring.py --model openai/gpt-oss-120b
 ```
 
 `--skip-existing` skips a transcript only when **all five** dimensions are
@@ -122,19 +128,17 @@ python scripts/run_trends.py --company TCS
 python scripts/run_trends.py --json
 ```
 
-> **Currently broken** — `ModuleNotFoundError: No module named 'config'`
-> (`KNOWN_ISSUES.md` BLOCKER-1). Until the `sys.path` line is added, reach the
-> same numbers through the dashboard or directly:
->
-> ```python
-> import sqlite3
-> from src.trends.metrics import load_scores_from_db, compute_trend_label
-> print(compute_trend_label(load_scores_from_db(sqlite3.connect("data/earningslens.db"))))
-> ```
+`--strict` exits 2 instead of printing trends built on scores that span more
+than one model:
 
-When reading the output, remember two live defects: QoQ deltas ignore calendar
-gaps (INFY's "quarter-over-quarter" jumps span up to six quarters), and rows are
-ordered by period with companies interleaved.
+```bash
+python scripts/run_trends.py --strict
+```
+
+Deltas are gap-aware: a delta is blank unless the two quarters are actually
+adjacent, and a rolling 3-quarter average is blank unless its window covers
+three consecutive quarters. A blank where you expected a number usually means a
+missing quarter, not a missing score.
 
 ---
 
@@ -147,27 +151,32 @@ streamlit run src/dashboard/app.py
 Opens on `http://localhost:8501`. Tabs: Scores, Trends, Alerts, Raw Data.
 
 It reads the DB at startup only — restart after a scoring run. If it shows
-"No scores found in database", the `scores` table is empty or every score has
-been orphaned by a re-ingest (§ 1).
+"No scores found in database", the `scores` table is empty.
 
-Treat the Alerts tab with suspicion until BLOCKER-2 is fixed: its current top
-alert is a model-switch artifact, not a management signal.
+If any dimension's scores span more than one model, a red banner appears on the
+Scores, Trends, and Alerts tabs naming the offenders. Do not read a delta while
+that banner is showing — it is partly measuring the model change.
 
 ---
 
 ## 5. Tests
 
 ```bash
-python -m pytest tests/ -q          # 70 tests
+python -m pytest tests/ -q          # 92 tests
 python -m pytest tests/test_trends.py -v
 ```
 
-Expect **1 failure** on a machine with a populated `.env`:
-`test_sentiment_shift_score_key_in_result` makes a real API call
-(`KNOWN_ISSUES.md` HIGH-1). CI passes only because it has no API key. Until
-that is fixed, a clean local run needs the key temporarily unset.
+All 92 pass offline — every LLM call in the suite is mocked. If a test ever
+reaches the network, that is a bug in the test, not an environment problem:
+four tests once passed only because an earlier test left `LLM_API_KEY` blank
+process-wide, and failed the moment they were run individually. Run a single
+test standalone when you suspect this:
 
-Type checking is configured but not wired into CI:
+```bash
+python -m pytest tests/test_scoring_dimensions.py::test_sentiment_shift_score_key_in_result -q
+```
+
+Type checking runs in CI and locally:
 
 ```bash
 mypy src/
@@ -179,11 +188,12 @@ mypy src/
 
 | Symptom | Cause | Action |
 |---|---|---|
-| `ModuleNotFoundError: No module named 'config'` | Script missing the `sys.path.insert` prelude | Run from repo root; only `run_trends.py` is affected |
+| `ModuleNotFoundError: No module named 'config'` | A script is missing the `sys.path.insert` prelude | Add it, as every script in `scripts/` has |
+| `404 ... model does not exist or you do not have access` | The pinned model was retired by the provider | `python scripts/check_models.py`, pin a reachable one, then **re-score the whole series** |
 | Every score is `None`, log says "LLM not configured" | `LLM_API_KEY` or `LLM_API_BASE_URL` empty | Fill `.env`; `config.py` reads it at import time |
 | `Rate limited ... retrying in Ns` | Groq free-tier TPM | Expected; backoff handles it. Persistent failure → lower `_BATCH_TARGET_WORDS` |
 | "LLM returned invalid JSON" | Model emitted prose or an unstripped reasoning block | Check `scores.raw_llm_response`; some models need `<think>` stripping, which is already handled — a new pattern means a new model |
-| Dashboard shows no data after scoring | Orphaned scores from a re-ingest, or the app was not restarted | Restart; then check for orphans (§ 7) |
+| Dashboard shows no data after scoring | The app was not restarted, or the sweep stored nothing | Restart; then check coverage (§ 7) |
 | A transcript scored 1–2 chunks | Extraction or cleaning failure | Inspect `data/processed/<name>.txt`; a new publisher may need boilerplate patterns |
 | Filename rejected | Does not match `COMPANY_Q<n>_<year>.pdf` | Rename; the regex has no fallback |
 
@@ -192,11 +202,11 @@ mypy src/
 ## 7. Health checks
 
 ```bash
-# orphaned scores (should be 0)
-python -c "import sqlite3; c=sqlite3.connect('data/earningslens.db'); print(c.execute('SELECT COUNT(*) FROM scores s LEFT JOIN transcripts t ON s.transcript_id=t.id WHERE t.id IS NULL').fetchone())"
+# scores missing their identity (should be 0)
+python -c "import sqlite3; c=sqlite3.connect('data/earningslens.db'); print(c.execute('SELECT COUNT(*) FROM scores WHERE company IS NULL').fetchone())"
 
-# coverage: how many of the 5 dimensions each transcript has
-python -c "import sqlite3; c=sqlite3.connect('data/earningslens.db'); [print(r) for r in c.execute('SELECT t.company,t.year,t.quarter,COUNT(DISTINCT s.dimension) FROM transcripts t JOIN scores s ON s.transcript_id=t.id GROUP BY t.company,t.year,t.quarter ORDER BY t.company,t.year,t.quarter')]"
+# coverage: how many of the 5 dimensions each transcript has (5 is complete)
+python -c "import sqlite3; c=sqlite3.connect('data/earningslens.db'); [print(r) for r in c.execute('SELECT company,year,quarter,COUNT(DISTINCT dimension) FROM scores GROUP BY company,year,quarter ORDER BY company,year,quarter')]"
 
 # model mixing (one row per dimension is the only healthy state)
 python -c "import sqlite3; c=sqlite3.connect('data/earningslens.db'); [print(r) for r in c.execute('SELECT dimension,model_name,COUNT(*) FROM scores GROUP BY dimension,model_name')]"
