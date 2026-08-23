@@ -35,12 +35,27 @@ def test_sentiment_shift_prompt_non_empty():
     assert "Test chunk two." in prompt
 
 
-def test_sentiment_shift_score_key_in_result():
+@patch.dict("os.environ", {"LLM_API_KEY": "test-key", "LLM_API_BASE_URL": "https://test.api"})
+@patch("openai.OpenAI", autospec=True)
+def test_sentiment_shift_score_key_in_result(mock_openai_class):
+    import importlib
+    import config
+    importlib.reload(config)
+    import src.scoring.sentiment_shift
+    importlib.reload(src.scoring.sentiment_shift)
     from src.scoring.sentiment_shift import score_transcript_sentiment_shift
+
+    response_json = json.dumps({"sentiment_shift_score": 4, "supporting_quotes": []})
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.return_value = _mock_openai_response(response_json)
+    mock_openai_class.return_value = mock_client
+
     result = score_transcript_sentiment_shift(["K Krithivasan: Growth was solid."])
     assert "llm_result" in result
     assert "chunks_used" in result
     assert result["chunks_used"] == 1
+    # The mock must have been used — a real network call means the patch missed.
+    assert mock_client.chat.completions.create.called
 
 
 @patch.dict("os.environ", {"LLM_API_KEY": "test-key", "LLM_API_BASE_URL": "https://test.api"})
