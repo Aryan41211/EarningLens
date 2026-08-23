@@ -39,19 +39,33 @@ SCORE_KEY_MAP: dict[str, str] = {
 }
 
 
-def score_transcript_all(conn, transcript_id: int, chunks: list[str], model: str | None = None) -> dict:
-    """Run all 5 dimensions against chunks and store results in the scores table.
+def score_transcript_all(
+    conn,
+    transcript_id: int,
+    chunks: list[str],
+    model: str | None = None,
+    dimensions: list[str] | None = None,
+) -> dict:
+    """Run the scoring dimensions against chunks and store results.
 
     Args:
         conn: SQLite connection.
         transcript_id: The transcripts.id for this transcript.
         chunks: List of chunk texts (all chunks for the transcript).
         model: Optional LLM model override.
+        dimensions: Which dimensions to score. Defaults to all five. Narrowing
+            this is how a complete series for one dimension can be built inside
+            a constrained token budget — a full sweep costs roughly five times
+            as much (see KNOWN_ISSUES.md BLOCKER-4).
 
     Returns:
         dict mapping dimension name -> {"score", "error", "result"}. `score` is
         None when the dimension failed; `error` carries why.
     """
+    selected = dimensions or list(DIMENSION_MODULES)
+    unknown = [d for d in selected if d not in DIMENSION_MODULES]
+    if unknown:
+        raise ValueError(f"Unknown dimension(s): {', '.join(unknown)}")
     # The model actually used, so the model_name we record matches the model
     # that produced the score. Recording the requested override while the
     # scorer silently fell back to the configured default is what made the
@@ -59,7 +73,8 @@ def score_transcript_all(conn, transcript_id: int, chunks: list[str], model: str
     used_model = model or LLM_MODEL_NAME or "unknown"
 
     results: dict[str, dict] = {}
-    for dimension, scorer in DIMENSION_MODULES.items():
+    for dimension in selected:
+        scorer = DIMENSION_MODULES[dimension]
         logger.info("Scoring dimension=%s for transcript_id=%d", dimension, transcript_id)
 
         try:

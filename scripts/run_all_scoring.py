@@ -14,6 +14,10 @@ Usage:
     python scripts/run_all_scoring.py --company INFY --year 2024
     python scripts/run_all_scoring.py --dry-run          # show what would be scored
     python scripts/run_all_scoring.py --model gpt-4o     # override model
+
+    # Build a complete series for one dimension inside a constrained token
+    # budget -- a full 5-dimension sweep costs ~5x as much (BLOCKER-4):
+    python scripts/run_all_scoring.py --dimension evasiveness --skip-scored
 """
 
 import sys
@@ -54,17 +58,37 @@ def assemble_chunks(conn, company, quarter, year):
     return transcript_id, chunk_texts
 
 
-def get_scored_transcripts(conn):
-    """Return set of (company, quarter, year) that already have all 5 dimensions scored."""
-    query = """
-        SELECT t.company, t.quarter, t.year, COUNT(DISTINCT s.dimension) as dim_count
-        FROM transcripts t
-        JOIN scores s ON s.transcript_id = t.id
-        GROUP BY t.company, t.quarter, t.year
-        HAVING dim_count = 5
+def get_scored_transcripts(conn, dimensions):
+    """(company, quarter, year) that already have every requested dimension scored."""
+    placeholders = ",".join("?" * len(dimensions))
+    query = f"""
+        SELECT company, quarter, year, COUNT(DISTINCT dimension) AS dim_count
+        FROM scores
+        WHERE dimension IN ({placeholders}) AND company IS NOT NULL
+        GROUP BY company, quarter, year
+        HAVING dim_count = ?
     """
     cur = conn.cursor()
-    cur.execute(query)
+    cur.execute(query, [*dimensions, len(dimensions)])
+    return {(r[0], r[1], r[2]) for r in cur.fetchall()}
+
+
+def get_scored_on_model(conn, dimensions, model):
+    """(company, quarter, year) already scored on `model` for every requested dimension.
+
+    This is what makes a resumed run cheap: re-scoring a transcript that is
+    already on the pinned model spends tokens to produce the identical number.
+    """
+    placeholders = ",".join("?" * len(dimensions))
+    query = f"""
+        SELECT company, quarter, year, COUNT(DISTINCT dimension) AS dim_count
+        FROM scores
+        WHERE dimension IN ({placeholders}) AND model_name = ? AND company IS NOT NULL
+        GROUP BY company, quarter, year
+        HAVING dim_count = ?
+    """
+    cur = conn.cursor()
+    cur.execute(query, [*dimensions, model, len(dimensions)])
     return {(r[0], r[1], r[2]) for r in cur.fetchall()}
 
 
@@ -130,9 +154,21 @@ def main():
     parser.add_argument("--company", type=str, help="Filter to a specific company (e.g., TCS, INFY)")
     parser.add_argument("--year", type=int, help="Filter to a specific year")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be scored without calling the LLM")
-    parser.add_argument("--skip-existing", action="store_true", help="Skip transcripts that already have all 5 scores")
+    parser.add_argument("--skip-existing", action="store_true",
+                        help="Skip transcripts that already have every requested dimension scored, by any model")
+    parser.add_argument("--skip-scored", action="store_true",
+                        help="Skip transcripts already scored ON THE TARGET MODEL for every requested "
+                             "dimension. Use this to resume a sweep without re-paying for work already done.")
     parser.add_argument("--model", type=str, help="Override the default LLM model from config")
+    parser.add_argument("--dimension", action="append", metavar="NAME",
+                        help="Score only this dimension (repeatable). Default: all 5. "
+                             "Narrowing is how a complete single-dimension series fits in a daily token budget.")
     args = parser.parse_args()
+
+    dimensions = args.dimension or list(SCORE_DIMENSIONS)
+    unknown = [d for d in dimensions if d not in SCORE_DIMENSIONS]
+    if unknown:
+        parser.error(f"unknown dimension(s): {', '.join(unknown)}. Choose from: {', '.join(SCORE_DIMENSIONS)}")
 
     setup_logger(LOG_PATH)
     conn = init_db(str(DB_PATH))
@@ -143,20 +179,26 @@ def main():
     if args.year:
         transcripts = [(c, q, y) for c, q, y in transcripts if y == args.year]
 
+    model = args.model or LLM_MODEL_NAME or "unknown"
+
     if args.skip_existing:
-        scored = get_scored_transcripts(conn)
+        scored = get_scored_transcripts(conn, dimensions)
         before = len(transcripts)
         transcripts = [(c, q, y) for c, q, y in transcripts if (c, q, y) not in scored]
-        skipped = before - len(transcripts)
-        if skipped:
-            logger.info("Skipping %d already-scored transcript(s).", skipped)
+        if before - len(transcripts):
+            logger.info("Skipping %d transcript(s) already scored by any model.", before - len(transcripts))
+
+    if args.skip_scored:
+        scored = get_scored_on_model(conn, dimensions, model)
+        before = len(transcripts)
+        transcripts = [(c, q, y) for c, q, y in transcripts if (c, q, y) not in scored]
+        if before - len(transcripts):
+            logger.info("Skipping %d transcript(s) already scored on %s.", before - len(transcripts), model)
 
     if not transcripts:
         logger.warning("No transcripts found in the database.")
         conn.close()
         return
-
-    model = args.model or LLM_MODEL_NAME or "unknown"
 
     logger.info("Found %d transcript(s) to score.", len(transcripts))
     for company, quarter, year in transcripts:
@@ -167,9 +209,13 @@ def main():
         for company, quarter, year in transcripts:
             transcript_id, chunk_texts = assemble_chunks(conn, company, quarter, year)
             print(f"  {company} {quarter} {year} -- {len(chunk_texts)} chunks, transcript_id={transcript_id}")
-        print(f"\nDimensions: {', '.join(SCORE_DIMENSIONS)}")
+        print(f"\nDimensions: {', '.join(dimensions)}")
         print(f"Model: {model}")
-        print(f"Total LLM calls needed: {len(transcripts) * len(SCORE_DIMENSIONS)}")
+        planned = len(transcripts) * len(dimensions)
+        print(f"Dimension-scores to produce: {planned}")
+        # ~20k tokens per dimension-score, measured; free tier caps at 200k/day.
+        est = planned * 20_000
+        print(f"Estimated tokens: ~{est:,} ({est / 200_000:.1f} days of free-tier budget)")
         conn.close()
         return
 
@@ -187,7 +233,9 @@ def main():
             continue
 
         try:
-            results = score_transcript_all(conn, transcript_id, chunk_texts, model=args.model)
+            results = score_transcript_all(
+                conn, transcript_id, chunk_texts, model=args.model, dimensions=dimensions
+            )
         except DailyQuotaExhausted as e:
             quota_exhausted = True
             logger.error("%s", e)
@@ -200,7 +248,7 @@ def main():
 
         transcript_success = sum(1 for r in results.values() if r["score"] is not None)
 
-        if transcript_success == len(SCORE_DIMENSIONS):
+        if transcript_success == len(dimensions):
             success_count += 1
         else:
             fail_count += 1
