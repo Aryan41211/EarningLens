@@ -61,14 +61,81 @@ def _drop_period(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop(columns=[_PERIOD_COL], errors="ignore")
 
 
-def load_scores_from_db(conn) -> pd.DataFrame:
+def check_score_comparability(conn) -> pd.DataFrame:
+    """Report dimensions whose scores span more than one model or prompt version.
+
+    A quarter-over-quarter delta only means something if every score in the
+    series was produced the same way. `scores` records `model_name` and
+    `prompt_version` per row but nothing enforces that they are constant, so a
+    model switch mid-project shows up as a management trend.
+
+    Returns one row per offending dimension with the variants found, or an
+    empty DataFrame when every dimension is clean.
+    """
+    rows = pd.read_sql_query(
+        """
+        SELECT dimension, model_name, prompt_version, COUNT(*) AS n
+        FROM scores
+        GROUP BY dimension, model_name, prompt_version
+        ORDER BY dimension, n DESC
+        """,
+        conn,
+    )
+    if rows.empty:
+        return pd.DataFrame()
+
+    counts = rows.groupby("dimension").size()
+    contaminated = counts[counts > 1].index
+    if len(contaminated) == 0:
+        return pd.DataFrame()
+
+    report = (
+        rows[rows["dimension"].isin(contaminated)]
+        .groupby("dimension")
+        .apply(
+            lambda g: pd.Series({
+                "variants": len(g),
+                "detail": ", ".join(
+                    f"{m}/{p} ({n})"
+                    for m, p, n in zip(g["model_name"], g["prompt_version"], g["n"])
+                ),
+            }),
+            include_groups=False,
+        )
+        .reset_index()
+    )
+    return report
+
+
+def load_scores_from_db(conn, strict: bool = False) -> pd.DataFrame:
     """Load one-score-per-transcript pivot from the SQLite scores table.
 
     The scores table stores (transcript_id, dimension, score) rows.
     This function pivots them so each transcript is one row with columns:
         company, quarter, year, evasiveness, sentiment_shift, ...
     Only transcripts that have at least one score are included.
+
+    Args:
+        conn: SQLite connection.
+        strict: raise ValueError if any dimension spans more than one
+            (model_name, prompt_version). Default False so existing data stays
+            readable, but the contamination is always logged at ERROR.
     """
+    report = check_score_comparability(conn)
+    if not report.empty:
+        for _, row in report.iterrows():
+            logger.error(
+                "Dimension %s is not a valid series: %d model/prompt variants - %s. "
+                "Deltas across these scores measure the model change, not the company.",
+                row["dimension"], row["variants"], row["detail"],
+            )
+        if strict:
+            raise ValueError(
+                "Refusing to build trends from mixed-model scores: "
+                + "; ".join(f"{r['dimension']} ({r['variants']} variants)" for _, r in report.iterrows())
+                + ". Re-score these dimensions with a single pinned model."
+            )
+
     query = """
         SELECT t.company, t.quarter, t.year, s.dimension, s.score
         FROM scores s

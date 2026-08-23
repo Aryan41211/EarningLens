@@ -7,7 +7,12 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+import sqlite3
+
+from src.storage.db import init_db, store_transcript, store_score
 from src.trends.metrics import (
+    check_score_comparability,
+    load_scores_from_db,
     compute_qoq_score_change,
     compute_rolling_3q_average,
     compute_trend_label,
@@ -263,3 +268,84 @@ class TestOrdering:
     def test_internal_period_column_is_not_leaked(self, sample_scores):
         for fn in (compute_qoq_score_change, compute_rolling_3q_average, compute_trend_label):
             assert "_period" not in fn(sample_scores).columns
+
+
+# ---------------------------------------------------------------------------
+# Score comparability (KNOWN_ISSUES.md BLOCKER-2)
+# ---------------------------------------------------------------------------
+
+def _db_with_scores(tmp_path, rows):
+    """Build a throwaway DB. rows = [(quarter, year, dimension, score, model)]."""
+    conn = init_db(str(tmp_path / "t.db"))
+    seen = set()
+    for quarter, year, dimension, score, model in rows:
+        if (quarter, year) not in seen:
+            store_transcript(conn, "TCS", quarter, year, ["chunk text"], "TCS.pdf")
+            seen.add((quarter, year))
+        tid = conn.execute(
+            "SELECT id FROM transcripts WHERE quarter=? AND year=? AND chunk_index=0",
+            (quarter, year),
+        ).fetchone()[0]
+        store_score(conn, tid, dimension, score, [], model, f"{dimension}-v1", "{}")
+    return conn
+
+
+class TestScoreComparability:
+    """A delta only means something if every score in the series was produced
+    the same way. The live DB had evasiveness scores from three models, which
+    made the dashboard's top alert a model artifact."""
+
+    def test_single_model_is_clean(self, tmp_path):
+        conn = _db_with_scores(tmp_path, [
+            ("Q1", 2024, "evasiveness", 4, "model-a"),
+            ("Q2", 2024, "evasiveness", 6, "model-a"),
+        ])
+        assert check_score_comparability(conn).empty
+
+    def test_mixed_models_are_reported(self, tmp_path):
+        conn = _db_with_scores(tmp_path, [
+            ("Q1", 2024, "evasiveness", 4, "model-a"),
+            ("Q2", 2024, "evasiveness", 6, "model-b"),
+        ])
+        report = check_score_comparability(conn)
+        assert len(report) == 1
+        assert report.iloc[0]["dimension"] == "evasiveness"
+        assert report.iloc[0]["variants"] == 2
+        assert "model-a" in report.iloc[0]["detail"]
+        assert "model-b" in report.iloc[0]["detail"]
+
+    def test_only_the_contaminated_dimension_is_reported(self, tmp_path):
+        conn = _db_with_scores(tmp_path, [
+            ("Q1", 2024, "evasiveness", 4, "model-a"),
+            ("Q2", 2024, "evasiveness", 6, "model-b"),
+            ("Q1", 2024, "overpromising", 3, "model-a"),
+            ("Q2", 2024, "overpromising", 3, "model-a"),
+        ])
+        report = check_score_comparability(conn)
+        assert report["dimension"].tolist() == ["evasiveness"]
+
+    def test_empty_db_is_clean(self, tmp_path):
+        conn = init_db(str(tmp_path / "empty.db"))
+        assert check_score_comparability(conn).empty
+
+    def test_strict_load_raises_on_mixed_models(self, tmp_path):
+        conn = _db_with_scores(tmp_path, [
+            ("Q1", 2024, "evasiveness", 4, "model-a"),
+            ("Q2", 2024, "evasiveness", 6, "model-b"),
+        ])
+        with pytest.raises(ValueError, match="mixed-model"):
+            load_scores_from_db(conn, strict=True)
+
+    def test_non_strict_load_still_returns_data(self, tmp_path):
+        conn = _db_with_scores(tmp_path, [
+            ("Q1", 2024, "evasiveness", 4, "model-a"),
+            ("Q2", 2024, "evasiveness", 6, "model-b"),
+        ])
+        assert len(load_scores_from_db(conn)) == 2
+
+    def test_strict_load_passes_when_clean(self, tmp_path):
+        conn = _db_with_scores(tmp_path, [
+            ("Q1", 2024, "evasiveness", 4, "model-a"),
+            ("Q2", 2024, "evasiveness", 6, "model-a"),
+        ])
+        assert len(load_scores_from_db(conn, strict=True)) == 2
