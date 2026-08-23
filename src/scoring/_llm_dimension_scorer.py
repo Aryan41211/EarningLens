@@ -60,7 +60,7 @@ def _build_user_prompt(chunks: list[str], instruction: str) -> str:
     )
 
 
-def _parse_llm_json(raw: str, score_key: str) -> dict | None:
+def _parse_llm_json(raw: str) -> dict | None:
     """Try to parse LLM response as JSON, handling markdown fences and thinking tags.
     Returns parsed dict or None on failure."""
     cleaned = _strip_thinking_tags(raw)
@@ -144,7 +144,7 @@ def _score_single_batch(
     raw: str = response.choices[0].message.content or ""
     usage_dict = _extract_usage(response)
 
-    parsed = _parse_llm_json(raw, score_key)
+    parsed = _parse_llm_json(raw)
     if parsed is None:
         logger.warning("  LLM returned invalid JSON (%s): %s", dimension_name, raw[:200])
         return None, raw, usage_dict
