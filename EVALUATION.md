@@ -91,17 +91,23 @@ has already written the justification.
 
 ### 3.1 Ground-truth file
 
-Machine-readable, so the harness never parses prose. Proposed
-`notebooks/labels.csv`:
+`notebooks/labels.csv` **exists and is pre-filled** — generated from
+`reading-notes.md`, one row per reviewed transcript:
 
 ```csv
-company,quarter,year,dimension,human_score,confidence,notes_ref
-INFY,Q1,2023,evasiveness,7,high,reading-notes.md#infy-q1-2023
+company,quarter,year,dimension,human_score,confidence,llm_score_at_review,reviewer_accuracy_rating,reviewer_verdict,notes_ref
+INFY,Q1,2023,evasiveness,,,7,3,Doesnt match,reading-notes.md#infy-q1-2023
 ```
 
-- `human_score` — integer 1–10, the reviewer's own score, same scale as the prompt
-- `confidence` — high / medium / low; low-confidence rows are reported separately
-- `notes_ref` — anchor back to the written justification
+- `human_score` — **blank, and the only thing missing.** Integer 1–10 on the
+  same scale the prompt uses: what the reviewer thinks the score *should* be
+- `confidence` — high / medium / low; low-confidence rows reported separately
+- the remaining columns are carried over from the existing review so the
+  context travels with the number
+
+Label **before** looking at the LLM score wherever possible. These 11 rows were
+written with the LLM score visible, which anchors judgement — record that as a
+known limitation of the first label set rather than pretending otherwise.
 
 Label **before** looking at the LLM score wherever possible. The existing 11
 rows were written with the LLM score visible, which anchors judgment — record
@@ -185,23 +191,38 @@ candidate model at a pinned prompt version, then compare each against the
 human labels via the metrics above. Pick one model. Pin it. Record the choice
 in `SCORING_METHODOLOGY.md`.
 
-### 3.5 Harness shape
+### 3.5 Harness — built
 
-Constraints from `PROJECT_RULES.md` still apply — no LangChain, no eval
-framework with a service dependency, no sixth dimension.
+`scripts/run_evaluation.py`, with the metrics in `src/evaluation/metrics.py`
+and 24 tests. No new dependency: Spearman comes from pandas' rank correlation
+rather than scipy, keeping `PROJECT_RULES.md`'s small-stack constraint.
 
+```bash
+python scripts/run_evaluation.py
+python scripts/run_evaluation.py --dimension evasiveness --json
 ```
-scripts/run_evaluation.py
-    --dimension evasiveness
-    --model llama-3.3-70b-versatile
-    --prompt-version evasiveness-v1
-```
 
-Reads `notebooks/labels.csv`, reads the matching slice of `scores`, prints
-MAE / Spearman / within-2 / directional agreement, and writes a dated report
-to `notebooks/`. Logic in `src/evaluation/`, orchestration only in the script
-— the same rule as every other phase. Note the empty `.deepeval/` directory:
-an eval framework was scaffolded once and abandoned; do not resurrect it.
+It refuses to run (exit 2) against a dimension whose scores span multiple
+models, because the error would partly measure the model switch;
+`--allow-mixed-models` overrides. It fails clearly when the labels file is
+missing or has no `human_score` filled in, rather than reporting metrics
+computed over nothing.
+
+Three deliberate choices about absent data, since this file exists to stop the
+project fooling itself:
+
+- Spearman returns `None`, not `0.0`, when a column has no variance to rank —
+  `0.0` would read as a measured result rather than an absent one
+- blank `human_score` rows are dropped, never read as zero
+- the report prints an explicit note when `n < 5`, or when there are no
+  adjacent-quarter pairs and directional agreement is therefore unmeasured
+
+**It is ready and currently refuses to run**, because `notebooks/labels.csv`
+has no `human_score` values. That is the correct behaviour and the honest
+state of the project.
+
+Note the empty `.deepeval/` directory: an eval framework was scaffolded once
+and abandoned; do not resurrect it.
 
 ---
 

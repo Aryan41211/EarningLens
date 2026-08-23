@@ -43,7 +43,12 @@ different LLMs inside one time series, which makes every trend delta suspect.
 - `src/scoring/_llm_dimension_scorer.py` — shared LLM call: batching, retry,
   JSON parsing, score clamping. All 5 dimensions route through it.
 - `src/storage/db.py` — schema + CRUD. Note `transcripts` is really a *chunks*
-  table; see KNOWN_ISSUES.md HIGH-2 before changing anything here.
+  table, which is why `scores` carries its own `(company, quarter, year)`
+  identity; `init_db()` migrates and backfills it.
+- `src/trends/metrics.py` — trend maths. Deltas are gap-aware and
+  `check_score_comparability()` refuses to treat mixed-model scores as a series.
+- `src/evaluation/metrics.py` — the metrics that decide whether any of this
+  works. Read `EVALUATION.md` before changing a threshold.
 
 ## Doc map
 
@@ -53,6 +58,7 @@ different LLMs inside one time series, which makes every trend delta suspect.
 | **SCORING_METHODOLOGY.md** | **What a score means and when two scores may be compared** |
 | **EVALUATION.md** | **How to prove the scores work; existing human-review evidence** |
 | **RUNBOOK.md** | **Exact commands, health checks, troubleshooting** |
+| KNOWN_ISSUES status table | Which defects are fixed and which remain |
 | PROJECT_CONTEXT.md | Problem, users, one-line & executive summary |
 | ARCHITECTURE.md | System design, data flow, runtime flow |
 | FOLDER_STRUCTURE.md | Directory/file responsibilities |

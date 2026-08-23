@@ -11,16 +11,13 @@ depends on scores that have never been validated.
 
 ---
 
-## Step 0 — Unbreak (a few hours, no LLM calls)
+## Step 0 — Unbreak ✅ done
 
-Do these first; they are cheap and everything downstream depends on them.
-
-1. **Fix `scripts/run_trends.py`** — add the missing `sys.path.insert` prelude.
+1. ✅ **Fixed `scripts/run_trends.py`** — add the missing `sys.path.insert` prelude.
    One line. The documented Phase 3 CLI has never run. (KNOWN_ISSUES.md BLOCKER-1)
-2. **Fix `test_sentiment_shift_score_key_in_result`** — mock it like the test
-   below it. Until then the suite fails offline and CI green is meaningless.
+2. ✅ **Fixed the tests that made live API calls** — four of them, not one.
    (HIGH-1)
-3. **Back up `data/earningslens.db`.** The 20 scores in it cost real API calls
+3. ✅ **Backed up `data/earningslens.db`.** The 20 scores in it cost real API calls
    and cannot be regenerated from anything local.
 
 ---
@@ -37,7 +34,7 @@ has a valid, measured score series.
    (`openai/gpt-oss-120b` is the strongest available), put it in `.env`, record
    it with the date in `SCORING_METHODOLOGY.md`, and never mix again.
    (BLOCKER-3, BLOCKER-2)
-5. **Measure self-consistency before spending more on scoring.** Score one
+5. ✅ **Self-consistency measured** — spread 0 over 5 runs. Score one
    transcript five times at temperature 0.1 and record the spread. ~10 calls.
    If the spread approaches ±2, the ±1.5 trend thresholds are inside the noise
    floor and Phase 3's labels mean nothing — better to learn that now than
@@ -59,15 +56,17 @@ has a valid, measured score series.
 
    Until one series is complete on one model, the trend layer has nothing
    valid to read.
-7. **Add the numeric human labels.** `notebooks/reading-notes.md` already has a
-   full written review of all 11 evasiveness transcripts; only the "Your Score"
-   column is blank. Eleven numbers, from transcripts already read. This is the
-   highest value-per-minute task in the project — without it, error cannot be
-   computed at all. Export to `notebooks/labels.csv`. (`EVALUATION.md` § 3.1)
-8. **Build `scripts/run_evaluation.py`** — MAE, Spearman ρ, within-2 accuracy,
-   and directional agreement on QoQ deltas. Logic in `src/evaluation/`,
-   orchestration in the script. No new dependencies, no eval framework.
-   (`EVALUATION.md` § 3.5)
+7. ⬜ **Add the numeric human labels — the one task only you can do.**
+   `notebooks/labels.csv` is now generated and pre-filled from your review: all
+   11 rows carry the LLM score at review time, your accuracy rating, your
+   verdict, and an anchor back to the notes. **Only `human_score` is blank.**
+   Eleven numbers, for transcripts you have already read and written about.
+   Without them no error metric can be computed at all — this is the highest
+   value-per-minute task remaining. (`EVALUATION.md` § 3.1)
+8. ✅ **`scripts/run_evaluation.py` built** — MAE, Spearman ρ, within-2, and
+   directional agreement, with logic in `src/evaluation/` and 24 tests. Refuses
+   to evaluate a dimension whose scores span multiple models, and fails clearly
+   when labels are missing or unfilled. Runs the moment step 7 is done.
 9. **Write the result down whatever it says.** A documented failure is a real
    outcome; an undocumented success is not.
 
@@ -77,15 +76,17 @@ has a valid, measured score series.
 
 Only worth doing once Step 1 shows the scores carry signal.
 
-10. **Gap-aware deltas.** INFY's quarters are not contiguous; `diff()` currently
+10. ✅ **Gap-aware deltas.** INFY's quarters are not contiguous; `diff()` currently
     reports a four-quarter jump as quarter-over-quarter. Emit `NaN` when the
     period distance is not 1. (HIGH-3)
-11. **Fix the sort key** in `src/trends/metrics.py` — it applies the period key
+11. ✅ **Fixed the sort key** in `src/trends/metrics.py` — it applies the period key
     to the `company` column, so companies interleave and per-company diffs are
     correct only by accident. (MEDIUM-1)
-12. **Re-derive the trend thresholds** from the self-consistency measurement in
-    step 5 instead of the current arbitrary ±1.5.
-13. **Guard the trend layer against mixed models** — `load_scores_from_db()`
+12. ✅ **Trend thresholds justified.** Self-consistency spread is 0 on the
+    pinned model, so ±1.5 clears the noise floor. The measurement is recorded
+    beside the constants in `src/trends/metrics.py`, with a warning to
+    re-measure if the model changes.
+13. ✅ **Trend layer guards against mixed models** — `load_scores_from_db()`
     should refuse, loudly, to build a series spanning more than one
     `(model_name, prompt_version)` per dimension.
 
@@ -93,7 +94,7 @@ Only worth doing once Step 1 shows the scores carry signal.
 
 ## Step 3 — Fix the schema before the next ingest
 
-14. **Give transcripts a real identity.** `transcripts` is a chunks table;
+14. ✅ **Transcripts have a real identity.** `transcripts` is a chunks table;
     scores are keyed to the rowid of chunk 0, and re-running `run_phase1.py`
     silently orphans every score. Either split into `transcripts` + `chunks`, or
     key `scores` on `(company, quarter, year)`. Do this **before** ingesting
@@ -112,15 +113,11 @@ Only worth doing once Step 1 shows the scores carry signal.
 
 ## Step 5 — Housekeeping (any time)
 
-16. Move `check_evasiveness.py` into `scripts/` or delete it; remove the stray
-    `0` file; gitignore `.deepeval/`.
-17. Run `mypy src/` in CI — the config exists and is never invoked. Align the
-    Python version (`mypy.ini` says 3.12, CI runs 3.11).
-18. Collapse the two divergent "score all dimensions" implementations
-    (`score_transcript_all()` vs the loop in `run_all_scoring.py`) into one.
-    (MEDIUM-4)
-19. Enforce or delete `config.COMPANIES` — it declares WIPRO and HDFCBANK, which
-    are ingested nowhere and checked nowhere.
+16. ✅ Moved `check_evasiveness.py` to `scripts/check_db_status.py`; removed the
+    stray `0` file; gitignored `.deepeval/`.
+17. ✅ CI runs `mypy src/` and byte-compiles `scripts/`, on Python 3.12.
+18. ✅ Collapsed the two divergent "score all dimensions" implementations.
+19. ✅ Removed `config.COMPANIES` / `QUARTERS` — both were read nowhere.
 
 ---
 

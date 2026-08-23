@@ -40,6 +40,7 @@ earningslens/
 │   ├── storage/           # SQLite schema + CRUD (Phase 1)
 │   ├── scoring/           # LLM scoring engine, 5 dimensions (Phase 2)
 │   ├── trends/            # QoQ deltas, rolling averages, labels (Phase 3)
+│   ├── evaluation/        # LLM-vs-human metrics (MAE, Spearman, direction)
 │   ├── dashboard/         # Streamlit app (Phase 4)
 │   └── utils/             # Logging, shared text cleaning helpers
 ├── scripts/
@@ -47,12 +48,17 @@ earningslens/
 │   ├── run_all_scoring.py      # All 5 dimensions against every transcript
 │   ├── run_evasiveness_test.py # Manual evasiveness runner, one company
 │   ├── run_validation_sample.py# One transcript, all 5 dimensions, for review
-│   └── run_trends.py           # Trend CLI (currently broken — KNOWN_ISSUES.md)
-└── tests/                      # 70 tests
+│   ├── run_trends.py           # Trend analysis CLI
+│   ├── run_evaluation.py       # LLM scores vs human labels
+│   ├── run_self_consistency.py # Run-to-run score spread
+│   ├── check_models.py         # Is the pinned model still reachable?
+│   └── check_db_status.py      # Ad-hoc DB inspection
+└── tests/                      # 116 tests
     ├── test_extraction.py          # Filename parsing, cleaning, chunking
     ├── test_scoring.py             # Keyword matching, Q&A detection, mocked LLM
     ├── test_scoring_dimensions.py  # 4 LLM-only dimensions, DB CRUD
     ├── test_trends.py              # QoQ, rolling averages, labels, drops
+    ├── test_evaluation.py          # MAE, Spearman, within-N, direction
     └── test_integration.py         # End-to-end scoring with a mocked LLM
 ```
 
@@ -68,9 +74,14 @@ cp .env.example .env   # fill in LLM API key when you get to Phase 2
 ```bash
 python scripts/run_phase1.py        # 1. PDFs in data/raw_pdfs/ -> chunks in SQLite
 python scripts/run_all_scoring.py   # 2. score all 5 dimensions (--dry-run first)
-python scripts/run_trends.py        # 3. trend analysis (see KNOWN_ISSUES.md)
+python scripts/run_trends.py        # 3. trend analysis
 streamlit run src/dashboard/app.py  # 4. dashboard
+python scripts/run_evaluation.py    # 5. is any of it actually accurate?
 ```
+
+Scoring is not cheap: ~20k tokens per dimension-score, against a 200k/day free
+tier. `--dry-run` prints the estimate. Scope with `--dimension NAME` and resume
+with `--skip-scored`; see [RUNBOOK.md](RUNBOOK.md).
 
 PDFs must be named `COMPANY_Q<n>_<year>.pdf` (e.g. `TCS_Q1_2025.pdf`) — the
 regex has no fallback for other names.
