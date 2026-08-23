@@ -44,6 +44,31 @@ def sample_scores():
 
 
 @pytest.fixture
+def gapped_scores():
+    """One company whose ingested quarters are not contiguous.
+
+    Mirrors the real INFY data: Q1 2023, Q1 2024, Q2 2024, Q4 2025.
+    Only the Q1 2024 -> Q2 2024 step is an actual quarter-over-quarter change.
+    """
+    return pd.DataFrame([
+        {"company": "INFY", "quarter": "Q1", "year": 2023, "evasiveness": 8},
+        {"company": "INFY", "quarter": "Q1", "year": 2024, "evasiveness": 2},
+        {"company": "INFY", "quarter": "Q2", "year": 2024, "evasiveness": 6},
+        {"company": "INFY", "quarter": "Q4", "year": 2025, "evasiveness": 6},
+    ])
+
+
+@pytest.fixture
+def year_boundary_scores():
+    """Q4 -> Q1 across a year boundary is adjacent and must not be treated as a gap."""
+    return pd.DataFrame([
+        {"company": "TCS", "quarter": "Q3", "year": 2023, "evasiveness": 4},
+        {"company": "TCS", "quarter": "Q4", "year": 2023, "evasiveness": 5},
+        {"company": "TCS", "quarter": "Q1", "year": 2024, "evasiveness": 9},
+    ])
+
+
+@pytest.fixture
 def sparse_scores():
     """Two companies with different quarters scored — some dimensions missing."""
     return pd.DataFrame([
@@ -166,3 +191,75 @@ class TestFindBiggestSingleQuarterDrop:
     def test_empty_input(self):
         result = find_biggest_single_quarter_drop(pd.DataFrame())
         assert result.empty
+
+
+class TestCalendarGaps:
+    """Regression tests for KNOWN_ISSUES.md HIGH-3.
+
+    diff() differences adjacent rows, not adjacent quarters. Without a period
+    check, a jump across missing quarters is reported as a quarter-over-quarter
+    change and is indistinguishable from a real one.
+    """
+
+    def test_delta_is_nan_across_a_gap(self, gapped_scores):
+        result = compute_qoq_score_change(gapped_scores)
+        row = result[(result["year"] == 2024) & (result["quarter"] == "Q1")].iloc[0]
+        # Q1 2023 -> Q1 2024 is four quarters apart, not one
+        assert pd.isna(row["evasiveness_delta"])
+
+    def test_delta_is_computed_for_adjacent_quarters(self, gapped_scores):
+        result = compute_qoq_score_change(gapped_scores)
+        row = result[(result["year"] == 2024) & (result["quarter"] == "Q2")].iloc[0]
+        assert row["evasiveness_delta"] == 4.0
+
+    def test_delta_is_nan_across_a_multi_year_gap(self, gapped_scores):
+        result = compute_qoq_score_change(gapped_scores)
+        row = result[(result["year"] == 2025) & (result["quarter"] == "Q4")].iloc[0]
+        assert pd.isna(row["evasiveness_delta"])
+
+    def test_year_boundary_counts_as_adjacent(self, year_boundary_scores):
+        result = compute_qoq_score_change(year_boundary_scores)
+        row = result[(result["year"] == 2024) & (result["quarter"] == "Q1")].iloc[0]
+        # Q4 2023 -> Q1 2024 is one quarter apart
+        assert row["evasiveness_delta"] == 4.0
+
+    def test_rolling_average_is_nan_when_window_spans_a_gap(self, gapped_scores):
+        result = compute_rolling_3q_average(gapped_scores)
+        # Q1 2023 / Q1 2024 / Q2 2024 is three rows but not three consecutive quarters
+        row = result[(result["year"] == 2024) & (result["quarter"] == "Q2")].iloc[0]
+        assert pd.isna(row["evasiveness_ma3"])
+
+    def test_rolling_average_computed_over_contiguous_window(self, year_boundary_scores):
+        result = compute_rolling_3q_average(year_boundary_scores)
+        row = result[(result["year"] == 2024) & (result["quarter"] == "Q1")].iloc[0]
+        assert row["evasiveness_ma3"] == pytest.approx(6.0)
+
+    def test_trend_label_is_stable_across_a_gap(self, gapped_scores):
+        result = compute_trend_label(gapped_scores)
+        row = result[(result["year"] == 2024) & (result["quarter"] == "Q1")].iloc[0]
+        # A NaN delta must not be labelled IMPROVING just because 8 -> 2
+        assert row["evasiveness_trend"] == "STABLE"
+
+    def test_biggest_drop_ignores_gapped_jumps(self, gapped_scores):
+        result = find_biggest_single_quarter_drop(gapped_scores)
+        assert len(result) == 1
+        assert result.iloc[0]["delta"] == 4.0
+        assert result.iloc[0]["prev_quarter"] == "Q1"
+        assert result.iloc[0]["prev_year"] == 2024
+
+
+class TestOrdering:
+    """Regression test for KNOWN_ISSUES.md MEDIUM-1."""
+
+    def test_rows_are_grouped_by_company_not_interleaved(self, sample_scores):
+        result = compute_qoq_score_change(sample_scores)
+        companies = result["company"].tolist()
+        # Each company's rows must be contiguous
+        assert companies == sorted(companies, key=companies.index)
+        for company in set(companies):
+            positions = [i for i, c in enumerate(companies) if c == company]
+            assert positions == list(range(positions[0], positions[-1] + 1))
+
+    def test_internal_period_column_is_not_leaked(self, sample_scores):
+        for fn in (compute_qoq_score_change, compute_rolling_3q_average, compute_trend_label):
+            assert "_period" not in fn(sample_scores).columns
