@@ -50,8 +50,7 @@ def init_db(db_path: str) -> sqlite3.Connection:
             model_name TEXT NOT NULL,
             prompt_version TEXT NOT NULL,
             raw_llm_response TEXT NOT NULL,
-            FOREIGN KEY (transcript_id) REFERENCES transcripts(id),
-            UNIQUE(transcript_id, dimension)
+            FOREIGN KEY (transcript_id) REFERENCES transcripts(id)
         )
     """)
     _migrate_score_identity(conn)
@@ -90,11 +89,69 @@ def _migrate_score_identity(conn) -> None:
            AND EXISTS (SELECT 1 FROM transcripts t WHERE t.id = scores.transcript_id)
     """)
 
-    # Enforce one score per transcript per dimension by identity rather than by
-    # rowid, so a re-score after re-ingest replaces instead of duplicating.
+    _migrate_score_variants(conn)
+    conn.commit()
+
+
+def _migrate_score_variants(conn) -> None:
+    """Let one transcript hold scores from different models and prompt versions.
+
+    Uniqueness was (company, quarter, year, dimension), so scoring a transcript
+    with a revised prompt REPLACED the existing row. Comparing evasiveness-v1
+    against evasiveness-v2 was therefore impossible: producing v2 destroyed the
+    v1 baseline it was meant to be measured against.
+
+    Identity is now (company, quarter, year, dimension, model_name,
+    prompt_version). Variants coexist; choosing between them is a read-time
+    decision, which is what check_score_comparability() already reports on.
+
+    Removing the table-level UNIQUE(transcript_id, dimension) requires
+    rebuilding the table in SQLite. Idempotent -- guarded on the constraint
+    still being present.
+    """
+    cur = conn.cursor()
+    schema = cur.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='scores'"
+    ).fetchone()
+    if not schema or "UNIQUE(transcript_id, dimension)" not in schema[0]:
+        # Already migrated (or a fresh DB created with the current schema).
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_scores_variant
+            ON scores(company, quarter, year, dimension, model_name, prompt_version)
+        """)
+        return
+
+    cur.execute("DROP INDEX IF EXISTS idx_scores_identity")
+    cur.execute("ALTER TABLE scores RENAME TO scores_old")
     cur.execute("""
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_scores_identity
-        ON scores(company, quarter, year, dimension)
+        CREATE TABLE scores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            transcript_id INTEGER NOT NULL,
+            company TEXT,
+            quarter TEXT,
+            year INTEGER,
+            dimension TEXT NOT NULL,
+            score INTEGER NOT NULL,
+            supporting_quotes TEXT,
+            scored_at TEXT NOT NULL,
+            model_name TEXT NOT NULL,
+            prompt_version TEXT NOT NULL,
+            raw_llm_response TEXT NOT NULL,
+            FOREIGN KEY (transcript_id) REFERENCES transcripts(id)
+        )
+    """)
+    cur.execute("""
+        INSERT INTO scores
+            (transcript_id, company, quarter, year, dimension, score,
+             supporting_quotes, scored_at, model_name, prompt_version, raw_llm_response)
+        SELECT transcript_id, company, quarter, year, dimension, score,
+               supporting_quotes, scored_at, model_name, prompt_version, raw_llm_response
+        FROM scores_old
+    """)
+    cur.execute("DROP TABLE scores_old")
+    cur.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_scores_variant
+        ON scores(company, quarter, year, dimension, model_name, prompt_version)
     """)
     conn.commit()
 
@@ -156,11 +213,21 @@ def store_score(conn, transcript_id, dimension, score, supporting_quotes, model_
         "SELECT company, quarter, year FROM transcripts WHERE id = ?", (transcript_id,)
     ).fetchone()
     company, quarter, year = identity if identity else (None, None, None)
+    # Upsert on the full variant identity: re-running the same (model, prompt)
+    # updates in place, while a different model or prompt version is stored
+    # alongside rather than overwriting the series it should be compared to.
     cur.execute("""
-        INSERT OR REPLACE INTO scores
+        INSERT INTO scores
         (transcript_id, company, quarter, year, dimension, score, supporting_quotes,
          scored_at, model_name, prompt_version, raw_llm_response)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(company, quarter, year, dimension, model_name, prompt_version)
+        DO UPDATE SET
+            transcript_id = excluded.transcript_id,
+            score = excluded.score,
+            supporting_quotes = excluded.supporting_quotes,
+            scored_at = excluded.scored_at,
+            raw_llm_response = excluded.raw_llm_response
     """, (transcript_id, company, quarter, year, dimension, score,
           json.dumps(supporting_quotes), now, model_name, prompt_version, raw_response))
     conn.commit()

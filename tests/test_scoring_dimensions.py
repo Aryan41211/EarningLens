@@ -453,12 +453,11 @@ def test_store_score_upsert():
         cur.execute("SELECT id FROM transcripts WHERE company='TCS' AND quarter='Q1' AND year=2025 LIMIT 1")
         transcript_id = cur.fetchone()[0]
 
-        # Store twice with INSERT OR REPLACE
+        # Same (model, prompt_version) twice -> updated in place, not duplicated
         store_score(conn, transcript_id, "evasiveness", 5, ["q1"], "m", "v1", "r1")
-        store_score(conn, transcript_id, "evasiveness", 8, ["q2"], "m", "v2", "r2")
+        store_score(conn, transcript_id, "evasiveness", 8, ["q2"], "m", "v1", "r2")
 
         rows = get_scores(conn, "TCS")
-        # Should be exactly 1 row (upserted), not 2
         assert len(rows) == 1
         assert rows[0][5] == 8  # latest score
         conn.close()
@@ -526,8 +525,13 @@ def test_scores_survive_transcript_reingest():
     conn.close()
 
 
-def test_rescoring_after_reingest_replaces_rather_than_duplicates():
-    """A re-score after a re-ingest must update the row, not add a second one."""
+def test_rescoring_after_reingest_updates_the_same_variant():
+    """Re-scoring with the SAME model and prompt updates in place after a re-ingest.
+
+    The rowid changes on re-ingest, but identity is (company, quarter, year,
+    dimension, model_name, prompt_version), so the row is found and updated
+    rather than duplicated.
+    """
     from src.storage.db import init_db, store_transcript, store_score, get_scores
 
     conn = init_db(":memory:")
@@ -537,11 +541,50 @@ def test_rescoring_after_reingest_replaces_rather_than_duplicates():
 
     store_transcript(conn, "TCS", "Q1", 2025, ["chunk a"], "TCS_Q1_2025.pdf")
     new_tid = conn.execute("SELECT id FROM transcripts WHERE chunk_index=0").fetchone()[0]
-    store_score(conn, new_tid, "evasiveness", 3, ["q2"], "model-b", "evasiveness-v1", "{}")
+    assert new_tid != tid
+    store_score(conn, new_tid, "evasiveness", 3, ["q2"], "model-a", "evasiveness-v1", "{}")
 
     rows = get_scores(conn, "TCS")
-    assert len(rows) == 1, f"expected one row per (transcript, dimension), got {len(rows)}"
+    assert len(rows) == 1, f"expected one row per variant, got {len(rows)}"
     assert rows[0][5] == 3
+    conn.close()
+
+
+def test_different_prompt_version_is_kept_alongside_not_overwritten():
+    """Scoring with a revised prompt must NOT destroy the series it is measured against.
+
+    Uniqueness was once (company, quarter, year, dimension), so producing
+    evasiveness-v2 replaced the v1 row and made the comparison impossible.
+    """
+    from src.storage.db import init_db, store_transcript, store_score
+
+    conn = init_db(":memory:")
+    store_transcript(conn, "TCS", "Q1", 2025, ["chunk a"], "TCS_Q1_2025.pdf")
+    tid = conn.execute("SELECT id FROM transcripts WHERE chunk_index=0").fetchone()[0]
+
+    store_score(conn, tid, "evasiveness", 7, ["q"], "model-a", "evasiveness-v1", "{}")
+    store_score(conn, tid, "evasiveness", 3, ["q"], "model-a", "evasiveness-v2", "{}")
+
+    rows = conn.execute(
+        "SELECT prompt_version, score FROM scores ORDER BY prompt_version"
+    ).fetchall()
+    assert rows == [("evasiveness-v1", 7), ("evasiveness-v2", 3)]
+    conn.close()
+
+
+def test_different_model_is_kept_alongside_not_overwritten():
+    """Two models on one transcript coexist, so they can be compared."""
+    from src.storage.db import init_db, store_transcript, store_score
+
+    conn = init_db(":memory:")
+    store_transcript(conn, "TCS", "Q1", 2025, ["chunk a"], "TCS_Q1_2025.pdf")
+    tid = conn.execute("SELECT id FROM transcripts WHERE chunk_index=0").fetchone()[0]
+
+    store_score(conn, tid, "evasiveness", 7, ["q"], "model-a", "evasiveness-v1", "{}")
+    store_score(conn, tid, "evasiveness", 4, ["q"], "model-b", "evasiveness-v1", "{}")
+
+    rows = conn.execute("SELECT model_name, score FROM scores ORDER BY model_name").fetchall()
+    assert rows == [("model-a", 7), ("model-b", 4)]
     conn.close()
 
 

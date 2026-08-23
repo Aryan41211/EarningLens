@@ -117,7 +117,12 @@ def check_score_comparability(conn) -> pd.DataFrame:
     return report
 
 
-def load_scores_from_db(conn, strict: bool = False) -> pd.DataFrame:
+def load_scores_from_db(
+    conn,
+    strict: bool = False,
+    model: str | None = None,
+    prompt_version: str | None = None,
+) -> pd.DataFrame:
     """Load one-score-per-transcript pivot from the SQLite scores table.
 
     The scores table stores (transcript_id, dimension, score) rows.
@@ -130,6 +135,10 @@ def load_scores_from_db(conn, strict: bool = False) -> pd.DataFrame:
         strict: raise ValueError if any dimension spans more than one
             (model_name, prompt_version). Default False so existing data stays
             readable, but the contamination is always logged at ERROR.
+        model / prompt_version: restrict to one variant. Since a transcript can
+            now hold scores from several models and prompt versions, this is how
+            a caller asks for a specific series. With neither given, the most
+            recently scored variant wins per (company, quarter, year, dimension).
     """
     report = check_score_comparability(conn)
     if not report.empty:
@@ -148,13 +157,28 @@ def load_scores_from_db(conn, strict: bool = False) -> pd.DataFrame:
 
     # Read identity from the score row, not from a join to the chunks table:
     # chunk rowids change on re-ingest, the company/quarter/year do not.
+    #
+    # A transcript may hold several variants (model x prompt version). Without an
+    # explicit filter, take the most recent per group rather than silently
+    # averaging incomparable numbers together.
     query = """
         SELECT company, quarter, year, dimension, score
-        FROM scores
+        FROM scores s
         WHERE company IS NOT NULL
+          AND (? IS NULL OR model_name = ?)
+          AND (? IS NULL OR prompt_version = ?)
+          AND scored_at = (
+              SELECT MAX(scored_at) FROM scores x
+              WHERE x.company = s.company AND x.quarter = s.quarter
+                AND x.year = s.year AND x.dimension = s.dimension
+                AND (? IS NULL OR x.model_name = ?)
+                AND (? IS NULL OR x.prompt_version = ?)
+          )
         ORDER BY company, year, quarter, dimension
     """
-    rows = pd.read_sql_query(query, conn)
+    params = [model, model, prompt_version, prompt_version,
+              model, model, prompt_version, prompt_version]
+    rows = pd.read_sql_query(query, conn, params=params)
     if rows.empty:
         logger.warning("No scores found in database.")
         return pd.DataFrame()

@@ -39,17 +39,18 @@ logger = logging.getLogger("earningslens")
 DEFAULT_LABELS = NOTEBOOKS_DIR / "labels.csv"
 
 
-def load_scores(conn, dimensions: list[str]) -> pd.DataFrame:
+def load_scores(conn, dimensions: list[str], prompt_version: str | None = None) -> pd.DataFrame:
     placeholders = ",".join("?" * len(dimensions))
-    return pd.read_sql_query(
-        f"""
+    sql = f"""
         SELECT company, quarter, year, dimension, score, model_name, prompt_version
         FROM scores
         WHERE dimension IN ({placeholders}) AND company IS NOT NULL
-        """,
-        conn,
-        params=dimensions,
-    )
+    """
+    params: list = list(dimensions)
+    if prompt_version:
+        sql += " AND prompt_version = ?"
+        params.append(prompt_version)
+    return pd.read_sql_query(sql, conn, params=params)
 
 
 def _fmt(value: float | None, metric: str) -> str:
@@ -96,6 +97,10 @@ def main():
                         help="Evaluate only this dimension (repeatable). Default: all.")
     parser.add_argument("--db", default=str(DB_PATH))
     parser.add_argument("--json", action="store_true", help="Also emit results as JSON")
+    parser.add_argument("--prompt-version", metavar="VERSION",
+                        help="Evaluate only scores from this prompt version, e.g. "
+                             "evasiveness-v2. Required to compare prompt revisions, since a "
+                             "transcript can hold several variants.")
     parser.add_argument("--against", choices=["db", "reviewed"], default="db",
                         help="'db' compares the current scores table. 'reviewed' compares the "
                              "llm_score_at_review column in the labels file -- the scores the "
@@ -151,12 +156,15 @@ def main():
     else:
         conn = init_db(args.db)
         contaminated = check_score_comparability(conn)
-        scores = load_scores(conn, dimensions)
+        scores = load_scores(conn, dimensions, args.prompt_version)
         conn.close()
 
     if not contaminated.empty:
         names = set(contaminated["dimension"])
         blocked = names & set(dimensions)
+        if args.prompt_version:
+            # An explicit variant was requested, so the mix is already resolved.
+            blocked = set()
         if blocked and not args.allow_mixed_models:
             print(
                 "Refusing to evaluate - these dimensions span multiple models, so any "
