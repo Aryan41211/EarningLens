@@ -13,24 +13,40 @@
 | `openai` (SDK) | Chat completions client — points at Groq's OpenAI-compatible endpoint |
 | `python-dotenv` | Loads `.env` at `config.py` import time |
 | `sqlite3` (stdlib) | Persistence |
+| `pandas` | Trend DataFrames (Phase 3) |
 | `pytest` | Test runner |
-| Streamlit | *Planned* for Phase 4 dashboard — not yet added |
+| Streamlit + Plotly | Phase 4 dashboard — in `requirements-dashboard.txt` |
 
-> TODO: confirm exact `requirements.txt` pinned versions — not visible in
-> source notes.
+Pinned with compatible-release constraints:
+
+```
+# requirements.txt
+pymupdf>=1.28.0,<2.0     pandas>=2.2.2,<3.0      pytest>=8.3.3,<9.0
+python-dotenv>=1.2.1,<2.0                        openai>=2.44.0,<3.0
+
+# requirements-dashboard.txt (optional)
+streamlit>=1.56.0,<2.0   plotly>=6.7.0,<7.0
+```
+
+`mypy.ini` exists (targeting Python 3.12) but is not run in CI.
 
 ## LLM / AI components
 
-- **Model**: `llama-3.3-70b-versatile` served via **Groq** at
-  `https://api.groq.com/openai/v1` (OpenAI-compatible chat completions)
-- **Temperature**: 0.1 (near-deterministic)
-- **Prompting**: single system prompt + user prompt per chunk, no
+- **Model**: configured via `LLM_MODEL_NAME`. Three have been used against the
+  live DB — `llama-3.3-70b-versatile`, `openai/gpt-oss-20b`, `allam-2-7b` — and
+  their scores are **not comparable** (`SCORING_METHODOLOGY.md` § 4). Pin one.
+- **Endpoint**: **Groq** at `https://api.groq.com/openai/v1`
+  (OpenAI-compatible chat completions)
+- **Temperature**: 0.1 (near-deterministic; run-to-run spread never measured)
+- **Prompting**: one system prompt + one user prompt per batch, no
   multi-step/agentic reasoning
+- **Batching**: ~2000 words per request to fit the free-tier 8000 TPM limit;
+  batch scores are averaged into the stored score
 - **Output**: JSON with a 1–10 score and up to 3 supporting quotes;
-  markdown-fence stripping and score clamping on parse
-- **Deterministic complement**: dodge-phrase keyword matching (count varies
-  40–65 across notes — TODO: verify exact list length in
-  `src/scoring/evasiveness.py`) restricted to Q&A chunks only
+  `<think>` stripping, markdown-fence stripping, and 1–10 clamping on parse
+- **Deterministic complement**: **42** dodge phrases in
+  `src/scoring/evasiveness.py`, matched on Q&A chunks only (measured, not
+  estimated — earlier docs said 63)
 
 ## Database
 
