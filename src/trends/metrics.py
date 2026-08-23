@@ -27,9 +27,38 @@ QuarterOrder = Literal["Q1", "Q2", "Q3", "Q4"]
 _QUARTER_RANK: dict[str, int] = {"Q1": 1, "Q2": 2, "Q3": 3, "Q4": 4}
 
 
-def _quarter_sort_key(df: pd.DataFrame) -> pd.Series:
-    """Return a sortable integer key from year+quarter columns."""
-    return df["year"] * 10 + df["quarter"].map(_QUARTER_RANK)
+_PERIOD_COL = "_period"
+
+
+def _period_index(df: pd.DataFrame) -> pd.Series:
+    """Absolute quarter index, so consecutive quarters differ by exactly 1.
+
+    2023 Q4 -> 8095, 2024 Q1 -> 8096. This is what makes calendar gaps
+    detectable: a delta is only quarter-over-quarter if the index difference
+    is 1.
+    """
+    return df["year"] * 4 + df["quarter"].map(_QUARTER_RANK) - 1
+
+
+def _sorted_by_period(df: pd.DataFrame) -> pd.DataFrame:
+    """Return a copy sorted by company, then chronologically within each company.
+
+    Adds the internal _period column; callers must strip it before returning
+    to the caller (see _drop_period).
+
+    Do not be tempted to collapse this back into
+    ``sort_values([...], key=lambda s: ...)``: sort_values applies key to each
+    'by' column independently, so a key that ignores its argument silently
+    rewrites the company column too, sorting everything by period alone.
+    """
+    result = df.copy()
+    result[_PERIOD_COL] = _period_index(result)
+    return result.sort_values(["company", _PERIOD_COL]).reset_index(drop=True)
+
+
+def _drop_period(df: pd.DataFrame) -> pd.DataFrame:
+    """Remove the internal period column from a result frame."""
+    return df.drop(columns=[_PERIOD_COL], errors="ignore")
 
 
 def load_scores_from_db(conn) -> pd.DataFrame:
@@ -64,8 +93,7 @@ def load_scores_from_db(conn) -> pd.DataFrame:
         if dim not in pivoted.columns:
             pivoted[dim] = pd.NA
 
-    pivoted = pivoted.sort_values(["company", "year", "quarter"], key=lambda s: _quarter_sort_key(pivoted)).reset_index(drop=True)
-    return pivoted
+    return _drop_period(_sorted_by_period(pivoted))
 
 
 # ---------------------------------------------------------------------------
@@ -83,13 +111,18 @@ def compute_qoq_score_change(scores_df: pd.DataFrame) -> pd.DataFrame:
     if scores_df.empty:
         return scores_df.copy()
 
-    result = scores_df.copy().sort_values(["company", "year", "quarter"], key=lambda s: _quarter_sort_key(scores_df)).reset_index(drop=True)
+    result = _sorted_by_period(scores_df)
+
+    # Only a one-quarter step is a quarter-over-quarter change. Where a company
+    # has a calendar gap, diff() would silently report the jump across it.
+    period_gap = result.groupby("company")[_PERIOD_COL].diff()
+    is_adjacent = period_gap == 1
 
     for dim in SCORE_DIMENSIONS:
         if dim in result.columns:
-            result[f"{dim}_delta"] = result.groupby("company")[dim].diff()
+            result[f"{dim}_delta"] = result.groupby("company")[dim].diff().where(is_adjacent)
 
-    return result
+    return _drop_period(result)
 
 
 def compute_rolling_3q_average(scores_df: pd.DataFrame) -> pd.DataFrame:
@@ -103,16 +136,22 @@ def compute_rolling_3q_average(scores_df: pd.DataFrame) -> pd.DataFrame:
     if scores_df.empty:
         return scores_df.copy()
 
-    result = scores_df.copy().sort_values(["company", "year", "quarter"], key=lambda s: _quarter_sort_key(scores_df)).reset_index(drop=True)
+    result = _sorted_by_period(scores_df)
+
+    # A 3-quarter window is only meaningful over 3 *consecutive* quarters.
+    # span == 2 means rows i-2..i cover exactly three adjacent periods.
+    span = result.groupby("company")[_PERIOD_COL].diff(2)
+    is_contiguous_window = span == 2
 
     for dim in SCORE_DIMENSIONS:
         if dim in result.columns:
             result[f"{dim}_ma3"] = (
                 result.groupby("company")[dim]
                 .transform(lambda x: x.rolling(window=3, min_periods=3).mean())
+                .where(is_contiguous_window)
             )
 
-    return result
+    return _drop_period(result)
 
 
 def compute_trend_label(scores_df: pd.DataFrame) -> pd.DataFrame:
@@ -157,7 +196,13 @@ def find_biggest_single_quarter_drop(scores_df: pd.DataFrame) -> pd.DataFrame:
     if scores_df.empty:
         return pd.DataFrame()
 
-    df_with_delta = compute_qoq_score_change(scores_df)
+    # Deltas are gap-aware, so a non-null delta always has an immediately
+    # preceding quarter — the previous row within the company is that quarter.
+    df_with_delta = _sorted_by_period(compute_qoq_score_change(scores_df))
+    grouped = df_with_delta.groupby("company")
+    df_with_delta["prev_quarter"] = grouped["quarter"].shift(1)
+    df_with_delta["prev_year"] = grouped["year"].shift(1)
+
     results = []
 
     for dim in SCORE_DIMENSIONS:
@@ -165,37 +210,22 @@ def find_biggest_single_quarter_drop(scores_df: pd.DataFrame) -> pd.DataFrame:
         if delta_col not in df_with_delta.columns:
             continue
 
-        subset = df_with_delta.dropna(subset=[delta_col]).copy()
-        if subset.empty:
-            continue
-
         # Only consider worsening (positive score increases)
-        worsening = subset[subset[delta_col] > 0]
+        worsening = df_with_delta[df_with_delta[delta_col] > 0].copy()
         if worsening.empty:
             continue
 
+        worsening["prev_score"] = grouped[dim].shift(1)[worsening.index]
+
         # Find the row with the largest positive delta per company
         idx = worsening.groupby("company")[delta_col].idxmax()
-        worst = worsening.loc[idx, ["company", "year", "quarter", dim, delta_col]].copy()
+        worst = worsening.loc[
+            idx,
+            ["company", "year", "quarter", dim, delta_col,
+             "prev_quarter", "prev_year", "prev_score"],
+        ].copy()
         worst["dimension"] = dim
         worst.rename(columns={dim: "score", delta_col: "delta"}, inplace=True)
-
-        # Compute previous quarter info
-        for _, row in worst.iterrows():
-            company_rows = df_with_delta[
-                (df_with_delta["company"] == row["company"])
-            ].sort_values(["year", "quarter"], key=lambda s: _quarter_sort_key(
-                df_with_delta[df_with_delta["company"] == row["company"]]
-            ))
-            company_rows = company_rows.reset_index(drop=True)
-            current_idx = company_rows[
-                (company_rows["year"] == row["year"]) & (company_rows["quarter"] == row["quarter"])
-            ].index
-            if len(current_idx) > 0 and current_idx[0] > 0:
-                prev = company_rows.iloc[current_idx[0] - 1]
-                worst.loc[worst.index[worst["company"] == row["company"]], "prev_quarter"] = prev["quarter"]
-                worst.loc[worst.index[worst["company"] == row["company"]], "prev_year"] = prev["year"]
-                worst.loc[worst.index[worst["company"] == row["company"]], "prev_score"] = prev[dim]
 
         results.append(worst)
 
