@@ -3,11 +3,14 @@
 ## Setup
 
 ```bash
-git clone <repo-url>
-cd earningslens
-pip install -r requirements.txt
-cp .env.example .env   # fill in LLM_API_KEY, LLM_API_BASE_URL, LLM_MODEL_NAME
+git clone https://github.com/Aryan41211/EarningLens && cd EarningLens
+pip install -e ".[dev,dashboard]"
+cp .env.example .env       # fill in LLM_API_KEY, LLM_API_BASE_URL, LLM_MODEL_NAME
+pre-commit install         # optional, but cheap
 ```
+
+`requirements.txt` and `requirements-dashboard.txt` remain for anyone who
+prefers them; `pyproject.toml` is the source of truth for dependencies.
 
 > ⚠️ Never commit a real key into `.env`. If one has ever been committed
 > (even briefly), rotate it — deleting the line later does not remove it
@@ -37,25 +40,42 @@ pytest tests/ -v
 live request (`KNOWN_ISSUES.md` HIGH-1). CI passes only because it has no key —
 so a green badge does not currently guarantee a green local run.
 
-CI (`.github/workflows/test.yml`) runs the same command on every push/PR against
-Python 3.11 on Ubuntu. Every other LLM call in the suite is mocked.
+CI (`.github/workflows/test.yml`) runs on every push/PR against Python 3.11 and
+3.12: `pytest`, `mypy src/`, a byte-compile of `scripts/`, and a smoke test of
+the console scripts. Every LLM call in the suite is mocked.
 
-`mypy.ini` is configured but not wired into CI; run `mypy src/` by hand.
+Tool configuration lives in `pyproject.toml` (`[tool.pytest.ini_options]`,
+`[tool.mypy]`) — `mypy.ini` was folded into it.
 
 ## Deployment
 
-None planned. This is a local batch tool, not a service:
+Still a local batch tool, not a service — no Docker, no Kubernetes, no cloud
+deployment, and CI tests rather than ships. What changed is that "clone →
+pip install → run" is now a real, verified path rather than an aspiration:
 
-- No Docker, no Kubernetes
-- No cloud deployment
-- CI exists for testing only, not for shipping anything
-- The "deployment" is: clone → `pip install` → run scripts locally
+```bash
+pip install -e ".[dashboard]"
+earningslens-score --dry-run
+```
+
+CI installs the package the same way and smoke-tests the console scripts on
+Python 3.11 and 3.12, so a broken `pyproject.toml` or a dead entry point fails
+there instead of on someone's machine.
+
+**Packaging note.** The distribution installs top-level `src`, `scripts` and
+`config`, which is not how a package bound for PyPI should be laid out. It is
+deliberate: every module imports `from config import ...` and `from src.x
+import ...`, and `PROJECT_RULES.md` pins `config.py` at the root. Renaming to a
+real `earningslens/` package would touch every import and every doc for no
+benefit to a single-user tool in its own venv. If this is ever published, that
+rename is the first thing to do.
 
 ## Debug/analysis scripts
 
 The `scripts/_*.py` research scripts were removed in `31c5449`; their findings
-survive in `EXPERIMENTS.md`. One ad-hoc script, `check_evasiveness.py`, still
-sits in the repo root and should be moved into `scripts/` or deleted.
+survive in `EXPERIMENTS.md`. `scripts/check_db_status.py` is the surviving
+ad-hoc DB inspector — not a supported CLI, and the only place `print()` is
+acceptable.
 
 ## Before starting new work
 

@@ -72,21 +72,37 @@ earningslens/
     └── test_integration.py         # End-to-end scoring with a mocked LLM
 ```
 
-## Setup
+## Install
 
 ```bash
-pip install -r requirements.txt
-cp .env.example .env   # fill in LLM API key when you get to Phase 2
+git clone https://github.com/Aryan41211/EarningLens && cd EarningLens
+pip install -e ".[dashboard]"
+cp .env.example .env            # then add your API key
+earningslens-check-models       # confirm the pinned model is reachable
 ```
+
+That installs six commands:
+
+| Command | Does |
+|---|---|
+| `earningslens-ingest` | PDFs in `data/raw_pdfs/` → chunks in SQLite |
+| `earningslens-score` | Score transcripts (`--dry-run` first — it prints the token cost) |
+| `earningslens-trends` | Quarter-over-quarter deltas and trend labels |
+| `earningslens-evaluate` | LLM scores vs human labels |
+| `earningslens-consistency` | Run-to-run score spread |
+| `earningslens-check-models` | Is the pinned model still reachable? |
+
+The `python scripts/run_*.py` form still works identically. Add `[dev]` instead
+of `[dashboard]` for pytest, mypy and pre-commit.
 
 ## Running the pipeline
 
 ```bash
-python scripts/run_phase1.py        # 1. PDFs in data/raw_pdfs/ -> chunks in SQLite
-python scripts/run_all_scoring.py   # 2. score all 5 dimensions (--dry-run first)
-python scripts/run_trends.py        # 3. trend analysis
-streamlit run src/dashboard/app.py  # 4. dashboard
-python scripts/run_evaluation.py    # 5. is any of it actually accurate?
+earningslens-ingest                  # 1. PDFs -> chunks in SQLite
+earningslens-score --dry-run         # 2. check the cost, then drop --dry-run
+earningslens-trends                  # 3. trend analysis
+streamlit run src/dashboard/app.py   # 4. dashboard
+earningslens-evaluate                # 5. is any of it actually accurate?
 ```
 
 Scoring is not cheap: ~20k tokens per dimension-score, against a 200k/day free

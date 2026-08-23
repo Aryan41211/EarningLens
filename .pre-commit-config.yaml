@@ -1,0 +1,38 @@
+# Install once with: pre-commit install
+#
+# Deliberately light. The expensive checks (pytest, mypy) run in CI rather than
+# on every commit — this repo's tests take ~5s, but a hook that feels slow gets
+# bypassed with --no-verify, and a bypassed hook is worse than no hook.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-merge-conflict
+      # The .env is gitignored, but a leaked key is unrecoverable — deleting the
+      # line later does not remove it from history (PROJECT_RULES.md).
+      - id: detect-private-key
+      - id: debug-statements
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+  - repo: local
+    hooks:
+      # scripts/ had no coverage of any kind until a syntax error in
+      # run_all_scoring.py passed both pytest and mypy. Byte-compiling is cheap
+      # and catches the class of break that matters for entry points.
+      - id: compile-scripts
+        name: byte-compile scripts/
+        entry: python -m compileall -q scripts
+        language: system
+        pass_filenames: false
+        files: ^scripts/.*\.py$

@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "earningslens"
+version = "0.5.0"
+description = "Scores Indian earnings call transcripts for management credibility across 5 dimensions"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Aryan Kondekar" }]
+keywords = ["earnings", "nlp", "llm", "credibility", "indian-markets"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+dependencies = [
+    "pymupdf>=1.28.0,<2.0",
+    "pandas>=2.2.2,<3.0",
+    "python-dotenv>=1.2.1,<2.0",
+    "openai>=2.44.0,<3.0",
+]
+
+[project.optional-dependencies]
+dashboard = [
+    "streamlit>=1.56.0,<2.0",
+    "plotly>=6.7.0,<7.0",
+]
+dev = [
+    "pytest>=8.3.3,<9.0",
+    "mypy>=1.11",
+    "pre-commit>=3.8",
+]
+
+[project.urls]
+Repository = "https://github.com/Aryan41211/EarningLens"
+
+# One command per pipeline stage. The underlying scripts stay runnable directly
+# (`python scripts/run_phase1.py`) so every existing doc and habit still works.
+[project.scripts]
+earningslens-ingest = "scripts.run_phase1:main"
+earningslens-score = "scripts.run_all_scoring:main"
+earningslens-trends = "scripts.run_trends:main"
+earningslens-evaluate = "scripts.run_evaluation:main"
+earningslens-consistency = "scripts.run_self_consistency:main"
+earningslens-check-models = "scripts.check_models:main"
+
+# NOTE ON PACKAGING
+# The distribution installs top-level `src`, `scripts`, and `config`, which is
+# not how a package meant for PyPI should be laid out — those names are generic
+# enough to collide in a shared site-packages.
+#
+# It is deliberate here. Every module imports `from config import ...` and
+# `from src.x import ...`, and PROJECT_RULES.md pins config.py at the root as
+# the single source of truth. Renaming to a real `earningslens/` package would
+# touch every import and every doc. Since this is a single-user tool installed
+# into its own venv, the collision risk is theoretical and the churn is not.
+#
+# If this is ever published, that rename is the first thing to do.
+[tool.setuptools]
+py-modules = ["config"]
+
+[tool.setuptools.packages.find]
+include = ["src*", "scripts*"]
+exclude = ["tests*", "notebooks*", "data*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Every LLM call in the suite is mocked; a test that reaches the network is a
+# bug in the test. See KNOWN_ISSUES.md HIGH-1.
+addopts = "-q"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+check_untyped_defs = true
+disallow_untyped_defs = false

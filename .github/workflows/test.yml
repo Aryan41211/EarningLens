@@ -7,24 +7,37 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor declared in pyproject (3.11) and the version the code is
+        # developed and type-checked against (3.12).
+        python-version: ["3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
-      - run: pip install -r requirements.txt
+      # Install the package the way a user would, so a broken pyproject or a
+      # missing entry point fails here rather than on someone's machine.
+      - run: pip install -e ".[dev,dashboard]"
 
       - run: pytest tests/ -v
 
-      # mypy.ini has existed since 25da380 but was never enforced, so its
+      # mypy config has existed since 25da380 but went unenforced, so its
       # findings accumulated silently. Keep it in CI so that cannot recur.
-      - run: pip install mypy
       - run: mypy src/
 
       # Nothing covered scripts/: tests only import src/, and a syntax error in
-      # run_all_scoring.py once passed both pytest and mypy. A byte-compile is
-      # cheap and catches the class of break that matters for entry points.
+      # run_all_scoring.py once passed both pytest and mypy.
       - run: python -m compileall -q scripts/
+
+      # Every console script must at least start. Catches a bad entry point,
+      # which no other check would notice.
+      - run: |
+          earningslens-score --list-prompts
+          earningslens-ingest --dry-run
+          earningslens-score --dry-run
