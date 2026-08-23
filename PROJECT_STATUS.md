@@ -5,7 +5,8 @@ Update this file whenever phase status changes — it should always reflect
 current reality, not the plan. Every count below was measured, not recalled._
 
 > Companion file: **`KNOWN_ISSUES.md`** lists the verified defects behind the
-> qualified statuses here. Two blockers are open.
+> qualified statuses here, and which are now fixed. One blocker remains open:
+> a full re-scoring sweep costs ~5 days of free-tier token quota.
 
 ## Phase 1 — Extraction & Storage: ✅ Functional
 
@@ -22,13 +23,24 @@ Only Evasiveness has been validated on real transcripts.
 
 ### Validation status
 
-| Dimension | Implementation | Scored | Human-reviewed |
-|---|---|---|---|
-| Evasiveness | ✅ Complete (keyword + LLM) | 11/11 | **11/11** — LLM judged accurate on 3 |
-| Sentiment shift | ✅ Complete (LLM only) | 4/11 | 0/11 |
-| Complexity spike | ✅ Complete (LLM only) | 2/11 | 0/11 |
-| Overpromising | ✅ Complete (LLM only) | 1/11 | 0/11 |
-| Forward guidance vagueness | ✅ Complete (LLM only) | 2/11 | 0/11 |
+_Coverage as of 2026-08-23, after a partial re-scoring sweep on the newly
+pinned `openai/gpt-oss-120b`._
+
+| Dimension | Implementation | Scored | On pinned model | Human-reviewed |
+|---|---|---|---|---|
+| Evasiveness | ✅ Complete (keyword + LLM) | 11/11 | 2/11 | **11/11** — LLM judged accurate on 3 |
+| Sentiment shift | ✅ Complete (LLM only) | 5/11 | 3/11 | 0/11 |
+| Complexity spike | ✅ Complete (LLM only) | 3/11 | 3/11 | 0/11 |
+| Overpromising | ✅ Complete (LLM only) | 3/11 | 3/11 | 0/11 |
+| Forward guidance vagueness | ✅ Complete (LLM only) | 3/11 | 3/11 | 0/11 |
+
+**24 of 55 scores exist. 10 are on the pinned model.** Three transcripts
+(INFY Q1 2023, INFY Q1 2024, TCS Q1 2025) are complete across all 5 dimensions.
+
+The re-scoring sweep stopped partway: a full sweep needs ~1.1M tokens against a
+200,000/day free-tier cap — about five days of quota (`KNOWN_ISSUES.md`
+BLOCKER-4). Re-run `scripts/run_all_scoring.py` as budget frees; it stops
+cleanly and exits 3 rather than failing silently.
 
 > **Correction (Aug 23):** earlier versions of this file recorded "0/11
 > human-reviewed" across the board. `notebooks/reading-notes.md` in fact holds a
@@ -37,39 +49,40 @@ Only Evasiveness has been validated on real transcripts.
 > rating **4.6/10**; verdicts 3 Matches / 3 Partially / 5 Doesn't match. See
 > `EVALUATION.md`.
 
-> **The scores in this table are not comparable to each other.** They were
-> produced by three different models (`llama-3.3-70b-versatile`,
-> `openai/gpt-oss-20b`, `allam-2-7b`) at different times. INFY Q1 2024
-> evasiveness moved from 6 to 2 purely from a model switch. See
-> `KNOWN_ISSUES.md` BLOCKER-2 before drawing any conclusion from a trend.
-
 ### Scoring infrastructure
 
 - `scores` table exists in SQLite (per-dimension, per-transcript, queryable)
 - `scoring_runs` table stores raw LLM responses for audit trail
 - `scripts/run_all_scoring.py` runs all 5 dimensions with `--skip-existing` and `--model` flags
 - Shared `_llm_dimension_scorer.py` handles chunk batching (2000-word batches), exponential backoff retry, `<think>` tag stripping
-- `openai/gpt-oss-20b` model validated as working with Groq free tier (8000 TPM)
+- Daily-quota exhaustion is detected and stops the sweep cleanly (exit 3) rather than burning retries against a 20-minute reset
+- `check_score_comparability()` reports any dimension spanning more than one model; the CLI and dashboard both surface it
+- `scripts/check_models.py` verifies the pinned model is reachable before scoring
+- `scripts/run_self_consistency.py` measures run-to-run spread
 
-### Current DB state
+### Model
 
-- **11/11 transcripts scored for evasiveness** (7 TCS + 4 INFY)
-- **20 total scores** across all dimensions
-- TCS Q1 2025 has all 5 dimensions scored
-- Other transcripts have 1-3 dimensions scored
-- Full scoring of all 11 transcripts × 5 dimensions requires additional LLM runs
+Pinned **`openai/gpt-oss-120b`** on 2026-08-23. The previous
+`llama-3.3-70b-versatile` was retired by Groq and 404s, which is why 9 scores
+in the DB can never be reproduced.
 
-## Phase 3 — Trend Detection: 🟡 Library works, CLI is broken
+Self-consistency measured on the pinned model: **spread 0 over 5 runs**
+(TCS Q1 2025, evasiveness). The ±1.5 trend thresholds sit above the noise
+floor. Cross-model variance on that same transcript is 2 points — model choice
+dominates sampling noise entirely.
 
-All 4 trend functions are implemented and tested (22 tests pass) and the
-dashboard imports them successfully. **`scripts/run_trends.py` has never run** —
-it is missing the `sys.path` prelude the other scripts have and dies with
-`ModuleNotFoundError: No module named 'config'` (KNOWN_ISSUES.md BLOCKER-1).
+## Phase 3 — Trend Detection: ✅ Functional, waiting on valid data
 
-Two correctness caveats on the functions themselves: QoQ deltas ignore calendar
-gaps (INFY's quarters are not contiguous, so some "quarter-over-quarter" deltas
-span four to six quarters), and the sort key collapses the company column
-(HIGH-3, MEDIUM-1).
+All 4 trend functions implemented and tested (39 tests). The CLI now runs — it
+was missing its `sys.path` prelude and had never executed once (BLOCKER-1,
+fixed `a1e05ca`).
+
+Correctness fixes since: deltas are gap-aware, so a jump across missing
+quarters is blank rather than reported as quarter-over-quarter (4 of 7
+previously-reported deltas were spanning gaps); rolling averages require three
+consecutive quarters; sorting groups by company instead of collapsing it.
+
+The maths is sound. What it has to read is not yet — see the model note above.
 
 Implemented:
 - `compute_qoq_score_change` — quarter-over-quarter deltas per company
@@ -79,12 +92,14 @@ Implemented:
 - `load_scores_from_db` — pivots SQLite scores into analysis DataFrame
 - `scripts/run_trends.py` — CLI for trend analysis (text and JSON output)
 
-## Phase 4 — Dashboard: 🟡 Runs, but shows an artifact as its top alert
+## Phase 4 — Dashboard: ✅ Functional, honest about its data
 
-The Alerts tab currently reports INFY evasiveness `2 → 6 (+4)` as the biggest
-single-quarter worsening. Both numbers came from different models; nothing about
-INFY changed. Four of five trend lines have 1–4 points. The UI is sound; the
-data underneath it is not yet.
+Runs clean (verified headless, HTTP 200). The Scores, Trends, and Alerts tabs
+now show a red banner naming any dimension whose scores span multiple models,
+so a reader cannot mistake a model-switch artifact for a management signal —
+which is exactly what its top alert was.
+
+Coverage is still thin: most trend lines have 1–3 points.
 
 Streamlit dashboard (`src/dashboard/app.py`) with:
 - Company selector sidebar
@@ -110,28 +125,30 @@ Streamlit dashboard (`src/dashboard/app.py`) with:
 - Q&A section boundary detection
 - `scores` table (per-dimension, per-transcript persistence)
 - Unified scoring runner for all 5 dimensions with `--model` and `--skip-existing`
-- 70 tests across extraction, scoring, trends, and integration
+- 92 tests across extraction, scoring, trends, and integration
 - Trend analysis: QoQ deltas, rolling averages, trend labels, drop detection
 - Streamlit dashboard with interactive charts and drill-down
 
 ## What's explicitly not done yet
 
-- **A single-model score sweep.** 20/55 scores exist, spread across 3 models.
-  Nothing in the DB is currently a valid time series.
+- **A complete single-model score sweep.** 24/55 scored, 10 on the pinned
+  model. No dimension is yet complete on one model, so no series is valid.
+  Blocked on token budget, not on code (`KNOWN_ISSUES.md` BLOCKER-4).
 - **Numeric human labels.** The review rated the LLM's accuracy but never
   recorded a human 1–10 score, so error cannot be computed (`EVALUATION.md` § 2).
-- **Self-consistency measurement.** Nobody has scored the same transcript twice.
-  Until that exists, the ±1.5 trend thresholds are unjustified.
 - Evaluation harness against human-labeled data
 - Prompt quality assessment for the 4 non-evasiveness dimensions
 - A verified case study in `data/findings/findings.md`
 
 ## Test suite
 
-70 tests: extraction 4, scoring 17, scoring dimensions 25, trends 22,
-integration 2. **69 pass, 1 fails locally** —
-`test_sentiment_shift_score_key_in_result` makes a real API call and passes in
-CI only because CI has no API key (KNOWN_ISSUES.md HIGH-1). A green CI badge
-does not currently mean a green local suite.
+**92 tests, all passing offline.** extraction 4, scoring 17, scoring dimensions
+28, trends 39, integration 4.
+
+Four tests previously reached the live API. They passed in CI only because CI
+has no API key, and passed locally only because an earlier test left
+`LLM_API_KEY` blank process-wide — each failed when run standalone. All are now
+mocked and verified in isolation. CI additionally runs `mypy src/` and
+byte-compiles `scripts/`, which had no coverage of any kind before.
 
 See `ROADMAP.md` for what's next and in what order.

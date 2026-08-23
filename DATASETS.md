@@ -49,7 +49,9 @@ this is what the trend layer and dashboard read.
 ```sql
 CREATE TABLE scores (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
-    transcript_id     INTEGER NOT NULL,
+    transcript_id     INTEGER NOT NULL,   -- rowid of chunk 0; convenience only
+    company           TEXT,               --     quarter           TEXT,               --  } the stable identity
+    year              INTEGER,            -- /
     dimension         TEXT NOT NULL,      -- one of config.SCORE_DIMENSIONS
     score             INTEGER NOT NULL,   -- 1-10, higher = worse
     supporting_quotes TEXT,               -- JSON array, max 3
@@ -60,22 +62,28 @@ CREATE TABLE scores (
     FOREIGN KEY (transcript_id) REFERENCES transcripts(id),
     UNIQUE(transcript_id, dimension)
 );
+
+CREATE UNIQUE INDEX idx_scores_identity
+    ON scores(company, quarter, year, dimension);
 ```
 
-`INSERT OR REPLACE` on `(transcript_id, dimension)` makes re-scoring idempotent.
+`INSERT OR REPLACE` plus the identity index makes re-scoring idempotent even
+across a re-ingest.
 
-> **`transcript_id` is not a transcript id.** `transcripts` holds one row per
-> *chunk*, so there is no transcript-level identity to reference. Scores are
-> filed under the rowid of the transcript's `chunk_index = 0` row. Since
-> `store_transcript()` deletes and re-inserts chunks, re-running Phase 1 hands
-> out new rowids and silently orphans every score. See `KNOWN_ISSUES.md` HIGH-2
-> — this is the schema's most serious defect and should be fixed before the
-> next ingest.
+> **Why the identity columns exist.** `transcripts` holds one row per *chunk*,
+> so there is no transcript-level row to reference; `transcript_id` is the rowid
+> of that transcript's `chunk_index = 0`. `store_transcript()` deletes and
+> re-inserts chunks and `AUTOINCREMENT` never reuses rowids, so re-running
+> Phase 1 used to silently orphan every score — measured at 5 of 20 lost from a
+> single transcript re-ingest. Identity now lives on the score row, and
+> `init_db()` runs an idempotent migration that adds and backfills these
+> columns. Read paths use them, not the join (`KNOWN_ISSUES.md` HIGH-2).
 
-> **`model_name` and `prompt_version` are recorded but never enforced.** The
-> table currently holds evasiveness scores from three different models. A score
-> series is only valid within one `(model_name, prompt_version)` pair — see
-> `SCORING_METHODOLOGY.md` § 4.
+> **`model_name` and `prompt_version` are recorded but not constrained.** A
+> score series is only valid within one `(model_name, prompt_version)` pair —
+> see `SCORING_METHODOLOGY.md` § 4. `check_score_comparability()` reports
+> violations, and both the trends CLI and the dashboard surface them, but
+> nothing prevents writing them.
 
 ## Current data inventory
 
@@ -86,11 +94,15 @@ _Measured 2026-08-23._
   Q1 2023, Q1 2024, Q2 2024, Q4 2025, which breaks the quarter-over-quarter
   assumption in the trend layer (`KNOWN_ISSUES.md` HIGH-3)
 - Typical transcript: 16–18 chunks, 8,000–9,100 words
-- **20 scores** of a possible 55 (11 × 5): evasiveness 11, sentiment_shift 4,
-  complexity_spike 2, forward_guidance_vagueness 2, overpromising 1
+- **24 scores** of a possible 55 (11 × 5): evasiveness 11, sentiment_shift 5,
+  complexity_spike 3, overpromising 3, forward_guidance_vagueness 3
+- 3 transcripts complete across all 5 dimensions (INFY Q1 2023, INFY Q1 2024,
+  TCS Q1 2025)
 - **25 scoring runs** in the audit table
-- Models present in `scores`: `llama-3.3-70b-versatile`, `openai/gpt-oss-20b`,
-  `allam-2-7b`
+- Models present in `scores`: `openai/gpt-oss-120b` (10, the pinned model),
+  `llama-3.3-70b-versatile` (9, retired), `openai/gpt-oss-20b` (4),
+  `allam-2-7b` (1). The migration onto one model is unfinished — a full sweep
+  costs ~5 days of free-tier quota (`KNOWN_ISSUES.md` BLOCKER-4).
 - `COMPANIES = ["TCS", "INFY", "WIPRO", "HDFCBANK"]` is declared in
   `config.py` but Wipro/HDFC Bank have no transcripts ingested yet, and the
   list isn't enforced anywhere in the pipeline.

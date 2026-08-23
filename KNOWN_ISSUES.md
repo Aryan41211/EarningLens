@@ -11,7 +11,8 @@ and history live in `PROJECT_MEMORY.md`; forward plans live in `ROADMAP.md`.
 |---|---|---|
 | BLOCKER-1 — trends CLI crashes on import | BLOCKER | ✅ Fixed `a1e05ca` |
 | BLOCKER-2 — scores span three models | BLOCKER | ⚠️ Detection added `d21cf63`; **data still contaminated** |
-| BLOCKER-3 — configured model has been retired | BLOCKER | ⛔ **Open — blocks all scoring** |
+| BLOCKER-3 — configured model has been retired | BLOCKER | ✅ Fixed `e89ca03` — pinned `openai/gpt-oss-120b` |
+| BLOCKER-4 — a full sweep exceeds the free tier's daily token budget | BLOCKER | ⚠️ Handled in code `dc14c30`; **sweep still incomplete** |
 | HIGH-1 — unit tests make live API calls | HIGH | ✅ Fixed `a42fd08`, `20c5842` (4 tests) |
 | HIGH-2 — re-ingest orphans every score | HIGH | ✅ Fixed `20c5842` |
 | HIGH-3 — QoQ maths ignores calendar gaps | HIGH | ✅ Fixed `f2074f6` |
@@ -140,6 +141,65 @@ present; `openai/gpt-oss-20b` already produced 8 of the existing scores.
 Lesson worth keeping: a hosted model name is not a stable dependency. Whatever
 is pinned next should be recorded in `SCORING_METHODOLOGY.md` with the date it
 was pinned, and the retirement risk treated as a matter of when, not if.
+
+---
+
+## BLOCKER-4 — A full scoring sweep does not fit in the free tier's daily budget
+
+Discovered by running one. Groq's free tier caps **tokens per day at 200,000**,
+separately from the per-minute limit the retry logic was built for:
+
+```
+429 - Rate limit reached for model `openai/gpt-oss-120b` ... on tokens per day
+(TPD): Limit 200000, Used 199839, Requested 3462. Please try again in 23m46s.
+```
+
+### The arithmetic
+
+| Quantity | Value |
+|---|---|
+| Words per transcript | ~8,500 |
+| Batches per dimension (at `_BATCH_TARGET_WORDS = 2000`) | 4–5 |
+| Tokens per dimension-score | ~20,000 |
+| Dimension-scores for a full sweep (11 × 5) | 55 |
+| **Total tokens for one full sweep** | **~1.1M** |
+| **Free-tier daily budget** | **200,000** |
+
+**A complete sweep needs roughly five days of free-tier quota.** This is a
+structural constraint, not a tuning problem: the cost is dominated by the
+transcript text itself, which is sent once per dimension. Larger batches save
+only the repeated system prompt (~10%).
+
+The first sweep completed 10 of 55 dimension-scores before exhausting the
+budget — and the self-consistency experiment run beforehand had already spent
+roughly a third of that day's allowance.
+
+### What this does to the plan
+
+`ROADMAP.md` step 6 assumed a full sweep was a single 20–40 minute operation.
+It is not. The options, none free:
+
+1. **Spread across ~5 days.** Free, slow, and the series stays incomplete
+   meanwhile. `--skip-existing` resumes without redoing finished transcripts.
+2. **Upgrade to Groq's Dev Tier.** Fastest path to a complete, comparable
+   series.
+3. **Score fewer dimensions.** Evasiveness alone is 11 × 20k = 220k tokens —
+   still over one day, but close. It is also the only dimension with human
+   review, so it is the one where a complete series is worth most.
+4. **Score fewer transcripts.** A contiguous 4-quarter run of TCS across all 5
+   dimensions is 400k tokens and would actually demonstrate the trend feature,
+   which the current sparse coverage cannot.
+
+Option 3 or 4 buys a *defensible* result soonest. Option 1 eventually buys the
+complete one.
+
+### Handled in code
+
+`dc14c30` added `DailyQuotaExhausted`: the scorer now distinguishes a daily cap
+from a per-minute limit, stops the sweep instead of burning retries against a
+20-minute reset, keeps everything already written, and exits 3 with a count of
+what remains. Previously this exact situation exited **0** while logging
+"2 fully succeeded, 9 had failures".
 
 ---
 

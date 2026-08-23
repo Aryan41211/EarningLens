@@ -42,9 +42,23 @@ has a valid, measured score series.
    If the spread approaches ±2, the ±1.5 trend thresholds are inside the noise
    floor and Phase 3's labels mean nothing — better to learn that now than
    after a 250-call sweep. (`EVALUATION.md` § 3.3)
-6. **Re-score all 11 transcripts × 5 dimensions in one pass** with the pinned
-   model. ~250 requests, 20–40 minutes on the free tier. This replaces the
-   current 20 mixed-model scores with 55 comparable ones.
+6. **Re-score onto the pinned model — but a full sweep does not fit in one day.**
+   Measured: ~20k tokens per dimension-score, 55 needed, against a 200,000
+   token/day free-tier cap. That is **~1.1M tokens, roughly five days of
+   quota** (`KNOWN_ISSUES.md` BLOCKER-4). Currently 24/55 scored, of which 10
+   are on the pinned model and 3 transcripts are complete.
+
+   Pick a path before spending more:
+   - **Narrow the scope.** A contiguous 4-quarter TCS run across all 5
+     dimensions (~400k tokens, ~2 days) would actually demonstrate the trend
+     feature, which today's sparse coverage cannot. Or evasiveness alone
+     across all 11 (~220k) — the only dimension with human review behind it.
+   - **Spread it.** Re-run with `--skip-existing` as quota frees; it now stops
+     cleanly and exits 3 rather than grinding.
+   - **Upgrade the tier.** The only route to a complete series quickly.
+
+   Until one series is complete on one model, the trend layer has nothing
+   valid to read.
 7. **Add the numeric human labels.** `notebooks/reading-notes.md` already has a
    full written review of all 11 evasiveness transcripts; only the "Your Score"
    column is blank. Eleven numbers, from transcripts already read. This is the

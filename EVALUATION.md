@@ -160,6 +160,23 @@ zero; **cross-model variance is 2 points.** The model choice matters far more
 than sampling noise, which is exactly why the comparability rule in
 `SCORING_METHODOLOGY.md` § 4 exists.
 
+### 3.3a What an evaluation actually costs
+
+Measured during the first sweep, and it constrains everything above:
+
+| | |
+|---|---|
+| Tokens per dimension-score | ~20,000 |
+| A full 11 × 5 sweep | ~1.1M tokens |
+| Free-tier daily budget | 200,000 |
+| **Days of free quota for one full sweep** | **~5** |
+
+Any evaluation plan that assumes scoring is cheap is wrong. Scope the ground
+truth to what can actually be scored on one model: a complete series over
+*fewer* transcripts beats a partial series over all of them, because the
+metrics in § 3.2 need a comparable series to run against at all. See
+`KNOWN_ISSUES.md` BLOCKER-4.
+
 ### 3.4 Model comparison
 
 The DB has accidentally produced a three-model comparison on evasiveness.

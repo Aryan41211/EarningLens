@@ -67,7 +67,7 @@ def score_transcript_all(conn, transcript_id: int, chunks: list[str], model: str
         except DailyQuotaExhausted:
             # No point continuing: every remaining dimension will fail the same
             # way. Let the caller stop and report honestly.
-            logger.error("    %s: provider token budget exhausted — stopping", dimension)
+            logger.error("    %s: provider token budget exhausted - stopping", dimension)
             results[dimension] = {"score": None, "error": "daily quota exhausted", "result": None}
             raise
         except Exception as e:
