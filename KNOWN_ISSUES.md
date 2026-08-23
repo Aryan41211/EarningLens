@@ -21,6 +21,7 @@ and history live in `PROJECT_MEMORY.md`; forward plans live in `ROADMAP.md`.
 | MEDIUM-3 — human review documented as nonexistent | MEDIUM | ✅ Fixed `1ddea00` — labels existed all along, now in `labels.csv` |
 | MEDIUM-4 — two divergent score-all implementations | MEDIUM | ✅ Fixed `e1d8a14` |
 | LOW batch | LOW | ✅ L-1/2/3/4/5/6 fixed; L-7..L-12 docs corrected |
+| NEW: `prompt_version` was hardcoded, defeating the comparability guard | HIGH | ✅ Fixed `7aa6a68` — registry + checksum test |
 
 Descriptions below are kept as originally written, so the reasoning that led
 to each fix stays on record.

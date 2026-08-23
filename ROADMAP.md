@@ -102,6 +102,23 @@ Only worth doing once Step 1 shows the scores carry signal.
 
 ---
 
+## Step 3.5 — Fix what the evaluation exposed ✅ prompt written, unproven
+
+The evaluation came back negative, so the next phase is the prompt, not more
+features.
+
+20. ✅ **Prompt versioning made trustworthy.** `prompt_version` was hardcoded,
+    so editing a prompt would leave scores stamped v1 and defeat the
+    comparability guard. Prompts now live in a registry keyed by version, with
+    a checksum test that fails if a prompt is edited without registering a new
+    version.
+21. ✅ **`evasiveness-v2` written** — targets the four measured failures: a
+    reasoned refusal is not a dodge, tone is not evasiveness, use the full
+    1–10 range, weigh proportion not worst moment. v1 remains the default.
+22. ⬜ **Score with v2 and evaluate it.** ~220k tokens, just over one day of
+    free-tier budget. Read `EVALUATION.md` § 1.5 first: the 11 labels informed
+    v2's design, so an in-sample number must be reported as in-sample.
+
 ## Step 4 — The verification milestone
 
 15. **Populate `data/findings/findings.md`** with one real, verified

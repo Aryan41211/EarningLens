@@ -145,8 +145,8 @@ Streamlit dashboard (`src/dashboard/app.py`) with:
 
 ## Test suite
 
-**92 tests, all passing offline.** extraction 4, scoring 17, scoring dimensions
-28, trends 39, integration 4.
+**138 tests, all passing offline.** extraction, scoring, scoring dimensions,
+trends 39, evaluation 24, prompts 22, integration 4.
 
 Four tests previously reached the live API. They passed in CI only because CI
 has no API key, and passed locally only because an earlier test left
