@@ -6,6 +6,7 @@ and storage. Individual dimension modules do NOT import db.py.
 """
 
 import logging
+from typing import Callable
 
 from src.scoring.evasiveness import score_transcript_evasiveness
 from src.scoring.sentiment_shift import score_transcript_sentiment_shift
@@ -16,7 +17,8 @@ from src.storage.db import store_score
 
 logger = logging.getLogger("earningslens")
 
-DIMENSION_MODULES = {
+# Each scorer takes the chunk list and returns a result dict.
+DIMENSION_MODULES: dict[str, Callable[..., dict]] = {
     "evasiveness": score_transcript_evasiveness,
     "sentiment_shift": score_transcript_sentiment_shift,
     "complexity_spike": score_transcript_complexity_spike,
@@ -26,7 +28,7 @@ DIMENSION_MODULES = {
 
 # Each module returns a different key for the score. This maps dimension name
 # to the key used in that module's return dict.
-SCORE_KEY_MAP = {
+SCORE_KEY_MAP: dict[str, str] = {
     "evasiveness": "evasiveness_score",
     "sentiment_shift": "sentiment_shift_score",
     "complexity_spike": "complexity_spike_score",

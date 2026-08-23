@@ -34,7 +34,9 @@ def _split_long_paragraph(para: str, target_words: int) -> list[str]:
     """Split a too-long paragraph on sentence boundaries to keep chunks ~target_words."""
     # Split on sentence endings followed by space + capital letter
     sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z])", para)
-    chunks, current, current_count = [], [], 0
+    chunks: list[str] = []
+    current: list[str] = []
+    current_count = 0
     for sent in sentences:
         w = len(sent.split())
         if current_count + w > target_words and current:
@@ -56,7 +58,9 @@ def chunk_text(text: str, target_words: int = 600) -> list[str]:
     if len(paragraphs) == 1 and len(paragraphs[0].split()) > target_words * 2:
         paragraphs = _split_on_speakers(text)
 
-    chunks, current, current_count = [], [], 0
+    chunks: list[str] = []
+    current: list[str] = []
+    current_count = 0
 
     for para in paragraphs:
         para_word_count = len(para.split())

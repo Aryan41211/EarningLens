@@ -83,10 +83,10 @@ def store_scoring_run(conn, transcript_id, model_name, prompt_version, raw_respo
     conn.commit()
 
 
-def get_chunks(conn, company: str, quarter: str = None, year: int = None):
+def get_chunks(conn, company: str, quarter: str | None = None, year: int | None = None):
     """Fetch chunks for a company, optionally filtered by quarter/year."""
     query = "SELECT * FROM transcripts WHERE company = ?"
-    params = [company.upper()]
+    params: list[object] = [company.upper()]
     if quarter:
         query += " AND quarter = ?"
         params.append(quarter)
@@ -111,7 +111,7 @@ def store_score(conn, transcript_id, dimension, score, supporting_quotes, model_
     conn.commit()
 
 
-def get_scores(conn, company: str, quarter: str = None, year: int = None):
+def get_scores(conn, company: str, quarter: str | None = None, year: int | None = None):
     """Fetch scores joined with transcript metadata for a company."""
     query = """
         SELECT t.company, t.quarter, t.year, t.chunk_index,
@@ -120,7 +120,7 @@ def get_scores(conn, company: str, quarter: str = None, year: int = None):
         JOIN transcripts t ON s.transcript_id = t.id
         WHERE t.company = ?
     """
-    params = [company.upper()]
+    params: list[object] = [company.upper()]
     if quarter:
         query += " AND t.quarter = ?"
         params.append(quarter)
