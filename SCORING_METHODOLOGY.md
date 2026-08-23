@@ -64,6 +64,7 @@ same score. Treat the keyword output as evidence to read, not as a signal.
 | Setting | Value | Where |
 |---|---|---|
 | Endpoint | Groq, OpenAI-compatible (`LLM_API_BASE_URL`) | `.env` |
+| Model | `LLM_MODEL_NAME` — **currently pins a retired model, see below** | `.env` |
 | Temperature | 0.1 | `_llm_dimension_scorer.py` |
 | `max_tokens` | 800 | `_llm_dimension_scorer.py` |
 | Output | JSON: score + up to 3 verbatim supporting quotes | system prompt |
@@ -111,6 +112,20 @@ different models, and the dashboard's top alert is a pure artifact of that mix
 (`KNOWN_ISSUES.md` BLOCKER-2). Measured evidence of the size of the effect:
 INFY Q1 2024 scored 6 under `llama-3.3-70b-versatile` and 2 under
 `openai/gpt-oss-20b` — same chunks, same `evasiveness-v1` prompt.
+
+### Model availability is not guaranteed
+
+As of 2026-08-23 the pinned `llama-3.3-70b-versatile` returns 404 from Groq —
+it has been retired, and it produced 8 of the 11 evasiveness scores. Those
+scores can no longer be reproduced or extended (`KNOWN_ISSUES.md` BLOCKER-3).
+
+A hosted model name is a dependency that can disappear without notice. Record
+the model **and the date it was pinned** here whenever it changes, and treat
+re-scoring as the expected response to a retirement rather than an emergency.
+
+Available on the current key: `openai/gpt-oss-120b`, `openai/gpt-oss-20b`,
+`openai/gpt-oss-safeguard-20b`, `qwen/qwen3.6-27b`, `allam-2-7b`,
+`groq/compound`, `groq/compound-mini`.
 
 Practical rules:
 

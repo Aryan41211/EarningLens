@@ -35,6 +35,9 @@ streamlit>=1.56.0,<2.0   plotly>=6.7.0,<7.0
 - **Model**: configured via `LLM_MODEL_NAME`. Three have been used against the
   live DB — `llama-3.3-70b-versatile`, `openai/gpt-oss-20b`, `allam-2-7b` — and
   their scores are **not comparable** (`SCORING_METHODOLOGY.md` § 4). Pin one.
+  **`llama-3.3-70b-versatile` has since been retired by Groq and now 404s**,
+  so the currently configured value does not work at all
+  (`KNOWN_ISSUES.md` BLOCKER-3).
 - **Endpoint**: **Groq** at `https://api.groq.com/openai/v1`
   (OpenAI-compatible chat completions)
 - **Temperature**: 0.1 (near-deterministic; run-to-run spread never measured)

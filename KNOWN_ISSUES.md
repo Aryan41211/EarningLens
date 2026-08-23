@@ -1,9 +1,28 @@
 # KNOWN_ISSUES.md
 
-Verified, reproducible defects in the current `main` (`d459f21`). Every item
-here was confirmed by running the code or querying `data/earningslens.db` on
-2026-08-23 — nothing in this file is speculative. Architectural concerns and
-history live in `PROJECT_MEMORY.md`; forward plans live in `ROADMAP.md`.
+Verified, reproducible defects found by auditing `main` at `d459f21` on
+2026-08-23. Every item was confirmed by running the code or querying
+`data/earningslens.db` — nothing here is speculative. Architectural concerns
+and history live in `PROJECT_MEMORY.md`; forward plans live in `ROADMAP.md`.
+
+**Status of the audit**
+
+| Issue | Severity | Status |
+|---|---|---|
+| BLOCKER-1 — trends CLI crashes on import | BLOCKER | ✅ Fixed `a1e05ca` |
+| BLOCKER-2 — scores span three models | BLOCKER | ⚠️ Detection added `d21cf63`; **data still contaminated** |
+| BLOCKER-3 — configured model has been retired | BLOCKER | ⛔ **Open — blocks all scoring** |
+| HIGH-1 — unit tests make live API calls | HIGH | ✅ Fixed `a42fd08`, `20c5842` (4 tests) |
+| HIGH-2 — re-ingest orphans every score | HIGH | ✅ Fixed `20c5842` |
+| HIGH-3 — QoQ maths ignores calendar gaps | HIGH | ✅ Fixed `f2074f6` |
+| MEDIUM-1 — sort key collapses the company column | MEDIUM | ✅ Fixed `f2074f6` |
+| MEDIUM-2 — 4 of 5 dimensions have almost no data | MEDIUM | ⛔ Open — needs a scoring sweep, blocked by BLOCKER-3 |
+| MEDIUM-3 — human review documented as nonexistent | MEDIUM | ✅ Docs corrected; numeric labels still missing |
+| MEDIUM-4 — two divergent score-all implementations | MEDIUM | ✅ Fixed `e1d8a14` |
+| LOW batch | LOW | ✅ L-1/2/3/4/5/6 fixed; L-7..L-12 docs corrected |
+
+Descriptions below are kept as originally written, so the reasoning that led
+to each fix stays on record.
 
 Severity key:
 
@@ -79,6 +98,48 @@ Fix direction: make `load_scores_from_db()` refuse to build a series spanning
 more than one `(model_name, prompt_version)` per dimension — and pin a model
 and re-score all 11 transcripts in one pass. See `SCORING_METHODOLOGY.md`
 under Comparability.
+
+---
+
+## BLOCKER-3 — The configured model no longer exists
+
+`.env` pins `LLM_MODEL_NAME=llama-3.3-70b-versatile`. Groq has retired it:
+
+```
+openai.NotFoundError: Error code: 404 - The model `llama-3.3-70b-versatile`
+does not exist or you do not have access to it.
+```
+
+Models actually available on this API key (2026-08-23):
+
+```
+allam-2-7b                    openai/gpt-oss-20b
+groq/compound                 openai/gpt-oss-120b
+groq/compound-mini            openai/gpt-oss-safeguard-20b
+qwen/qwen3.6-27b              whisper-large-v3 (speech, not applicable)
+```
+
+Consequences:
+
+1. **Any scoring run right now fails.** `run_all_scoring.py` will 404 on every
+   call until `LLM_MODEL_NAME` is changed.
+2. **8 of the 11 evasiveness scores are unreproducible.** They came from
+   llama-3.3-70b-versatile, which can no longer be called. The raw responses
+   are preserved in `scores.raw_llm_response`, but the scores cannot be
+   regenerated or extended.
+3. **The human review in `notebooks/reading-notes.md` reviewed llama-3.3-70b
+   output.** Those 11 labels describe the behaviour of a model that no longer
+   exists, so they cannot serve as ground truth for whatever model replaces it
+   without re-reviewing.
+
+This makes the single-model re-scoring sweep in `ROADMAP.md` step 6 both more
+urgent and a genuine decision: the whole series has to be rebuilt on a model
+that is still available. `openai/gpt-oss-120b` is the strongest candidate
+present; `openai/gpt-oss-20b` already produced 8 of the existing scores.
+
+Lesson worth keeping: a hosted model name is not a stable dependency. Whatever
+is pinned next should be recorded in `SCORING_METHODOLOGY.md` with the date it
+was pinned, and the retirement risk treated as a matter of when, not if.
 
 ---
 
@@ -253,8 +314,9 @@ the script is used in production. Neither validates the other.
 
 1. BLOCKER-1 — one line, unblocks the Phase 3 CLI
 2. HIGH-1 — one test, makes the suite trustworthy
-3. BLOCKER-2 + MEDIUM-2 — pin one model, re-score all 11 × 5 in a single pass
-4. HIGH-2 — schema change; do it *before* any further ingest
-5. HIGH-3, MEDIUM-1 — trend correctness
-6. MEDIUM-3 — then build the harness in `EVALUATION.md`
-7. The LOW batch
+3. **BLOCKER-3 — pick a model that still exists; nothing can be scored until then**
+4. BLOCKER-2 + MEDIUM-2 — pin that model, re-score all 11 × 5 in a single pass
+5. HIGH-2 — schema change; do it *before* any further ingest
+6. HIGH-3, MEDIUM-1 — trend correctness
+7. MEDIUM-3 — then build the harness in `EVALUATION.md`
+8. The LOW batch

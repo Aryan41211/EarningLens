@@ -30,9 +30,13 @@ Do these first; they are cheap and everything downstream depends on them.
 Phase 2 is not done because five modules exist. It is done when one dimension
 has a valid, measured score series.
 
-4. **Pin a model.** Choose one, put it in `.env`, and never mix again. The DB
-   currently holds evasiveness scores from three models, which is why the
-   dashboard's top alert is fake. (BLOCKER-2, `SCORING_METHODOLOGY.md` § 4)
+4. **Pin a model that still exists.** The configured
+   `llama-3.3-70b-versatile` has been retired by Groq and 404s, so *no scoring
+   can run at all* right now — and it produced 8 of the 11 evasiveness scores,
+   which are consequently unreproducible. Pick from what the key can reach
+   (`openai/gpt-oss-120b` is the strongest available), put it in `.env`, record
+   it with the date in `SCORING_METHODOLOGY.md`, and never mix again.
+   (BLOCKER-3, BLOCKER-2)
 5. **Measure self-consistency before spending more on scoring.** Score one
    transcript five times at temperature 0.1 and record the spread. ~10 calls.
    If the spread approaches ±2, the ±1.5 trend thresholds are inside the noise
