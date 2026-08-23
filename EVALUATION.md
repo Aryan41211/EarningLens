@@ -158,6 +158,40 @@ Honest options, in order of strength:
 Whichever is chosen, record it here. A number without its provenance is what
 got this project into trouble the first time.
 
+### Decision (2026-08-24): option 3, with option 1 still open
+
+**Option 3 is what is implemented, because it is the only one available without
+the reviewer.** Option 1 remains the clean answer and is still the recommended
+next step — it needs eleven-plus new labels written before any LLM score is
+seen, which only the reviewer can produce.
+
+`run_evaluation.py --compare` implements option 3 and enforces its condition
+rather than trusting anyone to remember it:
+
+```bash
+python scripts/run_evaluation.py --dimension evasiveness \
+    --compare evasiveness-v1 --compare evasiveness-v2
+```
+
+- Every run prints an **IN-SAMPLE** banner. It is not suppressible.
+- The **model is held constant** (default: the configured `LLM_MODEL_NAME`).
+  Without this the "v1" column would be a three-model mix and the delta would
+  measure the model switch, not the prompt — the same confound as BLOCKER-2.
+- The comparison is **restricted to transcripts scored under every version**,
+  and says how many it excluded. Scoring one prompt on 11 transcripts and the
+  other on 3, then printing the columns side by side, compares the transcripts
+  rather than the prompts.
+- It **warns when fewer than 5 transcripts** are common to all versions.
+
+One consequence worth planning for: `evasiveness-v1` exists on the pinned model
+for only 3 transcripts. So even once the v2 sweep covers all 11, a like-for-like
+v1-vs-v2 comparison covers **3**. A clean 11-vs-11 prompt comparison requires
+re-scoring v1 on the pinned model across all 11 — a second ~220k tokens, about
+another day of free-tier quota. Until that is spent, v2's headline number is its
+absolute result against the 11 labels, and the v1 baseline for context is the
+`--against reviewed` figure in § 0 (MAE 1.73), which changed model as well as
+prompt and must be quoted with that caveat.
+
 ## 2. What would move the result
 
 The evaluation runs and the answer is negative. The useful question is no

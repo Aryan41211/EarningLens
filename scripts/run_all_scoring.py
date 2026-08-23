@@ -74,22 +74,30 @@ def get_scored_transcripts(conn, dimensions):
     return {(r[0], r[1], r[2]) for r in cur.fetchall()}
 
 
-def get_scored_on_model(conn, dimensions, model):
-    """(company, quarter, year) already scored on `model` for every requested dimension.
+def get_scored_on_model(conn, dimensions, model, versions):
+    """(company, quarter, year) already scored on `model` at the versions this run would write.
 
     This is what makes a resumed run cheap: re-scoring a transcript that is
     already on the pinned model spends tokens to produce the identical number.
+
+    The prompt version is part of the identity, not a detail. Matching on model
+    alone would treat a transcript scored at evasiveness-v1 as done during a v2
+    sweep, so the resume would step over exactly the transcripts that still
+    need scoring and leave permanent holes in the v2 series -- silently, since
+    a skip is not an error.
     """
-    placeholders = ",".join("?" * len(dimensions))
+    pairs = [(d, versions.get(d) or resolve_version(d)) for d in dimensions]
+    placeholders = ",".join("?" * len(pairs))
     query = f"""
         SELECT company, quarter, year, COUNT(DISTINCT dimension) AS dim_count
         FROM scores
-        WHERE dimension IN ({placeholders}) AND model_name = ? AND company IS NOT NULL
+        WHERE (dimension || '@' || prompt_version) IN ({placeholders})
+          AND model_name = ? AND company IS NOT NULL
         GROUP BY company, quarter, year
         HAVING dim_count = ?
     """
     cur = conn.cursor()
-    cur.execute(query, [*dimensions, model, len(dimensions)])
+    cur.execute(query, [f"{d}@{v}" for d, v in pairs] + [model, len(pairs)])
     return {(r[0], r[1], r[2]) for r in cur.fetchall()}
 
 
@@ -214,11 +222,16 @@ def main():
             logger.info("Skipping %d transcript(s) already scored by any model.", before - len(transcripts))
 
     if args.skip_scored:
-        scored = get_scored_on_model(conn, dimensions, model)
+        scored = get_scored_on_model(conn, dimensions, model, prompt_versions)
         before = len(transcripts)
         transcripts = [(c, q, y) for c, q, y in transcripts if (c, q, y) not in scored]
         if before - len(transcripts):
-            logger.info("Skipping %d transcript(s) already scored on %s.", before - len(transcripts), model)
+            logger.info(
+                "Skipping %d transcript(s) already scored on %s at %s.",
+                before - len(transcripts),
+                model,
+                ", ".join(prompt_versions.get(d) or resolve_version(d) for d in dimensions),
+            )
 
     if not transcripts:
         logger.warning("No transcripts found in the database.")

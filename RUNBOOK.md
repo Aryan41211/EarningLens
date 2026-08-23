@@ -114,11 +114,33 @@ partial ones — an incomplete series is worth nothing to the trend layer:
 python scripts/run_all_scoring.py --dimension evasiveness --skip-scored
 ```
 
-`--skip-scored` skips transcripts already scored **on the target model**, so
-this command is the resume command too: run it again after a quota exhaustion
-and it picks up exactly where it stopped, never re-paying for finished work.
-Exit 3 means the budget is spent; everything already written is kept. Safe to
-run on a loop or a scheduler — a run with no budget costs one small failed call.
+`--skip-scored` skips transcripts already scored **on the target model at the
+prompt version this run would write**, so this command is the resume command
+too: run it again after a quota exhaustion and it picks up exactly where it
+stopped, never re-paying for finished work. Exit 3 means the budget is spent;
+everything already written is kept. Safe to run on a loop or a scheduler — a
+run with no budget costs one small failed call.
+
+The prompt version is part of that check, not a detail. Matching on model alone
+would treat a transcript scored at `evasiveness-v1` as finished during a v2
+sweep, step over exactly the transcripts still needing work, and leave
+permanent holes in the v2 series — silently, because a skip is not an error.
+
+### Finishing a sweep unattended
+
+The daily cap is a **rolling 24-hour window**, not a midnight reset, so
+capacity frees up gradually as older usage ages out. `resume_sweep.py` turns
+that into an unattended run: it calls the scorer, and on exit 3 waits and
+retries until the sweep completes.
+
+```bash
+python scripts/resume_sweep.py --dimension evasiveness \
+    --prompt-version evasiveness-v2 --wait-minutes 18 --max-hours 20
+```
+
+Ctrl-C at any point; scores already written are durable. A dimension across all
+11 transcripts costs ~220k tokens, so expect roughly a full day of quota for
+one dimension — the runner just removes the need to babysit it.
 
 ### The rule that matters
 

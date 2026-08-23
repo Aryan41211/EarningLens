@@ -49,6 +49,7 @@ earningslens-trends = "scripts.run_trends:main"
 earningslens-evaluate = "scripts.run_evaluation:main"
 earningslens-consistency = "scripts.run_self_consistency:main"
 earningslens-check-models = "scripts.check_models:main"
+earningslens-resume = "scripts.resume_sweep:main"
 
 # NOTE ON PACKAGING
 # The distribution installs top-level `src`, `scripts`, and `config`, which is
