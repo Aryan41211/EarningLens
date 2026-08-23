@@ -13,6 +13,7 @@ from src.scoring.sentiment_shift import score_transcript_sentiment_shift
 from src.scoring.complexity_spike import score_transcript_complexity_spike
 from src.scoring.overpromising import score_transcript_overpromising
 from src.scoring.forward_guidance_vagueness import score_transcript_forward_guidance_vagueness
+from src.scoring._llm_dimension_scorer import DailyQuotaExhausted
 from src.storage.db import store_score
 from config import LLM_MODEL_NAME
 
@@ -63,6 +64,12 @@ def score_transcript_all(conn, transcript_id: int, chunks: list[str], model: str
 
         try:
             result = scorer(chunks, model=model)
+        except DailyQuotaExhausted:
+            # No point continuing: every remaining dimension will fail the same
+            # way. Let the caller stop and report honestly.
+            logger.error("    %s: provider token budget exhausted — stopping", dimension)
+            results[dimension] = {"score": None, "error": "daily quota exhausted", "result": None}
+            raise
         except Exception as e:
             logger.error("    %s error: %s", dimension, e)
             results[dimension] = {"score": None, "error": str(e), "result": None}

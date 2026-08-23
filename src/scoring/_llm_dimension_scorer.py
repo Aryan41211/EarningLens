@@ -92,8 +92,46 @@ def _extract_usage(response) -> dict | None:
     }
 
 
+class DailyQuotaExhausted(RuntimeError):
+    """The provider's tokens-per-day budget is spent.
+
+    Distinct from a per-minute rate limit: backing off cannot clear it within a
+    run, so retrying only burns time. Raised so callers can stop the sweep
+    instead of grinding through every remaining dimension.
+    """
+
+
+# A per-minute limit clears in seconds; anything longer is a daily budget and
+# waiting it out inside a run is not sensible.
+_MAX_SENSIBLE_WAIT = 120.0
+
+_RETRY_AFTER_PATTERN = re.compile(r"try again in ([\dhms.]+)", re.IGNORECASE)
+
+
+def _parse_retry_after(error_str: str) -> float | None:
+    """Extract the provider's suggested wait, in seconds, if it gave one.
+
+    Groq formats these as '23m46.032s', '7m39.648s', or '4.5s'.
+    """
+    match = _RETRY_AFTER_PATTERN.search(error_str)
+    if not match:
+        return None
+    raw = match.group(1)
+    parts = re.findall(r"([\d.]+)([hms])", raw)
+    if not parts:
+        return None
+    scale = {"h": 3600.0, "m": 60.0, "s": 1.0}
+    return sum(float(value) * scale[unit] for value, unit in parts)
+
+
 def _call_llm_with_retry(client, *, model, messages, temperature, max_tokens, dimension_name):
-    """Call LLM with exponential backoff on rate limit errors."""
+    """Call the LLM, backing off on per-minute rate limits.
+
+    A tokens-per-day exhaustion is raised immediately as DailyQuotaExhausted
+    rather than retried: the reset is typically 20+ minutes away, so the retry
+    budget is spent for nothing and the real cause ends up buried under
+    generic 'rate limited' warnings.
+    """
     backoff = _INITIAL_BACKOFF
     for attempt in range(_MAX_RETRIES):
         try:
@@ -106,12 +144,25 @@ def _call_llm_with_retry(client, *, model, messages, temperature, max_tokens, di
         except Exception as e:
             error_str = str(e)
             is_rate_limit = "413" in error_str or "rate_limit" in error_str or "429" in error_str
-            if is_rate_limit and attempt < _MAX_RETRIES - 1:
+            if not is_rate_limit:
+                raise
+
+            wait = _parse_retry_after(error_str)
+            is_daily = "tokens per day" in error_str.lower() or "TPD" in error_str
+            if is_daily or (wait is not None and wait > _MAX_SENSIBLE_WAIT):
+                raise DailyQuotaExhausted(
+                    f"Provider token budget exhausted while scoring {dimension_name}. "
+                    f"Resets in about {wait / 60:.0f} minutes. " if wait else
+                    f"Provider token budget exhausted while scoring {dimension_name}. "
+                ) from e
+
+            if attempt < _MAX_RETRIES - 1:
+                pause = wait if wait is not None else backoff
                 logger.warning(
                     "    Rate limited on %s (attempt %d/%d), retrying in %.1fs...",
-                    dimension_name, attempt + 1, _MAX_RETRIES, backoff,
+                    dimension_name, attempt + 1, _MAX_RETRIES, pause,
                 )
-                time.sleep(backoff)
+                time.sleep(pause)
                 backoff = min(backoff * 2, 60)
             else:
                 raise

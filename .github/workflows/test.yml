@@ -23,3 +23,8 @@ jobs:
       # findings accumulated silently. Keep it in CI so that cannot recur.
       - run: pip install mypy
       - run: mypy src/
+
+      # Nothing covered scripts/: tests only import src/, and a syntax error in
+      # run_all_scoring.py once passed both pytest and mypy. A byte-compile is
+      # cheap and catches the class of break that matters for entry points.
+      - run: python -m compileall -q scripts/

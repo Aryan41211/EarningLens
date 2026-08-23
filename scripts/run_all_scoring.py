@@ -26,6 +26,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from config import DB_PATH, LOG_PATH, LLM_MODEL_NAME, SCORE_DIMENSIONS
 from src.storage.db import init_db, get_chunks
 from src.scoring import score_transcript_all
+from src.scoring._llm_dimension_scorer import DailyQuotaExhausted
 from src.utils.logging import setup_logger
 
 
@@ -174,6 +175,7 @@ def main():
 
     success_count = 0
     fail_count = 0
+    quota_exhausted = False
 
     for i, (company, quarter, year) in enumerate(transcripts, 1):
         logger.info("[%d/%d] Scoring %s %s %s ...", i, len(transcripts), company, quarter, year)
@@ -184,7 +186,18 @@ def main():
             fail_count += 1
             continue
 
-        results = score_transcript_all(conn, transcript_id, chunk_texts, model=args.model)
+        try:
+            results = score_transcript_all(conn, transcript_id, chunk_texts, model=args.model)
+        except DailyQuotaExhausted as e:
+            quota_exhausted = True
+            logger.error("%s", e)
+            logger.error(
+                "Stopped after %d of %d transcript(s). Scores already written are kept; "
+                "re-run when the budget resets to continue.",
+                i - 1, len(transcripts),
+            )
+            break
+
         transcript_success = sum(1 for r in results.values() if r["score"] is not None)
 
         if transcript_success == len(SCORE_DIMENSIONS):
@@ -194,7 +207,27 @@ def main():
 
     logger.info("Scoring complete. %d fully succeeded, %d had failures.", success_count, fail_count)
     print_summary(conn, company_filter)
+
+    # A sweep that scored almost nothing must not look like a success. The
+    # previous version exited 0 with '2 fully succeeded, 9 had failures'.
+    incomplete = conn.execute("""
+        SELECT COUNT(*) FROM (
+            SELECT company, quarter, year FROM scores
+            GROUP BY company, quarter, year HAVING COUNT(DISTINCT dimension) < 5
+        )
+    """).fetchone()[0]
     conn.close()
+
+    if quota_exhausted:
+        print(
+            "\nSTOPPED: provider token budget exhausted. "
+            f"{incomplete} transcript(s) still incomplete. Re-run to continue.",
+            file=sys.stderr,
+        )
+        sys.exit(3)
+    if fail_count:
+        print(f"\n{fail_count} transcript(s) did not score all 5 dimensions.", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
