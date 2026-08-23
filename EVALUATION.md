@@ -1,44 +1,100 @@
 # EVALUATION.md
 
-How to tell whether EarningsLens actually works. This is the missing piece the
-whole project rests on: every claim it makes — "management is getting more
-evasive", "this trend preceded a stock move" — is only worth as much as the
-scores behind it, and those scores have never been measured against anything.
+Whether EarningsLens actually works. Every claim it makes — "management is
+getting more evasive", "this trend preceded a stock move" — is worth exactly as
+much as the scores behind it.
 
-`EXPERIMENTS.md` records research that has been *run*. This file defines the
-evaluation that has *not* been run, plus the evidence that already exists.
+**As of 2026-08-23 those scores have been measured, and they do not hold up.**
+The result is in § 0. `EXPERIMENTS.md` records the supporting research.
+
+---
+
+## 0. The result
+
+**Evasiveness scoring, measured against 11 human labels, fails all four
+targets.**
+
+```
+evasiveness  (n=11)          measured   target
+  MAE                            1.73   <= 1.50   FAIL
+  Spearman                       0.10   >= 0.60   FAIL
+  Within 2 points                0.64   >= 0.70   FAIL
+  Directional agreement          0.50   >= 0.70   FAIL   (4 comparisons)
+```
+
+Reproduce with `python scripts/run_evaluation.py --dimension evasiveness
+--against reviewed`. Scores are the ones the reviewer actually saw
+(`llama-3.3-70b-versatile`), so this is a clean single-model comparison.
+
+**Spearman 0.10 is the finding that matters.** It means the model has close to
+zero ability to rank transcripts by evasiveness — it is not "a bit off", it is
+not ordering them. And directional agreement of 0.50 across 4 adjacent-quarter
+comparisons is a coin flip on the exact claim the product makes: *this quarter
+is worse than last quarter*.
+
+Caveats, stated so this is not over-read:
+
+- n = 11, and only 4 adjacent-quarter pairs. This is evidence, not proof.
+- The labels were written with the LLM's score visible, which anchors
+  judgement — recorded as `confidence: medium` in `labels.csv`.
+- It measures `llama-3.3-70b-versatile`, which Groq has since retired. The
+  currently pinned `openai/gpt-oss-120b` is unmeasured; on the one transcript
+  scored by both, it disagreed by 2 points.
+
+**What this does not mean:** that the idea is wrong. It means *this prompt, on
+this model, does not reproduce human judgement*. The failure modes in § 1.2 are
+specific and addressable — the model treats a reasoned refusal as a dodge. That
+is a prompt problem before it is a concept problem.
+
+**What it does mean:** no credibility claim, dashboard reading, or case study
+should be presented as meaningful until a revised prompt clears these targets.
 
 ---
 
 ## 1. What evidence exists today
 
-### 1.1 The human review set (real, and better than the docs claim)
+### 1.1 The human review set
 
 `notebooks/reading-notes.md` contains a completed human review of all 11
-evasiveness-scored transcripts. For each: three LLM supporting quotes, a 1–10
-rating of *how accurate the LLM's score was*, a written justification, a
-"key missed context" note, and a verdict.
+evasiveness-scored transcripts. For each: three LLM supporting quotes, **the
+reviewer's own 1–10 evasiveness score**, a written justification, a "key missed
+context" note, and a verdict.
 
-| Transcript | LLM score (as reviewed) | Human accuracy rating | Verdict |
-|---|---|---|---|
-| INFY Q1 2023 | 7 | 3 / 10 | Doesn't match |
-| INFY Q1 2024 | 6 | 2 / 10 | Doesn't match |
-| INFY Q2 2024 | 6 | 9 / 10 | Doesn't match |
-| INFY Q4 2025 | 6 | 3 / 10 | Doesn't match |
-| TCS Q2 2023 | 6 | 4 / 10 | Doesn't match |
-| TCS Q3 2023 | 6 | 5 / 10 | Partially |
-| TCS Q1 2024 | 7 | 6 / 10 | Partially |
-| TCS Q2 2024 | 4 | 4 / 10 | Matches |
-| TCS Q3 2024 | 6 | 5 / 10 | Partially |
-| TCS Q1 2025 | 6 | 6 / 10 | Matches |
-| TCS Q4 2025 | 4 | 4 / 10 | Matches |
+> **Correction (2026-08-23).** That field was originally labelled "Accuracy",
+> and earlier versions of this document read it as *how accurate the LLM was* —
+> reporting a "mean accuracy rating of 4.6/10". That was wrong. The field holds
+> the reviewer's own evasiveness score, confirmed with the reviewer and
+> corroborated by the data: the gap between LLM score and this field predicts
+> the recorded verdict perfectly across all 11 rows (gap 0 → "Matches" 3/3,
+> gap 1 → "Partially" 3/3, gap ≥2 → "Doesn't match" 5/5). The field has been
+> relabelled and exported to `notebooks/labels.csv`.
+>
+> The consequence is large: the project's ground truth existed all along, and
+> was documented as missing.
 
-**Mean human accuracy rating: 4.6 / 10.** Verdicts: 3 Matches, 3 Partially,
-5 Doesn't match — the LLM agrees with the human read on **3 of 11**
-transcripts (27%). Every INFY review came back "Doesn't match".
+| Transcript | LLM score | Human score | Gap | Verdict |
+|---|---|---|---|---|
+| INFY Q1 2023 | 7 | 3 | 4 | Doesn't match |
+| INFY Q1 2024 | 6 | 2 | 4 | Doesn't match |
+| INFY Q2 2024 | 6 | 9 | 3 | Doesn't match |
+| INFY Q4 2025 | 6 | 3 | 3 | Doesn't match |
+| TCS Q2 2023 | 6 | 4 | 2 | Doesn't match |
+| TCS Q3 2023 | 6 | 5 | 1 | Partially |
+| TCS Q1 2024 | 7 | 6 | 1 | Partially |
+| TCS Q2 2024 | 4 | 4 | 0 | Matches |
+| TCS Q3 2024 | 6 | 5 | 1 | Partially |
+| TCS Q1 2025 | 6 | 6 | 0 | Matches |
+| TCS Q4 2025 | 4 | 4 | 0 | Matches |
 
-This is a real, negative, useful result. It should be treated as the project's
-current headline finding, not as a gap.
+The LLM matches the human exactly on **3 of 11**, is within one point on 6 of
+11, and every INFY transcript is off by 3 or more.
+
+Two patterns worth noting. The LLM's scores cluster tightly in 4–7 (a
+consequence of averaging across batches — see `SCORING_METHODOLOGY.md` § 3)
+while the human's range 2–9. And the errors are not one-directional: the model
+scores INFY Q1 2024 four points *too high* and INFY Q2 2024 three points *too
+low*. It is not miscalibrated by a constant offset, which is what Spearman 0.10
+reflects — there is no consistent relationship to correct for.
 
 ### 1.2 What the reviewer found the LLM gets wrong
 
@@ -74,16 +130,30 @@ a "score" is model choice rather than signal. See `KNOWN_ISSUES.md` BLOCKER-2.
 
 ---
 
-## 2. The gap that blocks a real evaluation
+## 2. What would move the result
 
-The review captured **how wrong** the LLM was, not **what right looks like**.
-The "Your Score" column in the summary table is still blank for all 11 rows.
+The evaluation runs and the answer is negative. The useful question is no
+longer "how do we measure this" but "what would make it pass".
 
-Without a human 1–10 evasiveness score per transcript there is no ground truth
-to compute error against — only an aggregate opinion that the model is ~4.6/10
-trustworthy. Filling that one column is the cheapest high-value task in the
-entire project: 11 numbers, from transcripts already read, by a reviewer who
-has already written the justification.
+In rough order of expected value:
+
+1. **Fix the prompt's biggest failure mode.** § 1.2 shows the model cannot
+   distinguish a refusal *with a stated reason* from a dodge. The human treats
+   those very differently; the prompt never asks the model to. Adding that
+   distinction, bumping `prompt_version` to `evasiveness-v2`, re-scoring, and
+   re-running the evaluation is a tight loop that this repository now supports
+   end to end.
+2. **Reconsider batch averaging.** LLM scores cluster in 4–7 while human scores
+   span 2–9. Averaging 4–5 independent batch judgements pulls everything toward
+   the middle, which caps how well any prompt can correlate
+   (`SCORING_METHODOLOGY.md` § 3). Scoring the whole Q&A in one call on a
+   large-context model would test this directly.
+3. **Measure the current model.** These numbers describe
+   `llama-3.3-70b-versatile`, now retired. `openai/gpt-oss-120b` is unmeasured.
+4. **More labels.** n=11 with 4 adjacent-quarter pairs is thin. More
+   transcripts, ideally labelled *before* seeing the LLM score, would narrow
+   the error bars — but this is worth less than fixing the prompt, because the
+   current signal is not marginal, it is near zero.
 
 ---
 

@@ -96,6 +96,11 @@ def main():
                         help="Evaluate only this dimension (repeatable). Default: all.")
     parser.add_argument("--db", default=str(DB_PATH))
     parser.add_argument("--json", action="store_true", help="Also emit results as JSON")
+    parser.add_argument("--against", choices=["db", "reviewed"], default="db",
+                        help="'db' compares the current scores table. 'reviewed' compares the "
+                             "llm_score_at_review column in the labels file -- the scores the "
+                             "human actually saw, which stays a clean single-model comparison "
+                             "even after the database has been re-scored by other models.")
     parser.add_argument("--allow-mixed-models", action="store_true",
                         help="Evaluate even where a dimension spans multiple models. "
                              "The result measures the model mix, not the company.")
@@ -129,10 +134,25 @@ def main():
         )
         sys.exit(1)
 
-    conn = init_db(args.db)
-    contaminated = check_score_comparability(conn)
-    scores = load_scores(conn, dimensions)
-    conn.close()
+    if args.against == "reviewed":
+        # Compare against the scores the reviewer actually saw. The database has
+        # since been partly re-scored by other models, so this is the only
+        # single-model comparison currently available for evasiveness.
+        if "llm_score_at_review" not in labels.columns:
+            print("--against reviewed needs an llm_score_at_review column in the labels file.",
+                  file=sys.stderr)
+            sys.exit(1)
+        scores = labels[labels["dimension"].isin(dimensions)].dropna(
+            subset=["llm_score_at_review"]
+        ).copy()
+        scores["score"] = scores["llm_score_at_review"].astype(float)
+        scores = scores[["company", "quarter", "year", "dimension", "score"]]
+        contaminated = pd.DataFrame()
+    else:
+        conn = init_db(args.db)
+        contaminated = check_score_comparability(conn)
+        scores = load_scores(conn, dimensions)
+        conn.close()
 
     if not contaminated.empty:
         names = set(contaminated["dimension"])

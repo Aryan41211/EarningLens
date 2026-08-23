@@ -1,12 +1,12 @@
-company,quarter,year,dimension,human_score,confidence,llm_score_at_review,reviewer_accuracy_rating,reviewer_verdict,notes_ref
-INFY,Q1,2023,evasiveness,,,7,3,Doesnt match,reading-notes.md#infy-q1-2023
-INFY,Q1,2024,evasiveness,,,6,2,Doesnt match,reading-notes.md#infy-q1-2024
-INFY,Q2,2024,evasiveness,,,6,9,Doesnt match,reading-notes.md#infy-q2-2024
-INFY,Q4,2025,evasiveness,,,6,3,Doesnt match,reading-notes.md#infy-q4-2025
-TCS,Q2,2023,evasiveness,,,6,4,Doesnt match,reading-notes.md#tcs-q2-2023
-TCS,Q3,2023,evasiveness,,,6,5,Partially,reading-notes.md#tcs-q3-2023
-TCS,Q1,2024,evasiveness,,,7,6,Partially,reading-notes.md#tcs-q1-2024
-TCS,Q2,2024,evasiveness,,,4,4,Matches,reading-notes.md#tcs-q2-2024
-TCS,Q3,2024,evasiveness,,,6,5,Partially,reading-notes.md#tcs-q3-2024
-TCS,Q1,2025,evasiveness,,,6,6,Matches,reading-notes.md#tcs-q1-2025
-TCS,Q4,2025,evasiveness,,,4,4,Matches,reading-notes.md#tcs-q4-2025
+company,quarter,year,dimension,human_score,confidence,llm_score_at_review,reviewer_verdict,notes_ref
+INFY,Q1,2023,evasiveness,3,medium,7,Doesnt match,reading-notes.md#infy-q1-2023
+INFY,Q1,2024,evasiveness,2,medium,6,Doesnt match,reading-notes.md#infy-q1-2024
+INFY,Q2,2024,evasiveness,9,medium,6,Doesnt match,reading-notes.md#infy-q2-2024
+INFY,Q4,2025,evasiveness,3,medium,6,Doesnt match,reading-notes.md#infy-q4-2025
+TCS,Q2,2023,evasiveness,4,medium,6,Doesnt match,reading-notes.md#tcs-q2-2023
+TCS,Q3,2023,evasiveness,5,medium,6,Partially,reading-notes.md#tcs-q3-2023
+TCS,Q1,2024,evasiveness,6,medium,7,Partially,reading-notes.md#tcs-q1-2024
+TCS,Q2,2024,evasiveness,4,medium,4,Matches,reading-notes.md#tcs-q2-2024
+TCS,Q3,2024,evasiveness,5,medium,6,Partially,reading-notes.md#tcs-q3-2024
+TCS,Q1,2025,evasiveness,6,medium,6,Matches,reading-notes.md#tcs-q1-2025
+TCS,Q4,2025,evasiveness,4,medium,4,Matches,reading-notes.md#tcs-q4-2025
