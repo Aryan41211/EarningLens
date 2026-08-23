@@ -80,6 +80,47 @@ def _parse_llm_json(raw: str) -> dict | None:
         return None
 
 
+_QUOTED_STRING_RE = re.compile(r'"(?:[^"\\]|\\.)*"')
+
+
+def _finish_reason(response) -> str | None:
+    """Why the model stopped. 'length' means the response was cut off."""
+    choices = getattr(response, "choices", None) or []
+    if not choices:
+        return None
+    return getattr(choices[0], "finish_reason", None)
+
+
+def _salvage_truncated_json(raw: str, score_key: str) -> dict | None:
+    """Recover a score from a response cut off by the token limit.
+
+    The model emits the score before its supporting quotes, so a response
+    truncated inside the quote list still carries a usable score. Dropping the
+    whole batch instead would bias the aggregate, because truncation happens
+    when the quotes run long -- which is not independent of what is being
+    scored. Returns None if no score is recoverable.
+    """
+    cleaned = _strip_thinking_tags(raw)
+    match = re.search(rf'"{re.escape(score_key)}"\s*:\s*(-?\d+(?:\.\d+)?)', cleaned)
+    if match is None:
+        return None
+    try:
+        score = float(match.group(1))
+    except ValueError:
+        return None
+
+    # Keep only the quote strings that closed before the cutoff.
+    quotes: list[str] = []
+    _, _, after = cleaned.partition('"supporting_quotes"')
+    for found in _QUOTED_STRING_RE.finditer(after):
+        try:
+            quotes.append(json.loads(found.group(0)))
+        except ValueError:
+            continue
+
+    return {score_key: score, "supporting_quotes": quotes}
+
+
 def _extract_usage(response) -> dict | None:
     """Extract token usage from OpenAI response."""
     usage = getattr(response, "usage", None)
@@ -197,8 +238,20 @@ def _score_single_batch(
 
     parsed = _parse_llm_json(raw)
     if parsed is None:
-        logger.warning("  LLM returned invalid JSON (%s): %s", dimension_name, raw[:200])
-        return None, raw, usage_dict
+        parsed = _salvage_truncated_json(raw, score_key)
+        if parsed is None:
+            logger.warning("  LLM returned invalid JSON (%s): %s", dimension_name, raw[:200])
+            return None, raw, usage_dict
+        if _finish_reason(response) == "length":
+            logger.warning(
+                "  %s response hit the token limit; recovered the score, quotes may be incomplete",
+                dimension_name,
+            )
+        else:
+            logger.warning(
+                "  %s response was not valid JSON; recovered the score from a partial response",
+                dimension_name,
+            )
 
     if not isinstance(parsed.get(score_key), (int, float)):
         return None, raw, usage_dict
@@ -217,7 +270,7 @@ def score_dimension_llm(
     user_prompt_instruction: str,
     model: str | None = None,
     temperature: float = 0.1,
-    max_tokens: int = 800,
+    max_tokens: int = 1600,
 ) -> dict:
     """Score a transcript dimension using LLM API.
 
@@ -284,6 +337,18 @@ def score_dimension_llm(
 
     avg_score = max(1, min(10, round(sum(all_scores) / len(all_scores))))
 
+    # A dropped batch silently shrinks the divisor, so the score stops being an
+    # average over the whole transcript. Say so rather than letting a partial
+    # score look complete.
+    if len(all_scores) < len(batches):
+        logger.warning(
+            "  %s scored from %d of %d batch(es) — %d produced no usable score",
+            dimension_name,
+            len(all_scores),
+            len(batches),
+            len(batches) - len(all_scores),
+        )
+
     combined_usage = None
     if all_usage:
         combined_usage = {
@@ -297,4 +362,6 @@ def score_dimension_llm(
         "supporting_quotes": all_quotes[:3],
         "raw_response": "\n---\n".join(all_raw),
         "usage": combined_usage,
+        "batches_used": len(all_scores),
+        "batches_total": len(batches),
     }

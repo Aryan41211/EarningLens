@@ -1,5 +1,37 @@
 # Changelog
 
+## [Unreleased] - 2026-08-24 — Truncated responses no longer vanish
+
+### Fixed
+
+- **A batch whose response was cut off was dropped silently from the average.**
+  `max_tokens` was 800, which is not enough for `evasiveness-v2`'s three
+  verbatim quotes; the response stopped mid-quote, failed `json.loads`, and the
+  batch was excluded — shrinking the divisor with no error, only a `WARNING`.
+  The dropout is not random: truncation happens when the model emits long
+  quotes, so the batches most likely to be discarded are not independent of
+  what is being scored. Measured at 1 of 6 batches in the 2026-08-24 sweep.
+- The score survives truncation even when the quote list does not, because the
+  model emits it first. `_salvage_truncated_json()` now recovers the score plus
+  whichever quotes closed before the cutoff, instead of discarding the batch.
+- `max_tokens` raised 800 → 1600. Output tokens are a rounding error next to
+  the ~20k input tokens each dimension-score already spends on transcript text.
+- `finish_reason` was never read, so a length cutoff was indistinguishable from
+  a malformed reply. It is now checked and logged distinctly.
+- A partial aggregate is no longer silent: `score_dimension_llm()` returns
+  `batches_used` / `batches_total` and warns when they differ.
+
+### Notes
+
+- The one `evasiveness-v2` score in the database (INFY Q1 2023) was produced by
+  the pre-fix path from 4 of 5 batches. Recomputing with the salvaged batch
+  gives the same value, 6, so no stored score changes.
+- The v2 sweep reached 1 of 11 transcripts before the free-tier daily token
+  budget was exhausted, and stopped cleanly with exit 3. Roadmap step 22 is
+  still open.
+
+---
+
 ## [0.5.0] - 2026-08-23 — Audit, evaluation, and packaging
 
 The release where the project found out whether it works. It does not, yet, and

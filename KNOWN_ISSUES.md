@@ -22,6 +22,7 @@ and history live in `PROJECT_MEMORY.md`; forward plans live in `ROADMAP.md`.
 | MEDIUM-4 — two divergent score-all implementations | MEDIUM | ✅ Fixed `e1d8a14` |
 | LOW batch | LOW | ✅ L-1/2/3/4/5/6 fixed; L-7..L-12 docs corrected |
 | NEW: `prompt_version` was hardcoded, defeating the comparability guard | HIGH | ✅ Fixed `7aa6a68` — registry + checksum test |
+| HIGH-4 — a truncated batch was dropped silently, biasing the average | HIGH | ✅ Fixed 2026-08-24 — salvage + `max_tokens` 1600 |
 
 Descriptions below are kept as originally written, so the reasoning that led
 to each fix stays on record.
@@ -277,6 +278,58 @@ indistinguishable from a real one.
 Fix direction: compute a period index (`year * 4 + quarter_rank`) and emit
 `NaN` for any delta whose period distance is not exactly 1; mark rolling
 windows that span a gap.
+
+---
+
+## HIGH-4 — A batch cut off by the token limit was dropped from the average
+
+Found on 2026-08-24, on the first batch of the first transcript of the
+`evasiveness-v2` sweep.
+
+```
+WARNING  |   LLM returned invalid JSON (evasiveness): {"evasiveness_score": 7,
+"supporting_quotes": ["Nilanjan Roy: \"And one more reason is that the top-end
+has come down is also largely also due to the delay in mega deals signing and
+the transition tim
+```
+
+`max_tokens` was **800**, which does not fit `evasiveness-v2`'s three verbatim
+quotes. The response stopped mid-quote, `json.loads` failed, and
+`_score_single_batch()` returned `None` — which `score_dimension_llm()` then
+excluded from `all_scores` without recording that it had done so. The score
+became the mean of the batches that happened to parse.
+
+Two things made this worse than a lost batch:
+
+1. **The dropout is not random.** Truncation happens precisely when the model
+   emits long quotes, which is not independent of what is being scored. So the
+   bias has a direction, and it lands hardest on the transcripts with the most
+   quotable evasive material.
+2. **The score was there all along.** The model emits `evasiveness_score`
+   *before* `supporting_quotes`, so the truncated response above carried a
+   perfectly good `7`. The code threw it away because the quote list was
+   incomplete.
+
+Measured: 1 of 6 batches truncated in the interrupted sweep.
+
+This would have silently corrupted the v1-vs-v2 comparison that the sweep
+exists to produce — v1's shorter output rarely truncates at 800 tokens, so v2
+alone would have been scored on a shrunken and biased sample of its batches.
+
+### Fixed
+
+- `_salvage_truncated_json()` recovers the score, plus whichever quotes closed
+  before the cutoff, instead of discarding the batch.
+- `max_tokens` 800 → 1600. Output tokens are a rounding error against the ~20k
+  input tokens each dimension-score already spends on transcript text.
+- `finish_reason` is now read, so a length cutoff logs differently from a
+  malformed reply.
+- `score_dimension_llm()` returns `batches_used` / `batches_total` and warns
+  when they differ, so a partial aggregate can never again look complete.
+
+The one v2 score already in the database (INFY Q1 2023) came from the pre-fix
+path, 4 of 5 batches. Recomputing with the salvaged batch yields the same
+value, 6 — so nothing stored changes, and the raw responses are retained.
 
 ---
 

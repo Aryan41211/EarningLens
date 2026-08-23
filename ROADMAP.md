@@ -115,9 +115,25 @@ features.
 21. ✅ **`evasiveness-v2` written** — targets the four measured failures: a
     reasoned refusal is not a dodge, tone is not evasiveness, use the full
     1–10 range, weigh proportion not worst moment. v1 remains the default.
-22. ⬜ **Score with v2 and evaluate it.** ~220k tokens, just over one day of
+22. 🟡 **Score with v2 and evaluate it.** ~220k tokens, just over one day of
     free-tier budget. Read `EVALUATION.md` § 1.5 first: the 11 labels informed
     v2's design, so an in-sample number must be reported as in-sample.
+
+    Attempted 2026-08-24. **1 of 11 transcripts scored** before the free-tier
+    daily token budget was exhausted; the sweep stopped cleanly at exit 3.
+    Resume with `--skip-scored` as quota frees.
+
+    The attempt was worth it for what it exposed: at `max_tokens = 800`,
+    v2's longer output truncated and the batch was **silently dropped from the
+    average** (`KNOWN_ISSUES.md` HIGH-4, fixed). Had the sweep completed on the
+    old code, the v1-vs-v2 comparison would have been biased against v2 by an
+    artifact of the token limit rather than by the prompt. Re-run from a clean
+    slate on the fixed scorer.
+
+    Still undecided, and required before the number is quoted: which § 1.5
+    option to take on in-sample contamination. Option 1 (label more transcripts,
+    held out) needs the reviewer and is the only clean answer; option 3 (report
+    v1 and v2 side by side, labelled in-sample) is available without them.
 
 ## Step 4 — The verification milestone
 
