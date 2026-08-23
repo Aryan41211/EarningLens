@@ -65,24 +65,34 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased] — Phase 3: Cross-Quarter Comparison (Trend Detection)
+## Phase 3: Cross-Quarter Comparison (Trend Detection) — shipped `d2f7a99`
 
-*Planned — not started*
+### Added
+- `src/trends/metrics.py` — `load_scores_from_db`, `compute_qoq_score_change`,
+  `compute_rolling_3q_average`, `compute_trend_label`,
+  `find_biggest_single_quarter_drop`
+- Trend labels: IMPROVING (delta <= -1.5) / STABLE / DETERIORATING (delta >= +1.5)
+- `scripts/run_trends.py` — CLI with text and JSON output
+- 22 tests in `tests/test_trends.py`
 
-### To be added
-- `src/trends/` — Time-series aggregation per company/dimension
-- Trend metrics: slope, spike detection, quarter-over-quarter delta
-- Alerting thresholds (configurable)
-- `data/findings/findings.md` — First verified case study
+### Known defects at time of writing
+- `scripts/run_trends.py` crashes on import (missing `sys.path` prelude)
+- QoQ deltas ignore calendar gaps between non-contiguous quarters
+- The ±1.5 thresholds are arbitrary — model self-consistency was never measured
+- `data/findings/findings.md` remains empty by design (needs validated scores)
 
 ---
 
-## [Unreleased] — Phase 4: Dashboard (Streamlit)
+## Phase 4: Dashboard (Streamlit) — shipped `dc1af41`
 
-*Planned — not started*
+### Added
+- `src/dashboard/app.py` — company selector plus four tabs: Scores, Trends,
+  Alerts, Raw Data
+- Per-dimension line charts, QoQ delta bars, rolling 3-quarter averages
+- Supporting-quote drill-down per transcript/dimension
+- `requirements-dashboard.txt` — streamlit, plotly (optional install)
 
-### To be added
-- `src/dashboard/` — Streamlit app
-- Company selector, quarter timeline, dimension sparklines
-- Drill-down to chunk-level quotes driving scores
-- Exportable finding cards
+### Known defects at time of writing
+- The Alerts tab's top alert is a model-switch artifact, not a signal
+- Four of five trend lines have 1-4 points (20 of 55 scores exist)
+- Exportable finding cards were not built
