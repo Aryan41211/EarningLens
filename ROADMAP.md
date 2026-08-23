@@ -130,10 +130,18 @@ features.
     artifact of the token limit rather than by the prompt. Re-run from a clean
     slate on the fixed scorer.
 
-    Still undecided, and required before the number is quoted: which § 1.5
-    option to take on in-sample contamination. Option 1 (label more transcripts,
-    held out) needs the reviewer and is the only clean answer; option 3 (report
-    v1 and v2 side by side, labelled in-sample) is available without them.
+    **§ 1.5 decided (2026-08-24): option 3, implemented and enforced.**
+    `run_evaluation.py --compare` prints an unsuppressible IN-SAMPLE banner,
+    holds the model constant, and restricts to transcripts scored under every
+    version. Option 1 — fresh labels written before any LLM score is seen —
+    stays the clean answer and needs the reviewer.
+
+23. ⬜ **Re-score `evasiveness-v1` on the pinned model across all 11.**
+    ~220k tokens, about another day of quota. v1 exists on
+    `openai/gpt-oss-120b` for only 3 transcripts, so even after step 22
+    a like-for-like v1-vs-v2 comparison covers 3, not 11. Without this, v2's
+    number stands alone against the labels and the only v1 baseline
+    (`--against reviewed`, MAE 1.73) changed model as well as prompt.
 
 ## Step 4 — The verification milestone
 

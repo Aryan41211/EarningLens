@@ -23,6 +23,7 @@ and history live in `PROJECT_MEMORY.md`; forward plans live in `ROADMAP.md`.
 | LOW batch | LOW | ✅ L-1/2/3/4/5/6 fixed; L-7..L-12 docs corrected |
 | NEW: `prompt_version` was hardcoded, defeating the comparability guard | HIGH | ✅ Fixed `7aa6a68` — registry + checksum test |
 | HIGH-4 — a truncated batch was dropped silently, biasing the average | HIGH | ✅ Fixed 2026-08-24 — salvage + `max_tokens` 1600 |
+| HIGH-5 — `--skip-scored` ignored `prompt_version`, so a v2 sweep skipped v1-scored transcripts | HIGH | ✅ Fixed 2026-08-24 — matched on `(dimension, prompt_version)` |
 
 Descriptions below are kept as originally written, so the reasoning that led
 to each fix stays on record.
@@ -330,6 +331,38 @@ alone would have been scored on a shrunken and biased sample of its batches.
 The one v2 score already in the database (INFY Q1 2023) came from the pre-fix
 path, 4 of 5 batches. Recomputing with the salvaged batch yields the same
 value, 6 — so nothing stored changes, and the raw responses are retained.
+
+---
+
+## HIGH-5 — `--skip-scored` skipped on the model alone, ignoring the prompt version
+
+Found on 2026-08-24 while resuming the `evasiveness-v2` sweep.
+
+`--skip-scored` is the documented way to finish a sweep that exceeds the daily
+token budget: re-run it and it picks up where it stopped. Its filter,
+`get_scored_on_model()`, matched on `(dimension, model_name)` and never looked
+at `prompt_version`.
+
+So during a **v2** sweep it treated a transcript already scored at
+`evasiveness-v1` on the pinned model as finished. Observed directly:
+
+```
+$ ... --dimension evasiveness --prompt-version evasiveness-v2 --skip-scored --dry-run
+Dimension-scores to produce: 8      # should have been 10
+```
+
+INFY Q1 2024 and INFY Q2 2024 were stepped over — the two transcripts that had
+v1 scores on `openai/gpt-oss-120b` but no v2 score at all.
+
+The damage is quiet and permanent. A skip is not an error, so the sweep would
+have reported success while leaving holes in exactly the series it was building,
+and the resulting v2 "series" would have been silently short — with the missing
+transcripts being a biased subset, since they are the ones scored earliest.
+
+Fix: match on the `(dimension, prompt_version)` pairs the run would actually
+write, defaulting to each dimension's registered version when none is requested.
+Covered by `tests/test_resume_skip.py` (5 tests), including the inverse case —
+a v1 row *does* mean "done" when the run would write v1.
 
 ---
 

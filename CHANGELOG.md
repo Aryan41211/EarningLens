@@ -21,6 +21,27 @@
 - A partial aggregate is no longer silent: `score_dimension_llm()` returns
   `batches_used` / `batches_total` and warns when they differ.
 
+- **`--skip-scored` ignored `prompt_version`.** The documented way to resume a
+  sweep matched on `(dimension, model)` only, so a v2 sweep treated
+  v1-scored transcripts as finished and stepped over INFY Q1 2024 and Q2 2024 —
+  planning 8 transcripts where 10 remained. A skip is not an error, so the run
+  would have reported success while leaving permanent holes in the series it
+  was building. Now matched on the `(dimension, prompt_version)` pairs the run
+  would actually write.
+
+### Added
+
+- `scripts/resume_sweep.py` and `earningslens-resume` — drives a sweep to
+  completion across the rolling token budget, retrying on exit 3 rather than
+  needing a human to re-run it for a day.
+- `run_evaluation.py --compare` — two prompt versions side by side on the same
+  labels. Implements `EVALUATION.md` § 1.5 option 3 and enforces its conditions:
+  an unsuppressible IN-SAMPLE banner, the model held constant (or the v1 column
+  would be a three-model mix and the delta would measure the model switch), and
+  the comparison restricted to transcripts scored under every version, since
+  11-vs-3 side by side compares transcripts rather than prompts.
+- `--model` on the evaluator, to choose which model is held constant.
+
 ### Notes
 
 - The one `evasiveness-v2` score in the database (INFY Q1 2023) was produced by
@@ -29,6 +50,12 @@
 - The v2 sweep reached 1 of 11 transcripts before the free-tier daily token
   budget was exhausted, and stopped cleanly with exit 3. Roadmap step 22 is
   still open.
+- § 1.5 decision recorded: option 3 is implemented because it is the only one
+  available without the reviewer; option 1 — fresh labels written before any
+  LLM score is seen — remains the clean answer and the recommended next step.
+- Even once v2 covers all 11, a like-for-like v1-vs-v2 covers only the 3
+  transcripts v1 has on the pinned model. A clean 11-vs-11 prompt comparison
+  needs v1 re-scored on the pinned model across all 11: another ~220k tokens.
 
 ---
 

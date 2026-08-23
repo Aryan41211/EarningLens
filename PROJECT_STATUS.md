@@ -23,24 +23,35 @@ Only Evasiveness has been validated on real transcripts.
 
 ### Validation status
 
-_Coverage as of 2026-08-23, after a partial re-scoring sweep on the newly
+_Coverage measured 2026-08-24 against `data/earningslens.db`, mid-sweep on the
 pinned `openai/gpt-oss-120b`._
 
-| Dimension | Implementation | Scored | On pinned model | Human-reviewed |
-|---|---|---|---|---|
-| Evasiveness | ✅ Complete (keyword + LLM) | 11/11 | 2/11 | **11/11** — LLM judged accurate on 3 |
-| Sentiment shift | ✅ Complete (LLM only) | 5/11 | 3/11 | 0/11 |
-| Complexity spike | ✅ Complete (LLM only) | 3/11 | 3/11 | 0/11 |
-| Overpromising | ✅ Complete (LLM only) | 3/11 | 3/11 | 0/11 |
-| Forward guidance vagueness | ✅ Complete (LLM only) | 3/11 | 3/11 | 0/11 |
+| Dimension | Implementation | Scored (any model) | On pinned model | At `-v2` | Human-reviewed |
+|---|---|---|---|---|---|
+| Evasiveness | ✅ Complete (keyword + LLM) | 11/11 | 3/11 | 1/11 | **11/11** — LLM matched exactly on 3 |
+| Sentiment shift | ✅ Complete (LLM only) | 4/11 | 2/11 | — | 0/11 |
+| Complexity spike | ✅ Complete (LLM only) | 3/11 | 2/11 | — | 0/11 |
+| Overpromising | ✅ Complete (LLM only) | 3/11 | 2/11 | — | 0/11 |
+| Forward guidance vagueness | ✅ Complete (LLM only) | 3/11 | 2/11 | — | 0/11 |
 
-**24 of 55 scores exist. 10 are on the pinned model.** Three transcripts
-(INFY Q1 2023, INFY Q1 2024, TCS Q1 2025) are complete across all 5 dimensions.
+**24 of 55 dimension-scores exist** (26 rows, since a transcript may hold more
+than one prompt variant). Three transcripts — INFY Q1 2023, INFY Q1 2024,
+TCS Q1 2025 — are complete across all 5 dimensions.
 
-The re-scoring sweep stopped partway: a full sweep needs ~1.1M tokens against a
-200,000/day free-tier cap — about five days of quota (`KNOWN_ISSUES.md`
-BLOCKER-4). Re-run `scripts/run_all_scoring.py` as budget frees; it stops
-cleanly and exits 3 rather than failing silently.
+**No dimension is yet a valid series**, because none is complete on a single
+`(model, prompt_version)`. `run_trends.py` says so loudly on every run rather
+than quietly differencing across the mix.
+
+The `evasiveness-v2` sweep is the work in progress: 1 of 11 transcripts scored.
+A single dimension across all 11 costs ~220k tokens against a 200,000/day cap,
+so it needs about a full day of quota (`KNOWN_ISSUES.md` BLOCKER-4). The cap is
+a rolling 24-hour window, so `scripts/resume_sweep.py` finishes it unattended,
+retrying as capacity frees:
+
+```bash
+python scripts/resume_sweep.py --dimension evasiveness \
+    --prompt-version evasiveness-v2 --wait-minutes 18 --max-hours 20
+```
 
 > **Correction (Aug 23), twice over.** This file first recorded "0/11
 > human-reviewed"; `notebooks/reading-notes.md` in fact held a completed review
