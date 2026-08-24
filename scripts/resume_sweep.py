@@ -65,6 +65,19 @@ def build_command(args) -> list[str]:
     return cmd
 
 
+def transient_backoff(stalls: int, base: int, cap: int) -> int:
+    """Seconds to wait before retrying after the Nth consecutive transient failure.
+
+    Doubles, then flattens at `cap`. A fixed short retry only tolerates
+    (max_stalls x base) of downtime -- four minutes at the old defaults, which
+    a real provider outage outlasts easily; one did, ending a plan at 7 of 11
+    with 23 hours of budget unspent.
+    """
+    if stalls < 1:
+        return base
+    return min(base * (2 ** (stalls - 1)), cap)
+
+
 def count_scored(args) -> int:
     """How many scores the target slice holds right now.
 
@@ -117,10 +130,13 @@ def main() -> int:
     parser.add_argument("--retry-seconds", type=int, default=60,
                         help="Wait after a transient (non-budget) failure before retrying "
                              "(default: 60).")
-    parser.add_argument("--max-stalls", type=int, default=4,
+    parser.add_argument("--max-retry-seconds", type=int, default=600,
+                        help="Cap on the exponential transient backoff (default: 600).")
+    parser.add_argument("--max-stalls", type=int, default=8,
                         help="Give up after this many consecutive non-budget attempts that "
-                             "land no new scores (default: 4). A run still making progress "
-                             "never counts as stalled.")
+                             "land no new scores (default: 8). A run still making progress "
+                             "never counts as stalled. With exponential backoff this "
+                             "tolerates roughly an hour of provider downtime.")
     parser.add_argument("--max-attempts", type=int, default=200,
                         help="Backstop against an unexpected retry loop (default: 200).")
     args = parser.parse_args()
@@ -173,8 +189,9 @@ def main() -> int:
                 logger.warning("Reached the %.1f h limit. Scores written are kept.",
                                args.max_hours)
                 return result.returncode
-            wait_seconds = min(args.retry_seconds, remaining)
-            logger.info("Waiting %.0f s before retrying.", wait_seconds)
+            backoff = transient_backoff(stalls, args.retry_seconds, args.max_retry_seconds)
+            wait_seconds = min(backoff, remaining)
+            logger.info("Waiting %.0f s before retrying (transient backoff).", wait_seconds)
             time.sleep(wait_seconds)
             continue
 
