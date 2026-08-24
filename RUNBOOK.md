@@ -142,6 +142,26 @@ Ctrl-C at any point; scores already written are durable. A dimension across all
 11 transcripts costs ~220k tokens, so expect roughly a full day of quota for
 one dimension — the runner just removes the need to babysit it.
 
+### Comparing two prompt versions properly
+
+A prompt comparison needs **both** versions on the **same** transcripts and the
+**same** model, so it takes two sweeps. Chain them with `&&` — the ordering is
+the point. If v1 starts before v2 finishes, the day's quota is split across two
+incomplete series and neither becomes a valid one:
+
+```bash
+python scripts/resume_sweep.py --dimension evasiveness \
+    --prompt-version evasiveness-v2 --wait-minutes 18 --max-hours 24 && \
+python scripts/resume_sweep.py --dimension evasiveness \
+    --prompt-version evasiveness-v1 --wait-minutes 18 --max-hours 24 && \
+python scripts/run_evaluation.py --dimension evasiveness \
+    --compare evasiveness-v1 --compare evasiveness-v2
+```
+
+Roughly 360k tokens end to end, about 1.8 days of free-tier quota. The
+comparison prints an IN-SAMPLE banner and restricts itself to transcripts
+scored under both versions; read `EVALUATION.md` § 1.5 before quoting any of it.
+
 ### The rule that matters
 
 **Do not mix models.** Every score in a dimension must come from one

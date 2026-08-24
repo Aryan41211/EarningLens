@@ -136,12 +136,27 @@ features.
     version. Option 1 — fresh labels written before any LLM score is seen —
     stays the clean answer and needs the reviewer.
 
-23. ⬜ **Re-score `evasiveness-v1` on the pinned model across all 11.**
-    ~220k tokens, about another day of quota. v1 exists on
-    `openai/gpt-oss-120b` for only 3 transcripts, so even after step 22
-    a like-for-like v1-vs-v2 comparison covers 3, not 11. Without this, v2's
-    number stands alone against the labels and the only v1 baseline
+23. 🟡 **Re-score `evasiveness-v1` on the pinned model across all 11.**
+    **Measured: 8 transcripts, ~160k tokens** — 3 already have v1 on
+    `openai/gpt-oss-120b`, so this is cheaper than the ~220k a full pass costs.
+    Without it a like-for-like v1-vs-v2 comparison covers 3, not 11, and v2's
+    number stands alone against the labels — the only v1 baseline
     (`--against reviewed`, MAE 1.73) changed model as well as prompt.
+
+    Started 2026-08-24, chained behind step 22. The order matters: v1 must not
+    start until v2 completes, or the day's quota is split across two incomplete
+    series and neither becomes a valid one.
+
+    ```bash
+    python scripts/resume_sweep.py --dimension evasiveness \
+        --prompt-version evasiveness-v2 --wait-minutes 18 --max-hours 24 && \
+    python scripts/resume_sweep.py --dimension evasiveness \
+        --prompt-version evasiveness-v1 --wait-minutes 18 --max-hours 24 && \
+    python scripts/run_evaluation.py --dimension evasiveness \
+        --compare evasiveness-v1 --compare evasiveness-v2
+    ```
+
+    Both passes together are ~360k tokens, about 1.8 days of free-tier quota.
 
 ## Step 4 — The verification milestone
 
