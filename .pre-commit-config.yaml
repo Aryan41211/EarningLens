@@ -3,6 +3,19 @@
 # Deliberately light. The expensive checks (pytest, mypy) run in CI rather than
 # on every commit — this repo's tests take ~5s, but a hook that feels slow gets
 # bypassed with --no-verify, and a bypassed hook is worse than no hook.
+# Whitespace hooks must never touch these. `pre-commit run --all-files`
+# otherwise rewrites them every time, and twice now that has been mistaken for
+# a repo-wide cleanup:
+#
+#   data/processed/*.txt  extracted transcript text -- the pipeline's source
+#                         data. Reformatting it changes what was ingested.
+#   data/findings/, notebooks/*.md
+#                         the human-review record, where two trailing spaces
+#                         are a markdown hard line break. Stripping them runs
+#                         the reviewer's separate justification lines together,
+#                         silently changing how the evidence reads.
+exclude: '^(data/|notebooks/.*\.md$)'
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
