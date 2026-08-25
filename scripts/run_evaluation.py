@@ -193,8 +193,9 @@ def main():
                              "human actually saw, which stays a clean single-model comparison "
                              "even after the database has been re-scored by other models.")
     parser.add_argument("--model", metavar="NAME",
-                        help="Model to hold constant when comparing prompt versions. "
-                             "Defaults to the configured LLM_MODEL_NAME.")
+                        help="Evaluate only scores from this model. Also the model held "
+                             "constant by --compare, where it defaults to the configured "
+                             "LLM_MODEL_NAME.")
     parser.add_argument("--compare", action="append", metavar="VERSION",
                         help="Evaluate two prompt versions side by side against the same "
                              "labels, e.g. --compare evasiveness-v1 --compare evasiveness-v2. "
@@ -306,16 +307,25 @@ def main():
         contaminated = pd.DataFrame()
     else:
         conn = init_db(args.db)
-        contaminated = check_score_comparability(conn)
-        scores = load_scores(conn, dimensions, args.prompt_version)
+        # Check the slice actually being evaluated, not the whole table: a
+        # --model/--prompt-version filter can resolve a mix, and an unfiltered
+        # check would refuse a slice that is genuinely clean.
+        contaminated = check_score_comparability(
+            conn, model=args.model, prompt_version=args.prompt_version
+        )
+        scores = load_scores(conn, dimensions, args.prompt_version, args.model)
         conn.close()
 
     if not contaminated.empty:
         names = set(contaminated["dimension"])
         blocked = names & set(dimensions)
-        if args.prompt_version:
-            # An explicit variant was requested, so the mix is already resolved.
-            blocked = set()
+        # Do NOT clear `blocked` merely because --prompt-version was passed. A
+        # prompt version is not a variant: evasiveness-v1 exists under three
+        # different models, so filtering on it alone still leaves a mix -- and
+        # the duplicate rows then crashed pair_scores_with_labels with a raw
+        # MergeError ("keys are not unique") instead of this explanation.
+        # check_score_comparability now receives the same filter, so it already
+        # accounts for whatever the caller narrowed to.
         if blocked and not args.allow_mixed_models:
             print(
                 "Refusing to evaluate - these dimensions span multiple models, so any "
@@ -327,7 +337,9 @@ def main():
                 )
                 + "\n\nRe-score with a single pinned model "
                   "(scripts/run_all_scoring.py --dimension NAME --skip-scored), "
-                  "or pass --allow-mixed-models to proceed anyway.",
+                  "narrow to one variant with --model NAME (optionally with "
+                  "--prompt-version VERSION), or pass --allow-mixed-models to "
+                  "proceed anyway.",
                 file=sys.stderr,
             )
             sys.exit(2)
