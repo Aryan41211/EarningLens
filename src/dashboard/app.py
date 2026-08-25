@@ -14,10 +14,16 @@ if _project_root not in sys.path:
 
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 
 from config import DB_PATH, SCORE_DIMENSIONS
+
+try:  # installed as a package
+    from importlib.metadata import version as _pkg_version
+    __version__ = _pkg_version("earningslens")
+except Exception:  # running from a source checkout
+    __version__ = "0.5.0"
+
 from src.storage.db import init_db
 from src.trends.metrics import (
     check_score_comparability,
@@ -35,14 +41,55 @@ st.set_page_config(
     layout="wide",
 )
 
-# ---------- Load data ----------
+# ---------- Sidebar header ----------
+st.sidebar.title("EarningsLens")
+st.sidebar.markdown("Management credibility scoring for Indian earnings calls.")
+
+# ---------- Score variant selector ----------
+# The scores table holds several (model, prompt_version) variants per
+# transcript. With no filter, load_scores_from_db keeps the newest row per
+# transcript, which can place two different models inside a single trend line
+# -- the exact artifact that produced this dashboard's original headline alert.
+# Selecting one variant is what turns the display into a real series.
 conn = init_db(str(DB_PATH))
-comparability = check_score_comparability(conn)
-scores_df = load_scores_from_db(conn)
+_variants = pd.read_sql_query(
+    "SELECT model_name, prompt_version, COUNT(*) AS n FROM scores "
+    "GROUP BY model_name, prompt_version ORDER BY model_name, prompt_version",
+    conn,
+)
+_ALL_VARIANTS = "All variants (newest per transcript)"
+_SEP = "  |  "
+_options = [_ALL_VARIANTS] + [
+    f"{r.model_name}{_SEP}{r.prompt_version}  ({r.n})" for r in _variants.itertuples()
+]
+_choice = st.sidebar.selectbox(
+    "Score variant",
+    _options,
+    help="Hold model and prompt version constant to get a comparable series. "
+         "'All variants' mixes them and the deltas partly measure the model switch.",
+)
+if _choice == _ALL_VARIANTS:
+    selected_model = selected_prompt_version = None
+else:
+    _model_part, _prompt_part = _choice.split(_SEP, 1)
+    selected_model = _model_part.strip()
+    selected_prompt_version = _prompt_part.rsplit("  (", 1)[0].strip()
+
+comparability = check_score_comparability(
+    conn, model=selected_model, prompt_version=selected_prompt_version
+)
+scores_df = load_scores_from_db(
+    conn, model=selected_model, prompt_version=selected_prompt_version
+)
 conn.close()
 
+if selected_model:
+    st.sidebar.success(
+        f"Comparable series: **{selected_model}** / **{selected_prompt_version}**"
+    )
+
 if scores_df.empty:
-    st.warning("No scores found in database. Run scoring first (Phase 2).")
+    st.warning("No scores found for this variant. Pick another, or run scoring (Phase 2).")
     st.stop()
 
 
@@ -68,9 +115,6 @@ def render_comparability_warning():
                 st.markdown(f"- **{row['dimension']}** — {row['detail']}")
 
 # ---------- Sidebar: company selector ----------
-st.sidebar.title("EarningsLens")
-st.sidebar.markdown("Management credibility scoring for Indian earnings calls.")
-
 companies = sorted(scores_df["company"].unique())
 selected_company = st.sidebar.selectbox("Company", companies)
 
@@ -229,4 +273,4 @@ with tab_raw:
 
 # ---------- Footer ----------
 st.sidebar.markdown("---")
-st.sidebar.caption("EarningsLens v0.1 — Phase 4 Dashboard")
+st.sidebar.caption(f"EarningsLens v{__version__}")
