@@ -252,14 +252,28 @@ with tab_raw:
     st.dataframe(company_df, width="stretch")
 
     st.subheader("Supporting Quotes")
+    # The variant selector has to reach this query too. Without it the quotes
+    # came from every (model, prompt_version) in the table, so a reader looking
+    # at a filtered evasiveness-v2 score could be shown the evidence a
+    # different model gave for a different score of the same transcript -- and
+    # the same quarter appeared several times with no way to tell which row
+    # matched the chart above.
     conn2 = init_db(str(DB_PATH))
     cur = conn2.cursor()
-    cur.execute("""
+    quote_sql = """
         SELECT company, quarter, year, dimension, score, supporting_quotes
         FROM scores
         WHERE company = ?
-        ORDER BY year, quarter, dimension
-    """, (selected_company,))
+    """
+    quote_params: list = [selected_company]
+    if selected_model:
+        quote_sql += " AND model_name = ?"
+        quote_params.append(selected_model)
+    if selected_prompt_version:
+        quote_sql += " AND prompt_version = ?"
+        quote_params.append(selected_prompt_version)
+    quote_sql += " ORDER BY year, quarter, dimension"
+    cur.execute(quote_sql, quote_params)
     rows = cur.fetchall()
     conn2.close()
 
