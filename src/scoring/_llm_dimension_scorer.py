@@ -277,8 +277,13 @@ def score_dimension_llm(
     Handles large transcripts by batching chunks to stay within TPM limits.
     Aggregates scores across batches (average).
 
+    The average is known to destroy the scorer's range -- see the comment beside
+    it and KNOWN_ISSUES.md BLOCKER-6. `batch_scores` in the returned dict is the
+    unaggregated evidence.
+
     Returns:
-        Dict with score_key, supporting_quotes, raw_response, usage, and optionally error.
+        Dict with score_key, supporting_quotes, raw_response, usage, batch_scores,
+        and optionally error.
     """
     from config import LLM_API_KEY, LLM_API_BASE_URL, LLM_MODEL_NAME
 
@@ -337,6 +342,32 @@ def score_dimension_llm(
 
     avg_score = max(1, min(10, round(sum(all_scores) / len(all_scores))))
 
+    # The averaging step above is the project's largest measured source of lost
+    # signal, so it announces itself rather than hiding in raw_llm_response.
+    #
+    # Each batch is ~2000 words of Q&A that the model is asked to judge as if it
+    # were the whole call, and those per-batch verdicts genuinely spread: across
+    # the 7 evasiveness-v2 transcripts scored on 2026-08-25 they ranged 3 to 8.
+    # Averaging 3-5 of them collapses that to 5 or 6 every single time -- the
+    # stored scores for all 7 transcripts were 5, 5, 5, 6, 6, 6, 6. A mean of
+    # several noisy whole-call judgements has a narrower distribution than the
+    # judgements themselves, by construction, and a scorer whose output spans
+    # one point cannot rank anything.
+    #
+    # This is logged, not fixed. Re-checked against the human labels, no
+    # alternative aggregator (max, median, p75, top-2 mean) turns the negative
+    # rank correlation positive, so swapping the operator would invalidate the
+    # stored series under SCORING_METHODOLOGY.md section 7 and buy nothing
+    # measurable. The real fix is to stop asking a fragment to judge the whole
+    # -- see KNOWN_ISSUES.md BLOCKER-6.
+    spread = max(all_scores) - min(all_scores) if len(all_scores) > 1 else 0
+    if spread >= 4:
+        logger.warning(
+            "  %s batch scores span %s (%d-%d) but average to %d - the aggregate "
+            "discards most of that range (KNOWN_ISSUES.md BLOCKER-6)",
+            dimension_name, spread, min(all_scores), max(all_scores), avg_score,
+        )
+
     # A dropped batch silently shrinks the divisor, so the score stops being an
     # average over the whole transcript. Say so rather than letting a partial
     # score look complete.
@@ -364,4 +395,8 @@ def score_dimension_llm(
         "usage": combined_usage,
         "batches_used": len(all_scores),
         "batches_total": len(batches),
+        # Kept so callers can see what the average threw away without having to
+        # regex it back out of raw_response.
+        "batch_scores": list(all_scores),
+        "batch_score_spread": spread,
     }
