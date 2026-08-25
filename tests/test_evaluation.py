@@ -9,8 +9,13 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.evaluation import (
+    GATE_FAIL,
+    GATE_PASS,
+    GATE_UNMEASURED,
     directional_agreement,
     evaluate,
+    gate,
+    gate_dimension,
     mean_absolute_error,
     meets_target,
     pair_scores_with_labels,
@@ -182,3 +187,74 @@ class TestEvaluate:
         assert set(results) == {"evasiveness"}
         assert results["evasiveness"]["n"] == 2
         assert results["evasiveness"]["mae"] == 1.0
+
+
+class TestGate:
+    """The release gate (EVALUATION.md section 3.2).
+
+    run_evaluation.py printed FAIL four times and exited 0, so nothing
+    downstream could distinguish a validated scorer from a broken one. These
+    tests keep the verdict mechanical.
+    """
+
+    PASSING = {
+        "mae": 1.0, "spearman": 0.8, "within_2": 0.9,
+        "directional_agreement": 0.8, "n": 9, "n_direction_comparisons": 5,
+    }
+
+    def test_all_targets_met_passes(self):
+        assert gate_dimension(self.PASSING) == (GATE_PASS, [])
+
+    def test_one_missed_target_fails_and_names_it(self):
+        metrics = dict(self.PASSING, spearman=0.1)
+        status, offenders = gate_dimension(metrics)
+        assert status == GATE_FAIL
+        assert offenders == ["spearman"]
+
+    def test_every_missed_target_is_named(self):
+        status, offenders = gate_dimension(
+            {"mae": 2.43, "spearman": -0.73, "within_2": 0.43,
+             "directional_agreement": 0.50, "n": 7, "n_direction_comparisons": 2}
+        )
+        assert status == GATE_FAIL
+        assert set(offenders) == {"mae", "spearman", "within_2", "directional_agreement"}
+
+    def test_unmeasured_metric_does_not_pass(self):
+        """A metric that could not be computed is absent, not satisfied."""
+        metrics = dict(self.PASSING, spearman=None)
+        status, offenders = gate_dimension(metrics)
+        assert status == GATE_UNMEASURED
+        assert offenders == ["spearman"]
+
+    def test_a_real_failure_outranks_an_unmeasured_metric(self):
+        metrics = dict(self.PASSING, spearman=None, mae=9.0)
+        assert gate_dimension(metrics)[0] == GATE_FAIL
+
+    def test_any_failing_dimension_fails_the_whole_gate(self):
+        overall, per_dimension = gate({
+            "evasiveness": self.PASSING,
+            "overpromising": dict(self.PASSING, mae=5.0),
+        })
+        assert overall == GATE_FAIL
+        assert per_dimension["evasiveness"][0] == GATE_PASS
+        assert per_dimension["overpromising"][0] == GATE_FAIL
+
+    def test_all_dimensions_passing_passes(self):
+        overall, _ = gate({"evasiveness": self.PASSING, "overpromising": self.PASSING})
+        assert overall == GATE_PASS
+
+    def test_no_dimensions_evaluated_is_not_a_pass(self):
+        """Evaluating nothing must never read as a clean bill of health."""
+        assert gate({}) == (GATE_UNMEASURED, {})
+
+    def test_gate_runs_on_real_evaluate_output(self):
+        """The measured evasiveness-v2 slice: every target missed."""
+        df = _paired([
+            ("INFY", "Q1", 2023, 6, 3), ("INFY", "Q1", 2024, 6, 2),
+            ("INFY", "Q2", 2024, 5, 9), ("INFY", "Q4", 2025, 6, 3),
+            ("TCS", "Q2", 2023, 5, 4), ("TCS", "Q3", 2023, 6, 5),
+            ("TCS", "Q1", 2024, 5, 6),
+        ])
+        overall, per_dimension = gate(evaluate(df))
+        assert overall == GATE_FAIL
+        assert "spearman" in per_dimension["evasiveness"][1]

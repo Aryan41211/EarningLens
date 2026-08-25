@@ -164,3 +164,48 @@ def meets_target(metric: str, value: float | None) -> bool | None:
     if metric == "mae":
         return value <= TARGETS["mae"]
     return value >= TARGETS[metric]
+
+
+# ---- Release gate ----
+#
+# The four metrics above were reported and then discarded: run_evaluation.py
+# printed "FAIL" four times and exited 0, so no script, no CI job and no
+# release step could act on the result. A target nothing enforces is a target
+# nobody keeps -- the same reasoning that put a checksum behind prompt versions
+# in src/scoring/prompts.py.
+
+GATE_PASS = "PASS"
+GATE_FAIL = "FAIL"
+GATE_UNMEASURED = "UNMEASURED"
+
+
+def gate_dimension(metrics: dict) -> tuple[str, list[str]]:
+    """Release verdict for one dimension. Returns (status, offending metrics).
+
+    UNMEASURED is deliberately not PASS. A metric that could not be computed --
+    a score column with no variance, or no adjacent quarters to difference --
+    is an absent result, not a satisfied one, and treating absence as success
+    is precisely how an unvalidated claim reaches a user.
+    """
+    failed = [m for m in TARGETS if meets_target(m, metrics.get(m)) is False]
+    if failed:
+        return GATE_FAIL, failed
+    unmeasured = [m for m in TARGETS if meets_target(m, metrics.get(m)) is None]
+    if unmeasured:
+        return GATE_UNMEASURED, unmeasured
+    return GATE_PASS, []
+
+
+def gate(results: dict[str, dict]) -> tuple[str, dict[str, tuple[str, list[str]]]]:
+    """Release verdict across every evaluated dimension.
+
+    Any FAIL fails the whole gate; otherwise any UNMEASURED leaves it
+    UNMEASURED. An empty result set is UNMEASURED, never PASS.
+    """
+    per_dimension = {d: gate_dimension(m) for d, m in results.items()}
+    statuses = {status for status, _ in per_dimension.values()}
+    if GATE_FAIL in statuses:
+        return GATE_FAIL, per_dimension
+    if GATE_UNMEASURED in statuses or not per_dimension:
+        return GATE_UNMEASURED, per_dimension
+    return GATE_PASS, per_dimension

@@ -12,6 +12,17 @@ Only compares scores from a single (model, prompt_version) per dimension --
 mixing them measures the model change rather than the company, so a
 contaminated dimension is refused rather than silently averaged.
 
+Exit codes, so a release step can gate on this rather than read it:
+
+    0  every evaluated dimension met all four targets
+    1  could not evaluate (no labels file, no scores, no overlap)
+    2  refused to evaluate -- the requested slice spans several models
+    3  evaluated, and at least one target was missed or could not be measured
+
+Code 3 is the point of the script. It previously exited 0 while printing FAIL
+four times, so nothing downstream could tell a validated scorer from a broken
+one. Pass --no-gate to get the old always-zero behaviour back.
+
 Usage:
     python scripts/run_evaluation.py
     python scripts/run_evaluation.py --dimension evasiveness
@@ -30,7 +41,14 @@ import pandas as pd
 
 from config import DB_PATH, LLM_MODEL_NAME, LOG_PATH, NOTEBOOKS_DIR, SCORE_DIMENSIONS
 from src.storage.db import init_db
-from src.evaluation import TARGETS, evaluate, meets_target, pair_scores_with_labels
+from src.evaluation import (
+    GATE_PASS,
+    TARGETS,
+    evaluate,
+    gate,
+    meets_target,
+    pair_scores_with_labels,
+)
 from src.trends.metrics import check_score_comparability
 from src.utils.logging import setup_logger
 
@@ -95,6 +113,20 @@ def print_report(results: dict[str, dict]) -> None:
             print("  NOTE: no adjacent-quarter pairs, so the metric that matters most is unmeasured.")
 
     print("\n" + "=" * 78)
+
+
+def print_verdict(overall: str, per_dimension: dict[str, tuple[str, list[str]]]) -> None:
+    """State the release verdict in words, beside the exit code that carries it."""
+    print(f"RELEASE GATE: {overall}")
+    for dimension, (status, offenders) in per_dimension.items():
+        detail = f"  ({', '.join(offenders)})" if offenders else ""
+        print(f"  {dimension:<30} {status}{detail}")
+    if overall != GATE_PASS:
+        print(
+            "\nThese scores do not meet the targets in EVALUATION.md section 3.2.\n"
+            "Do not ship a credibility claim built on them - see KNOWN_ISSUES.md BLOCKER-6."
+        )
+    print("=" * 78)
 
 
 def print_comparison(
@@ -201,6 +233,9 @@ def main():
                              "labels, e.g. --compare evasiveness-v1 --compare evasiveness-v2. "
                              "Reported as in-sample: the labels informed v2's design "
                              "(EVALUATION.md section 1.5).")
+    parser.add_argument("--no-gate", action="store_true",
+                        help="Always exit 0, even when targets are missed. For exploratory "
+                             "runs; never for a release check.")
     parser.add_argument("--allow-mixed-models", action="store_true",
                         help="Evaluate even where a dimension spans multiple models. "
                              "The result measures the model mix, not the company.")
@@ -360,9 +395,30 @@ def main():
     results = evaluate(paired)
     print_report(results)
 
+    overall, per_dimension = gate(results)
+    print_verdict(overall, per_dimension)
+
     if args.json:
         print("\n=== JSON ===")
-        print(json.dumps(results, indent=2, default=str))
+        print(json.dumps(
+            {
+                "results": results,
+                "gate": {
+                    "overall": overall,
+                    "dimensions": {
+                        dimension: {"status": status, "offending_metrics": offenders}
+                        for dimension, (status, offenders) in per_dimension.items()
+                    },
+                },
+            },
+            indent=2,
+            default=str,
+        ))
+
+    # The exit code is the whole point: a printed FAIL that exits 0 cannot gate
+    # anything. See this module's docstring for the code meanings.
+    if overall != GATE_PASS and not args.no_gate:
+        sys.exit(3)
 
 
 if __name__ == "__main__":
