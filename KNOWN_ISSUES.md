@@ -32,7 +32,8 @@ and history live in `PROJECT_MEMORY.md`; forward plans live in `ROADMAP.md`.
 | HIGH-8 — a failing evaluation exited 0, so no release step could gate on it | HIGH | ✅ Fixed 2026-08-25 — exit code 3 + `gate()`, tested |
 | HIGH-9 — the dashboard's Raw Data tab ignored the variant selector | HIGH | ✅ Fixed 2026-08-25 — quotes filtered, regression-tested |
 | MEDIUM-6 — no deployable artifact and no way to run the gate in CI | MEDIUM | ✅ Fixed 2026-08-25 — Dockerfile, `.streamlit/config.toml`, `image` + `release-gate` CI jobs |
-| **BLOCKER-6 — the scorer does not discriminate: on the cleanest slice it fails all four targets, Spearman −0.73** | **BLOCKER** | ⛔ **Open — cause partly corrected 2026-08-25; verdict unchanged** |
+| HIGH-10 — the human labels score 3 quotes, the LLM scores the whole call; the two were compared as if commensurable | HIGH | ⛔ Open — needs new labels; documented 2026-08-25 |
+| **BLOCKER-6 — the scorer does not discriminate: on the cleanest slice it fails all four targets, Spearman −0.73** | **BLOCKER** | ⛔ **Open — cause partly corrected 2026-08-25; `evasiveness-v3` built but unmeasured** |
 
 Descriptions below are kept as originally written, so the reasoning that led
 to each fix stays on record.
@@ -766,6 +767,92 @@ Roughly in order of expected value:
 
 Until one of these moves Spearman decisively positive, the honest status of the
 headline claim is *unsupported*.
+
+### A second measurement problem, found 2026-08-25: the labels and the scores
+### are not measuring the same thing
+
+Reading `notebooks/reading-notes.md` closely while building v3 turned up
+something that changes how every evaluation number so far should be read.
+
+The reviewer did not read 11 transcripts. For each one they were shown **the
+three supporting quotes the v1 model had surfaced** — its three most evasive
+picks — and scored from those. EVALUATION.md § 1.1 says as much ("For each:
+three LLM supporting quotes, the reviewer's own 1–10 evasiveness score"), but
+the consequence was never drawn:
+
+- The **human label** is a *worst-three-moments* judgement.
+- The **LLM score** is a *whole-call average* over ~13 exchanges.
+
+These are different quantities, and the human one is conditioned on which
+quotes v1 happened to choose. A whole-call mean will always compress toward the
+middle relative to a worst-three statistic, so part of the measured failure is
+an artefact of comparing them at all — before any question of prompt quality.
+
+The clearest case is INFY Q2 2024, the reviewer's 9/10. All three quotes are
+flat non-disclosures with no reason attached ("We do not really break up that
+cost further"). Against 13 exchanges, most of which were answered normally,
+*no* whole-call average could return a 9. Against those three quotes, 9 is a
+defensible read.
+
+Two consequences:
+
+1. **Some of the −0.73 is measurement mismatch, not model failure.** How much
+   is unknown and cannot be established from these labels.
+2. **It constrains what a fix may look like.** An aggregate that is
+   commensurable with the labels has to be a worst-few statistic. That is why
+   `evasiveness-v3` defaults to `worst3_mean` — and why a good score from it on
+   *these* labels would still not be out-of-sample evidence.
+
+The clean resolution is new labels gathered against a stated unit: either the
+reviewer scores whole transcripts, or the scorer is evaluated per exchange
+against per-exchange labels. Until then, treat every evaluation number on this
+dimension as carrying an unquantified validity error on top of its small n.
+
+---
+
+## evasiveness-v3 — per-exchange scoring (built 2026-08-25, unmeasured)
+
+Registered, tested and reachable; **no transcript has been scored with it**, so
+it makes no claim yet. Built to attack the two problems above at once.
+
+**What changed.** The unit of judgement. v1/v2 hand the model a ~2000-word
+window and ask it to judge the whole call, then average the windows. v3 splits
+the Q&A into individual analyst exchanges (`split_qa_into_exchanges()`, on the
+moderator's turn — 10–18 per transcript, median ~400 words, retaining ~99% of
+Q&A words) and asks for **one score per exchange**. Aggregation into a
+transcript score then happens in code, where it is named and testable, instead
+of implicitly in the transport layer.
+
+**Cost is unchanged.** Measured on INFY Q2 2024: 15 exchanges pack into 4
+requests, exactly what v2 used, over the same input text. The output budget is
+sized per request (860/720/1000/720 tokens) against v2's flat 1600. A full
+11-transcript sweep is still ~220k tokens, ~1.1 days of free-tier budget.
+
+**Every per-exchange score is stored** in `scores.raw_llm_response` as JSON.
+That is the deliberate answer to BLOCKER-4: the expensive part is paid once,
+and `scripts/compare_aggregators.py` (`earningslens-aggregators`) re-runs every
+aggregator over the stored scores and re-measures against the labels **without
+making a single LLM call**.
+
+**Aggregators available:** `worst3_mean` (default), `worst2_mean`, `max`,
+`mean`, `median`, `dodge_rate`. The default is a worst-few statistic for the
+two reasons given above — it matches the product's claim (red flags, not
+averages) and it is the only family commensurable with how the labels were
+produced.
+
+**What would falsify it.** Score the 11 transcripts, then run
+`earningslens-aggregators`. If the `spread` column is near zero for every
+aggregator, the model is genuinely not discriminating and the problem was never
+the aggregation. If spread is healthy but Spearman stays negative, the rubric
+is wrong. Both outcomes are informative and cost one sweep.
+
+**What it is not.** It is not validated, and it cannot be validated on the
+existing 11 labels: those labels informed v2's design (EVALUATION.md § 1.5) and
+were produced by a different measurement unit than v3 uses. The default
+aggregator was chosen partly to match them, which is selection on the test set.
+`evasiveness-v1` remains the registry default and the release gate still fails.
+
+---
 
 ## Fix order
 

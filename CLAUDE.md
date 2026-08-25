@@ -45,10 +45,18 @@ end to end. The open blockers are about the *result*, not the code:
 - **BLOCKER-4 — a full sweep costs ~5 days of free-tier quota**, so coverage
   stays thin (evasiveness-v2 is 7/11; the other four dimensions are 2–3/11).
 
+**`evasiveness-v3` is built but unmeasured** (2026-08-25). It scores each
+analyst exchange separately instead of averaging word-count windows, keeps
+every per-exchange score, and costs the same as a v2 sweep. Nothing has been
+scored with it and `evasiveness-v1` is still the registry default — it makes no
+claim until a sweep runs. RUNBOOK § 9. Note also **HIGH-10**: the human labels
+score three quotes while the LLM scores the whole call, so the two were never
+commensurable — some of the −0.73 is that, not the model.
+
 **The gate is mechanical now.** `python scripts/run_evaluation.py --dimension
 evasiveness --against reviewed` exits **3** while the targets are missed, and
 CI runs it on every `v*` tag. Deploy the dashboard as a tool to look at data if
-you like — `docker build -t earningslens .`, RUNBOOK § 9 — but a non-zero gate
+you like — `docker build -t earningslens .`, RUNBOOK § 10 — but a non-zero gate
 means the scores are not a validated credibility measure.
 
 ## Key files to read before touching code
@@ -73,7 +81,7 @@ means the scores are not a validated credibility measure.
 | **KNOWN_ISSUES.md** | **Verified, reproducible defects — read this first** |
 | **SCORING_METHODOLOGY.md** | **What a score means and when two scores may be compared** |
 | **EVALUATION.md** | **How to prove the scores work; existing human-review evidence** |
-| **RUNBOOK.md** | **Exact commands, health checks, troubleshooting, deployment (§ 9)** |
+| **RUNBOOK.md** | **Exact commands, health checks, troubleshooting, v3 sweep (§ 9), deployment (§ 10)** |
 | PROJECT_CONTEXT.md | Problem, users, one-line & executive summary |
 | ARCHITECTURE.md | System design, data flow, runtime flow |
 | FOLDER_STRUCTURE.md | Directory/file responsibilities |

@@ -253,7 +253,7 @@ If the dimensions on show span more than one model, a red banner appears on the
 Scores, Trends, and Alerts tabs naming the offenders. Do not read a delta while
 that banner is showing — it is partly measuring the model change.
 
-To serve it beyond localhost, see section 9.
+To serve it beyond localhost, see section 10.
 
 ---
 
@@ -328,7 +328,67 @@ the source PDFs; the scores cannot be rebuilt from anything but the API.
 
 ---
 
-## 9. Deployment
+## 9. Scoring with evasiveness-v3 (per-exchange)
+
+v3 scores each analyst exchange separately instead of averaging word-count
+windows. It is **registered but unmeasured** — no transcript has been scored
+with it. See KNOWN_ISSUES.md BLOCKER-6 for why it exists.
+
+```bash
+# Costs ~220k tokens, about 1.1 days of free-tier budget. Same as a v2 sweep.
+python scripts/run_all_scoring.py --dimension evasiveness \
+    --prompt-version evasiveness-v3
+
+# Resume after the daily quota resets:
+python scripts/run_all_scoring.py --dimension evasiveness \
+    --prompt-version evasiveness-v3 --skip-scored
+```
+
+Then read the result **without spending any more quota**:
+
+```bash
+# Re-aggregates the stored per-exchange scores under every aggregator and
+# measures each against the labels. Makes no LLM calls.
+earningslens-aggregators
+
+# The evaluation gate, on the v3 slice:
+python scripts/run_evaluation.py --dimension evasiveness \
+    --model openai/gpt-oss-120b --prompt-version evasiveness-v3
+```
+
+What to look for in `earningslens-aggregators`:
+
+| Column | Meaning |
+|---|---|
+| `spread` | max transcript score minus min. **Near 0 is the BLOCKER-6 failure** — an aggregate that cannot rank anything. |
+| `Spearman` | does it order transcripts like the reviewer did? |
+
+- **Spread near 0 under every aggregator** → the model is not discriminating at
+  the exchange level either. The rubric, not the aggregation, is the problem.
+- **Healthy spread, Spearman still negative** → v3 separates transcripts but
+  disagrees with the reviewer. Suspect the rubric, and read HIGH-10 before
+  concluding anything: the labels score three quotes, not the whole call.
+
+Do not pick the best-scoring aggregator and call it validated. Those 11 labels
+informed v2's design and the v3 default was chosen to match how they were
+built — that is selection on the test set (EVALUATION.md § 1.5).
+
+The per-exchange scores are stored in `scores.raw_llm_response` as JSON, so any
+aggregation question can be re-answered later for free:
+
+```bash
+python -c "
+import json, sqlite3
+c = sqlite3.connect('data/earningslens.db')
+for co, q, y, raw in c.execute(\"SELECT company,quarter,year,raw_llm_response FROM scores WHERE prompt_version='evasiveness-v3'\"):
+    p = json.loads(raw)
+    print(co, q, y, [e['evasiveness_score'] for e in p['exchange_scores']])
+"
+```
+
+---
+
+## 10. Deployment
 
 ### Before you deploy anything: the release gate
 
