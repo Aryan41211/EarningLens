@@ -195,12 +195,36 @@ python scripts/run_trends.py --company TCS
 python scripts/run_trends.py --json
 ```
 
+### Pick one comparable series
+
+The `scores` table holds several `(model, prompt_version)` variants per
+transcript. With no filter, the newest row per transcript wins, so a single
+trend line can straddle a model switch. Hold both constant:
+
+```bash
+python scripts/run_trends.py \
+    --model openai/gpt-oss-120b --prompt-version evasiveness-v2
+```
+
+The header echoes the restriction, and the contamination banner is evaluated
+against the slice you selected — so a clean slice prints no banner. List what
+variants exist:
+
+```bash
+sqlite3 data/earningslens.db \
+  "SELECT model_name, prompt_version, COUNT(*) FROM scores GROUP BY 1,2;"
+```
+
 `--strict` exits 2 instead of printing trends built on scores that span more
 than one model:
 
 ```bash
 python scripts/run_trends.py --strict
 ```
+
+A dimension with no scores in the selected slice is labelled `NO DATA`, not
+`STABLE`. `STABLE` is a claim about the company; treat `NO DATA` as "nothing
+was measured here".
 
 Deltas are gap-aware: a delta is blank unless the two quarters are actually
 adjacent, and a rolling 3-quarter average is blank unless its window covers
@@ -220,16 +244,23 @@ Opens on `http://localhost:8501`. Tabs: Scores, Trends, Alerts, Raw Data.
 It reads the DB at startup only — restart after a scoring run. If it shows
 "No scores found in database", the `scores` table is empty.
 
-If any dimension's scores span more than one model, a red banner appears on the
+Use the sidebar **Score variant** selector to pin one
+`(model, prompt_version)`. "All variants (newest per transcript)" is the old
+behaviour and mixes models; selecting a specific variant turns the display into
+a real series and confirms it with a green note in the sidebar.
+
+If the dimensions on show span more than one model, a red banner appears on the
 Scores, Trends, and Alerts tabs naming the offenders. Do not read a delta while
 that banner is showing — it is partly measuring the model change.
+
+To serve it beyond localhost, see section 9.
 
 ---
 
 ## 5. Tests
 
 ```bash
-python -m pytest tests/ -q          # 92 tests
+python -m pytest tests/ -q          # 189 tests
 python -m pytest tests/test_trends.py -v
 ```
 
@@ -294,3 +325,80 @@ cp data/earningslens.db data/earningslens.db.bak-$(date +%Y%m%d)
 
 `data/processed/` is committed and can rebuild the chunk text without touching
 the source PDFs; the scores cannot be rebuilt from anything but the API.
+
+---
+
+## 9. Deployment
+
+### Before you deploy anything: the release gate
+
+```bash
+python scripts/run_evaluation.py --dimension evasiveness --against reviewed
+echo $?
+```
+
+`0` means every target in EVALUATION.md § 3.2 was met. **Anything else means the
+scores are not fit to present as a credibility signal.** Today this exits `3`
+— see KNOWN_ISSUES.md BLOCKER-6. Exit codes:
+
+| Code | Meaning |
+|---|---|
+| 0 | all four targets met |
+| 1 | could not evaluate (no labels, no scores, no overlap) |
+| 2 | refused — the requested slice spans several models |
+| 3 | evaluated, and a target was missed or could not be measured |
+
+`--against reviewed` reads `notebooks/labels.csv` only, so it needs no database
+and reproduces on any checkout. That is the form CI runs. To gate on the live
+database instead, name the slice:
+
+```bash
+python scripts/run_evaluation.py --dimension evasiveness     --model openai/gpt-oss-120b --prompt-version evasiveness-v2
+```
+
+Use `--no-gate` for exploratory runs. Never in a release step.
+
+**A failing gate does not block deploying the dashboard as a tool** — the
+trends, the raw quotes and the comparability banners are all honest. It blocks
+presenting the scores as a validated credibility measure. Deploy it to look at
+data, not to draw conclusions from it.
+
+### Run the dashboard in Docker
+
+```bash
+docker build -t earningslens .
+docker run --rm -p 8501:8501 -v "$PWD/data:/app/data" earningslens
+```
+
+Then open `http://localhost:8501`.
+
+- **The volume mount carries the database.** `data/*.db` is gitignored and kept
+  out of the image on purpose (`.dockerignore`), because it is data rebuilt by
+  scoring, not part of the build. Without the mount the dashboard starts and
+  says it has no scores.
+- **The mounted directory must be writable by uid 10001.** `init_db()` opens
+  the database read-write to apply schema migrations.
+- **The image holds no API key.** `.env` is excluded from the build context, and
+  the container never scores — it only reads. Nothing to leak, nothing to pass
+  in.
+- `$PORT` is honoured if the host assigns one (Render, Fly, Cloud Run).
+- Health endpoint: `/_stcore/health`, also wired to Docker's `HEALTHCHECK`.
+
+### Scoring is a host job, not a container job
+
+Sweeps need `LLM_API_KEY` and burn provider quota against a per-day cap
+(BLOCKER-4). Run them with `scripts/run_all_scoring.py` on the host as in
+section 2, then restart the container to pick up the new database.
+
+### What CI checks
+
+| Job | Runs on | Checks |
+|---|---|---|
+| `test` | every push/PR | pytest, mypy, `compileall scripts/`, every console script starts |
+| `image` | every push/PR | the image builds, holds no `.env` or `LLM_API_KEY`, and serves a healthy dashboard |
+| `release-gate` | `workflow_dispatch` and `v*` tags | the evaluation gate above |
+
+`release-gate` is deliberately kept off ordinary pushes: it is expected to fail
+while BLOCKER-6 is open, so running it on every commit would train everyone to
+ignore a red build. On a version tag it does the one job it exists for — it
+stops the release.

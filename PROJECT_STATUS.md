@@ -1,12 +1,22 @@
 # PROJECT_STATUS.md
 
-_Last verified against the running code and database on **August 23, 2026**.
+_Last verified against the running code and database on **August 25, 2026**.
 Update this file whenever phase status changes — it should always reflect
 current reality, not the plan. Every count below was measured, not recalled._
 
 > Companion file: **`KNOWN_ISSUES.md`** lists the verified defects behind the
-> qualified statuses here, and which are now fixed. One blocker remains open:
-> a full re-scoring sweep costs ~5 days of free-tier token quota.
+> qualified statuses here, and which are now fixed. Two blockers remain open: a
+> full re-scoring sweep costs ~5 days of free-tier token quota (BLOCKER-4), and
+> **the scorer does not discriminate** — it fails all four evaluation targets on
+> the cleanest slice available, with a negative rank correlation (BLOCKER-6).
+> The second one gates release, and as of 2026-08-25 it does so *mechanically*:
+> `run_evaluation.py` exits 3 rather than printing FAIL and exiting 0, and the
+> `release-gate` CI job runs on every `v*` tag.
+>
+> BLOCKER-6 was previously recorded as "not a code defect". Partly wrong: the
+> range collapse is caused by averaging per-batch scores (which span 3–8) into
+> one number (always 5 or 6). Correcting the aggregation does not fix the
+> ranking, so the release verdict is unchanged — see KNOWN_ISSUES.md BLOCKER-6.
 
 ## Phase 1 — Extraction & Storage: ✅ Functional
 
@@ -23,26 +33,30 @@ Only Evasiveness has been validated on real transcripts.
 
 ### Validation status
 
-_Coverage measured 2026-08-24 against `data/earningslens.db`, mid-sweep on the
+_Coverage measured 2026-08-25 against `data/earningslens.db`, mid-sweep on the
 pinned `openai/gpt-oss-120b`._
 
 | Dimension | Implementation | Scored (any model) | On pinned model | At `-v2` | Human-reviewed |
 |---|---|---|---|---|---|
-| Evasiveness | ✅ Complete (keyword + LLM) | 11/11 | 3/11 | 1/11 | **11/11** — LLM matched exactly on 3 |
+| Evasiveness | ✅ Complete (keyword + LLM) | 11/11 | 7/11 | 7/11 | **11/11** — but see the evaluation below |
 | Sentiment shift | ✅ Complete (LLM only) | 4/11 | 2/11 | — | 0/11 |
 | Complexity spike | ✅ Complete (LLM only) | 3/11 | 2/11 | — | 0/11 |
 | Overpromising | ✅ Complete (LLM only) | 3/11 | 2/11 | — | 0/11 |
 | Forward guidance vagueness | ✅ Complete (LLM only) | 3/11 | 2/11 | — | 0/11 |
 
-**24 of 55 dimension-scores exist** (26 rows, since a transcript may hold more
+**24 of 55 dimension-scores exist** (32 rows, since a transcript may hold more
 than one prompt variant). Three transcripts — INFY Q1 2023, INFY Q1 2024,
 TCS Q1 2025 — are complete across all 5 dimensions.
 
-**No dimension is yet a valid series**, because none is complete on a single
-`(model, prompt_version)`. `run_trends.py` says so loudly on every run rather
-than quietly differencing across the mix.
+**No dimension is yet a *complete* series.** The largest clean slice is
+`evasiveness-v2` on the pinned model: 7 of 11 transcripts, one model, one
+prompt version. That slice is genuinely comparable and can now be selected
+directly (`--model` / `--prompt-version`); the remaining 4 transcripts are TCS
+Q2 2024, Q3 2024, Q1 2025 and Q4 2025. Without a filter, `run_trends.py` still
+says loudly that the table as a whole is mixed rather than quietly
+differencing across it.
 
-The `evasiveness-v2` sweep is the work in progress: 1 of 11 transcripts scored.
+The `evasiveness-v2` sweep is the work in progress: 7 of 11 transcripts scored.
 A single dimension across all 11 costs ~220k tokens against a 200,000/day cap,
 so it needs about a full day of quota (`KNOWN_ISSUES.md` BLOCKER-4). The cap is
 a rolling 24-hour window, so `scripts/resume_sweep.py` finishes it unattended,
@@ -62,6 +76,12 @@ python scripts/resume_sweep.py --dimension evasiveness \
 >
 > **Evaluation result:** MAE 1.73, Spearman 0.10, within-2 0.64, directional
 > agreement 0.50 — all four targets failed (`EVALUATION.md` § 0).
+>
+> **Worse on the clean slice (2026-08-25).** Now that one variant can be
+> selected, `evasiveness-v2` on the pinned model (n=7) scores MAE 2.43,
+> Spearman **−0.73**, within-2 0.43, direction 0.50. The model emits 5 or 6 for
+> every transcript while the human labels span 2–9 — it is not discriminating.
+> See `KNOWN_ISSUES.md` BLOCKER-6; this, not coverage, is what blocks release.
 
 ### Scoring infrastructure
 
@@ -87,6 +107,12 @@ dominates sampling noise entirely.
 
 ## Phase 3 — Trend Detection: ✅ Functional, waiting on valid data
 
+The CLI can now be pinned to one `(model, prompt_version)` with `--model` /
+`--prompt-version`, and the comparability banner is evaluated against the
+selected slice — so a clean slice reports clean instead of being tarred by
+rows it is not showing (`KNOWN_ISSUES.md` BLOCKER-5). A dimension with no
+scores in the slice is labelled `NO DATA` rather than `STABLE` (MEDIUM-5).
+
 All 4 trend functions implemented and tested (39 tests). The CLI now runs — it
 was missing its `sys.path` prelude and had never executed once (BLOCKER-1,
 fixed `a1e05ca`).
@@ -107,6 +133,10 @@ Implemented:
 - `scripts/run_trends.py` — CLI for trend analysis (text and JSON output)
 
 ## Phase 4 — Dashboard: ✅ Functional, honest about its data
+
+A sidebar **Score variant** selector pins one `(model, prompt_version)`;
+the red banner is computed against whatever is selected. Verified headless,
+HTTP 200.
 
 Runs clean (verified headless, HTTP 200). The Scores, Trends, and Alerts tabs
 now show a red banner naming any dimension whose scores span multiple models,
@@ -139,7 +169,7 @@ Streamlit dashboard (`src/dashboard/app.py`) with:
 - Q&A section boundary detection
 - `scores` table (per-dimension, per-transcript persistence)
 - Unified scoring runner for all 5 dimensions with `--model` and `--skip-existing`
-- 92 tests across extraction, scoring, trends, and integration
+- 173 tests across extraction, scoring, trends, evaluation, and integration
 - Trend analysis: QoQ deltas, rolling averages, trend labels, drop detection
 - Streamlit dashboard with interactive charts and drill-down
 
@@ -156,8 +186,9 @@ Streamlit dashboard (`src/dashboard/app.py`) with:
 
 ## Test suite
 
-**138 tests, all passing offline.** extraction, scoring, scoring dimensions,
-trends 39, evaluation 24, prompts 22, integration 4.
+**173 tests, all passing offline** (`mypy src/` clean across 23 files).
+extraction, scoring, scoring dimensions, trends 39, evaluation 24, prompts 22,
+integration 4, variant filtering 10.
 
 Four tests previously reached the live API. They passed in CI only because CI
 has no API key, and passed locally only because an earlier test left

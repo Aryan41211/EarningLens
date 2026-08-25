@@ -27,13 +27,29 @@ Full context: [`PROJECT_CONTEXT.md`](./PROJECT_CONTEXT.md)
 | Phase | Status |
 |---|---|
 | 1 — Extraction & storage | ✅ Functional — 11 transcripts ingested |
-| 2 — LLM scoring | 🟡 All 5 modules implemented; 20 of 55 scores exist, none validated |
-| 3 — Trend detection | 🟡 Functions work; the CLI (`run_trends.py`) crashes on import |
-| 4 — Dashboard | 🟡 Runs, but its headline alert is currently a model artifact |
+| 2 — LLM scoring | 🟡 All 5 modules implemented; 32 score rows, evaluation FAILS |
+| 3 — Trend detection | ✅ Functional — CLI runs, gap-aware, variant-selectable |
+| 4 — Dashboard | ✅ Functional — variant selector; honest about thin coverage |
 
-**Read `KNOWN_ISSUES.md` before trusting any of the above.** Two blockers are
-open: the Phase 3 CLI has never run, and the `scores` table mixes three
-different LLMs inside one time series, which makes every trend delta suspect.
+**Read `KNOWN_ISSUES.md` before trusting any of the above.** The pipeline works
+end to end. The open blockers are about the *result*, not the code:
+
+- **BLOCKER-6 — the scorer does not discriminate.** On the cleanest slice
+  available (evasiveness-v2, pinned model, n=7) it fails all four evaluation
+  targets, with Spearman **−0.73** while human labels span 2–9.
+  **Do not ship the credibility claim.** Note the cause was re-measured on
+  2026-08-25: the *stored* scores are all 5 or 6, but the model's per-batch
+  scores span 3–8 — the range is destroyed by averaging batches in
+  `score_dimension_llm()`, not by the model. Restoring it does not restore the
+  ranking (no aggregator turns Spearman positive), so the verdict is unchanged.
+- **BLOCKER-4 — a full sweep costs ~5 days of free-tier quota**, so coverage
+  stays thin (evasiveness-v2 is 7/11; the other four dimensions are 2–3/11).
+
+**The gate is mechanical now.** `python scripts/run_evaluation.py --dimension
+evasiveness --against reviewed` exits **3** while the targets are missed, and
+CI runs it on every `v*` tag. Deploy the dashboard as a tool to look at data if
+you like — `docker build -t earningslens .`, RUNBOOK § 9 — but a non-zero gate
+means the scores are not a validated credibility measure.
 
 ## Key files to read before touching code
 
@@ -57,7 +73,7 @@ different LLMs inside one time series, which makes every trend delta suspect.
 | **KNOWN_ISSUES.md** | **Verified, reproducible defects — read this first** |
 | **SCORING_METHODOLOGY.md** | **What a score means and when two scores may be compared** |
 | **EVALUATION.md** | **How to prove the scores work; existing human-review evidence** |
-| **RUNBOOK.md** | **Exact commands, health checks, troubleshooting** |
+| **RUNBOOK.md** | **Exact commands, health checks, troubleshooting, deployment (§ 9)** |
 | PROJECT_CONTEXT.md | Problem, users, one-line & executive summary |
 | ARCHITECTURE.md | System design, data flow, runtime flow |
 | FOLDER_STRUCTURE.md | Directory/file responsibilities |

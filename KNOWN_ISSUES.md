@@ -24,6 +24,15 @@ and history live in `PROJECT_MEMORY.md`; forward plans live in `ROADMAP.md`.
 | NEW: `prompt_version` was hardcoded, defeating the comparability guard | HIGH | ✅ Fixed `7aa6a68` — registry + checksum test |
 | HIGH-4 — a truncated batch was dropped silently, biasing the average | HIGH | ✅ Fixed 2026-08-24 — salvage + `max_tokens` 1600 |
 | HIGH-5 — `--skip-scored` ignored `prompt_version`, so a v2 sweep skipped v1-scored transcripts | HIGH | ✅ Fixed 2026-08-24 — matched on `(dimension, prompt_version)` |
+| BLOCKER-5 — nothing could *read* a single variant, so BLOCKER-2 had no remedy | BLOCKER | ✅ Fixed 2026-08-25 — `--model` / `--prompt-version` on the trends CLI, variant selector in the dashboard |
+| HIGH-6 — rolling averages crashed on a dimension with no scores | HIGH | ✅ Fixed 2026-08-25 — dimension columns coerced to float64 |
+| HIGH-7 — `run_evaluation.py --prompt-version` bypassed the guard and crashed with a raw `MergeError` | HIGH | ✅ Fixed 2026-08-25 — guard sees the filter; `--model` now applied |
+| MEDIUM-5 — an unscored dimension was labelled `STABLE` | MEDIUM | ✅ Fixed 2026-08-25 — now `NO DATA` |
+| L-13 — `pyproject` declared MIT with no LICENSE file; dashboard caption hardcoded v0.1 | LOW | ✅ Fixed 2026-08-25 |
+| HIGH-8 — a failing evaluation exited 0, so no release step could gate on it | HIGH | ✅ Fixed 2026-08-25 — exit code 3 + `gate()`, tested |
+| HIGH-9 — the dashboard's Raw Data tab ignored the variant selector | HIGH | ✅ Fixed 2026-08-25 — quotes filtered, regression-tested |
+| MEDIUM-6 — no deployable artifact and no way to run the gate in CI | MEDIUM | ✅ Fixed 2026-08-25 — Dockerfile, `.streamlit/config.toml`, `image` + `release-gate` CI jobs |
+| **BLOCKER-6 — the scorer does not discriminate: on the cleanest slice it fails all four targets, Spearman −0.73** | **BLOCKER** | ⛔ **Open — cause partly corrected 2026-08-25; verdict unchanged** |
 
 Descriptions below are kept as originally written, so the reasoning that led
 to each fix stays on record.
@@ -465,6 +474,298 @@ the script is used in production. Neither validates the other.
 | L-12 | `config.COMPANIES` declares WIPRO and HDFCBANK; neither is ingested and the list is not enforced anywhere. |
 
 ---
+
+## BLOCKER-5 — No reader could select a single variant
+
+Added 2026-08-25.
+
+BLOCKER-2 established that a delta is meaningless unless model and prompt
+version are held constant, and `d21cf63` added detection. But detection without
+selection is a dead end: `load_scores_from_db()` grew `model` /
+`prompt_version` parameters and **no caller passed them**.
+
+- `scripts/run_trends.py` had no such flags at all.
+- `src/dashboard/app.py` called `load_scores_from_db(conn)` bare.
+- `check_score_comparability(conn)` always inspected the whole table, so even a
+  caller that *had* filtered would still be told its clean slice was
+  contaminated.
+
+The practical effect: the project could name its own contamination but never
+show a reader the uncontaminated series sitting inside the same table. The
+`evasiveness-v2` sweep on the pinned model was 7 transcripts of perfectly
+comparable data, and every entry point rendered it mixed with three other
+models under a banner saying not to trust it.
+
+### Fixed
+
+- `check_score_comparability(conn, model=None, prompt_version=None)` — checks
+  the slice being displayed, so a clean slice reports clean.
+- `run_trends.py --model NAME --prompt-version VERSION`, echoed in the header.
+- Dashboard sidebar "Score variant" selector, listing every
+  `(model, prompt_version)` present with its row count.
+
+Verified: `run_trends.py --model openai/gpt-oss-120b --prompt-version
+evasiveness-v2` emits no contamination banner and 7 comparable transcripts.
+
+---
+
+## HIGH-6 — Rolling averages crashed on an unscored dimension
+
+Found 2026-08-25, immediately after BLOCKER-5's filter made empty columns real.
+
+`load_scores_from_db()` created any missing dimension column with `pd.NA`,
+which gives the column **object** dtype. `.rolling()` refuses object dtype:
+
+```
+TypeError: cannot handle this type -> object
+  ... in compute_rolling_3q_average
+    .transform(lambda x: x.rolling(window=3, min_periods=3).mean())
+```
+
+It stayed hidden only because every unfiltered load happened to contain at
+least one score for all 5 dimensions. Narrowing to one variant leaves four
+columns entirely empty and the CLI died halfway through its output — after
+printing the QoQ table, so it looked like a partial success.
+
+Fix: create missing columns as `float("nan")` and `pd.to_numeric` every
+dimension column. Object dtype was wrong regardless of who reads it.
+
+---
+
+## HIGH-7 — `--prompt-version` bypassed the comparability guard, then crashed
+
+Found 2026-08-25.
+
+`run_evaluation.py` cleared its guard whenever `--prompt-version` was passed:
+
+```python
+if args.prompt_version:
+    # An explicit variant was requested, so the mix is already resolved.
+    blocked = set()
+```
+
+A prompt version is **not** a variant. `evasiveness-v1` exists under three
+models, so the filter left duplicate `(company, quarter, year, dimension)` rows
+— and the guard that would have explained this had just been switched off. The
+run ended in an unhandled traceback:
+
+```
+$ python scripts/run_evaluation.py --dimension evasiveness --prompt-version evasiveness-v1
+pandas.errors.MergeError: Merge keys are not unique in left dataset;
+not a one-to-one merge
+```
+
+Compounding it, `--model` was documented as a filter, accepted by argparse, and
+**never passed to `load_scores()`** on the main path — it took effect only
+under `--compare`.
+
+Fix: `--model` is applied; `check_score_comparability` receives the same
+filter, so it reports on the requested slice instead of being disabled. The
+command above now exits 2 with the three offending models named.
+
+---
+
+## MEDIUM-5 — An unscored dimension was labelled STABLE
+
+`compute_trend_label()` fell through to `STABLE` for any NaN delta, collapsing
+three different situations into one reassuring word: a genuinely small change,
+a delta unavailable across a calendar gap, and **a dimension that was never
+scored at all**.
+
+With four of five dimensions near-empty (MEDIUM-2), the trend column read
+`STABLE` across the board — a claim about management, made from no measurement.
+Same failure mode as BLOCKER-2's headline alert: an artifact wearing the
+costume of a signal.
+
+Fix: a row whose dimension score is missing is labelled `NO DATA`. A *scored*
+row whose delta is NaN (first quarter, or a gap) stays `STABLE`, which is the
+existing tested behaviour and a separate judgement call.
+
+---
+
+## HIGH-8 — A failing evaluation exited 0
+
+Found 2026-08-25.
+
+`run_evaluation.py` printed `FAIL` against all four targets and exited `0`:
+
+```
+$ python scripts/run_evaluation.py --dimension evasiveness \
+      --model openai/gpt-oss-120b --prompt-version evasiveness-v2
+  MAE                       2.43  FAIL
+  Spearman                 -0.73  FAIL
+  Within 2 points           0.43  FAIL
+  Directional agreement     0.50  FAIL
+$ echo $?
+0
+```
+
+EVALUATION.md § 3.2 defines the targets, KNOWN_ISSUES.md says not to ship
+without them, and nothing in the repository could act on either statement. The
+one check the whole project rests on was advisory text.
+
+Fix: `gate()` / `gate_dimension()` in `src/evaluation/metrics.py` turn the four
+metrics into a verdict, and the script exits `3` when any target is missed.
+An **unmeasured** metric — a score column with no variance, or no adjacent
+quarters to difference — is `UNMEASURED`, not `PASS`: treating an absent result
+as a satisfied one is how an unvalidated claim reaches a user. Evaluating zero
+dimensions is likewise never a pass. `--no-gate` restores the old behaviour for
+exploratory runs.
+
+The gate also runs without a database via `--against reviewed`, which reads
+`notebooks/labels.csv` alone, so CI can enforce it on a version tag.
+
+---
+
+## HIGH-9 — The dashboard's Raw Data tab ignored the variant selector
+
+Found 2026-08-25, in the fix for BLOCKER-5.
+
+BLOCKER-5 added a sidebar variant selector and threaded it through the scores
+table, the charts and the comparability banner — but not through the
+Supporting Quotes query at the bottom of the Raw Data tab, which still filtered
+on `company` alone.
+
+A reader who selected `evasiveness-v2` therefore saw v2 scores in every chart
+and, underneath them, the quotes **every** model had produced for the same
+quarters — the same transcript listed several times over with no indication of
+which row belonged to the score above it. That is BLOCKER-2's failure mode
+surviving inside the fix for BLOCKER-2.
+
+Fix: the same `model` / `prompt_version` filter is applied to the quote query.
+`tests/test_dashboard.py` covers it, and the dashboard now has test coverage at
+all — it previously had none, which is why this shipped.
+
+---
+
+## BLOCKER-6 — The scorer does not discriminate (OPEN)
+
+Found 2026-08-25, once BLOCKER-5 made a clean evaluation possible for the first
+time. This is the finding that actually gates release.
+
+Evaluated on the cleanest slice that exists — `evasiveness-v2` on the pinned
+`openai/gpt-oss-120b`, 7 transcripts, one model, one prompt version:
+
+| Metric | Target | Measured | |
+|---|---|---|---|
+| MAE | ≤ 1.5 | **2.43** | FAIL |
+| Spearman | ≥ 0.6 | **−0.73** | FAIL |
+| Within 2 points | ≥ 0.7 | **0.43** | FAIL |
+| Directional agreement | ≥ 0.7 | **0.50** | FAIL |
+
+The Spearman is *negative*: on this sample the model ranks transcripts close to
+the reverse of the reviewer's order. The paired data shows why:
+
+| Company | Quarter | LLM (v2) | Human |
+|---|---|---|---|
+| INFY | Q1 2023 | 6 | 3 |
+| INFY | Q1 2024 | 6 | 2 |
+| INFY | Q2 2024 | 5 | 9 |
+| INFY | Q4 2025 | 6 | 3 |
+| TCS | Q2 2023 | 5 | 4 |
+| TCS | Q3 2023 | 6 | 5 |
+| TCS | Q1 2024 | 5 | 6 |
+
+**The model emits 5 or 6 for everything.** Its output spans 1 point; the
+reviewer's spans 7 (2–9). It is not mis-calibrated, which rescaling could fix
+— it is not discriminating at all, and the residual ordering is noise that
+happens to point the wrong way. The one call the reviewer flagged hardest
+(INFY Q2 2024, human 9) is the *lowest* score the model gave.
+
+Corroboration from the other slices, same labels:
+
+- `--against reviewed` (n=11, the llama-3.3-70b scores the human actually saw):
+  MAE 1.73, Spearman 0.10, within-2 0.64, direction 0.50. All four fail.
+- `evasiveness-v1` on the pinned model (n=3): MAE 4.00, direction 0.00.
+
+So this is not an artifact of v2, of the pinned model, or of the small sample
+alone — no slice yet measured comes near a passing score, and the failure is
+consistently one of *range*.
+
+### Correction, 2026-08-25: part of it *is* a code defect
+
+This section previously opened "Nothing in this repository is wrong." That was
+measurably false, and the sentence was written without checking the one place
+the evidence was sitting: `scores.raw_llm_response` keeps every per-batch
+response, so the scores that went into each stored average can be read back.
+
+A transcript's Q&A is split into ~2000-word batches, each batch is asked to
+judge the call as a whole, and the batch verdicts are **averaged**. Those
+verdicts are not flat — they use most of the scale:
+
+| Transcript | Per-batch scores | Stored |
+|---|---|---|
+| INFY Q1 2023 | 7, 5, 6, 4, 7 | 6 |
+| INFY Q1 2024 | 3, 7, 7, 4, 8 | 6 |
+| INFY Q2 2024 | 8, 3, 7, 3 | 5 |
+| INFY Q4 2025 | 7, 8, 6, 3 | 6 |
+| TCS Q2 2023 | 4, 8, 3 | 5 |
+| TCS Q3 2023 | 5, 6, 7 | 6 |
+| TCS Q1 2024 | 3, 7, 5, 4 | 5 |
+
+The model's batch judgements span **3 to 8**. Every stored score is 5 or 6. The
+range does not collapse in the model — it collapses in `score_dimension_llm()`,
+where a mean of three-to-five noisy whole-call judgements has a narrower
+distribution than the judgements themselves, by construction. The pipeline also
+contradicts its own prompt: `evasiveness-v2` says "WEIGH THE WHOLE Q&A, NOT THE
+WORST MOMENT", and no call ever sees the whole Q&A.
+
+So "the model emits 5 or 6 for everything" was the wrong reading. The model
+emits 3 through 8; the aggregation emits 5 or 6.
+
+### Why the blocker stays open anyway
+
+Restoring the range does **not** restore the ranking. Every alternative
+aggregator, recomputed from the same stored batch scores against the same 7
+labels:
+
+| Aggregator | Range | Spearman | MAE |
+|---|---|---|---|
+| mean (current) | 1.0 | −0.73 | 2.43 |
+| mean, unrounded | 1.2 | −0.46 | 2.37 |
+| median | 3.0 | −0.70 | 2.57 |
+| max | 1.0 | −0.22 | 3.29 |
+| 75th percentile | 1.8 | −0.20 | 2.71 |
+| top-2 mean | 1.5 | −0.34 | 2.71 |
+
+All still negative. The batch verdicts vary, but they do not vary *with* the
+reviewer's judgement, so no operator over them recovers the order. The headline
+claim remains unsupported, and the release verdict is unchanged: **do not ship
+it.**
+
+The aggregation was therefore left in place and instrumented rather than
+swapped — changing it would invalidate the stored series under
+`SCORING_METHODOLOGY.md` § 7 and buy nothing measurable. `score_dimension_llm()`
+now returns `batch_scores` and logs a warning whenever the batch spread is ≥ 4,
+so the discarded range is visible at scoring time.
+
+Completing the sweep (BLOCKER-4) will not change this either. It will raise n
+from 7 to 11 and make the number more certain — most likely more certainly a
+failure. Shipping a credibility signal that is anti-correlated with human
+judgement on its only labelled dimension would be worse than shipping nothing.
+
+### What would actually address it
+
+Roughly in order of expected value:
+
+1. **Stop asking a fragment to judge the whole.** This is now the top item, not
+   the third. Either score the full Q&A in one call (6k–10k tokens, which is
+   above the 8000 TPM free-tier ceiling that forced batching in the first
+   place), or score per question and aggregate deliberately rather than by
+   accident.
+2. **Force the range.** The prompt asks for 1–10 and the pipeline yields 5–6.
+   Anchored rubrics with worked examples at 2, 5 and 9, or forced ranking of
+   transcripts against each other, attack the collapse directly.
+3. **Score the Q&A section only.** Already done for evasiveness
+   (`find_qa_start_index()`); still outstanding for the other four dimensions,
+   which are handed the whole transcript.
+4. **Re-check against a held-out label set.** The 11 labels informed v2's design
+   (EVALUATION.md § 1.5), so they can no longer certify it. New labels are
+   needed before any variant can be called validated out-of-sample.
+5. **Only then** spend the ~5 days of quota on a full sweep.
+
+Until one of these moves Spearman decisively positive, the honest status of the
+headline claim is *unsupported*.
 
 ## Fix order
 
