@@ -8,7 +8,7 @@ version = "0.5.0"
 description = "Scores Indian earnings call transcripts for management credibility across 5 dimensions"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = { file = "LICENSE" }
 authors = [{ name = "Aryan Kondekar" }]
 keywords = ["earnings", "nlp", "llm", "credibility", "indian-markets"]
 classifiers = [
