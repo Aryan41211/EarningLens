@@ -79,14 +79,14 @@ def display_results(company, quarter, year, results):
         elif score is not None:
             print(f"  Score: {score}/10")
         else:
-            print(f"  Score: not available")
+            print("  Score: not available")
 
         if quotes:
-            print(f"  Supporting quotes:")
+            print("  Supporting quotes:")
             for i, q in enumerate(quotes, 1):
                 print(f"    [{i}] \"{q}\"")
         else:
-            print(f"  Supporting quotes: (none)")
+            print("  Supporting quotes: (none)")
 
     print("\n" + "=" * 72)
 

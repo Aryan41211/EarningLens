@@ -495,7 +495,6 @@ def test_scores_survive_transcript_reingest():
     Verified against a copy of the real database: re-ingesting a single
     transcript orphaned 5 of its 20 scores.
     """
-    import sqlite3
     from src.storage.db import init_db, store_transcript, store_score, get_scores
 
     conn = init_db(":memory:")

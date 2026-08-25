@@ -11,7 +11,6 @@ Usage:
 
 import sys
 import os
-import logging
 import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -73,15 +72,15 @@ def run_company(conn, company: str, *, year: str | None = None, quarter: str | N
 
             print(f"\n  Keyword Dodge Count (Q&A only): {kw['total_count']}")
             if kw["total_count"] > 0:
-                print(f"  Top phrases by frequency:")
+                print("  Top phrases by frequency:")
                 for phrase, count in list(kw["frequency"].items())[:10]:
                     print(f"    {phrase:40s} x{count}")
-                print(f"  Matched excerpts (first 5):")
+                print("  Matched excerpts (first 5):")
                 for m in kw["matched_phrases"][:5]:
                     print(f"    [{m['phrase']}]")
                     print(f"      \"...{m['context']}...\"")
 
-            print(f"\n  --- Full Combined Scoring ---")
+            print("\n  --- Full Combined Scoring ---")
 
             # One LLM call is executed inside score_transcript_evasiveness()
             # when Q&A is detected. Time that call here.
@@ -134,11 +133,11 @@ def run_company(conn, company: str, *, year: str | None = None, quarter: str | N
                     print(f"  LLM Evasiveness Score: SKIPPED ({llm.get('error', 'no LLM configured')})")
 
                 if llm.get("supporting_quotes"):
-                    print(f"  Supporting Quotes:")
+                    print("  Supporting Quotes:")
                     for i, quote in enumerate(llm["supporting_quotes"], 1):
                         print(f"    [{i}] \"{quote}\"")
             else:
-                print(f"  Q&A section not detected -- LLM scoring skipped.")
+                print("  Q&A section not detected -- LLM scoring skipped.")
 
     print(f"\n{'=' * 72}")
     print(f"DONE ({company})")

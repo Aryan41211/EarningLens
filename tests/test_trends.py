@@ -7,7 +7,6 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-import sqlite3
 
 from src.storage.db import init_db, store_transcript, store_score
 from src.trends.metrics import (
@@ -24,7 +23,6 @@ from src.trends.metrics import (
 def sample_scores():
     """Three companies with 4 quarters each, all 5 dimensions scored."""
     rows = []
-    companies = ["TCS", "INFY", "WIPRO"]
     quarters = ["Q1", "Q2", "Q3", "Q4"]
     # TCS: scores improve over time (go down)
     tcs_scores = [8, 7, 6, 5]

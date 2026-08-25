@@ -8,7 +8,7 @@ LLM calls are mocked — no real API requests.
 import sys
 import os
 import json
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -150,7 +150,6 @@ def test_llm_scoring_returns_score(mock_openai_class):
     importlib.reload(config)
     import src.scoring.evasiveness
     importlib.reload(src.scoring.evasiveness)
-    from src.scoring.evasiveness import score_evasiveness_llm
 
     mock_client = MagicMock()
     mock_client.chat.completions.create.return_value = _mock_openai_response()
@@ -169,7 +168,6 @@ def test_llm_scoring_clamps_score(mock_openai_class):
     importlib.reload(config)
     import src.scoring.evasiveness
     importlib.reload(src.scoring.evasiveness)
-    from src.scoring.evasiveness import score_evasiveness_llm
 
     mock_client = MagicMock()
     ext_response = json.dumps({"evasiveness_score": 15, "supporting_quotes": ["test"]})
@@ -188,7 +186,6 @@ def test_llm_scoring_handles_invalid_json(mock_openai_class):
     importlib.reload(config)
     import src.scoring.evasiveness
     importlib.reload(src.scoring.evasiveness)
-    from src.scoring.evasiveness import score_evasiveness_llm
 
     mock_client = MagicMock()
     mock_client.chat.completions.create.return_value = _mock_openai_response("not json at all")
@@ -207,7 +204,6 @@ def test_llm_scoring_returns_empty_when_not_configured():
     importlib.reload(config)
     import src.scoring.evasiveness
     importlib.reload(src.scoring.evasiveness)
-    from src.scoring.evasiveness import score_evasiveness_llm
 
     result = score_evasiveness_llm(["test"])
     assert result["evasiveness_score"] is None
