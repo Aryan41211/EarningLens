@@ -71,13 +71,24 @@ def _drop_period(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop(columns=[_PERIOD_COL], errors="ignore")
 
 
-def check_score_comparability(conn) -> pd.DataFrame:
+def check_score_comparability(
+    conn,
+    model: str | None = None,
+    prompt_version: str | None = None,
+) -> pd.DataFrame:
     """Report dimensions whose scores span more than one model or prompt version.
 
     A quarter-over-quarter delta only means something if every score in the
     series was produced the same way. `scores` records `model_name` and
     `prompt_version` per row but nothing enforces that they are constant, so a
     model switch mid-project shows up as a management trend.
+
+    Args:
+        conn: SQLite connection.
+        model / prompt_version: restrict the check to that slice. Callers that
+            display a filtered series must pass the same filter here, or the
+            banner describes rows the reader is not being shown -- and, worse,
+            a slice that is genuinely clean still gets flagged as contaminated.
 
     Returns one row per offending dimension with the variants found, or an
     empty DataFrame when every dimension is clean.
@@ -86,10 +97,13 @@ def check_score_comparability(conn) -> pd.DataFrame:
         """
         SELECT dimension, model_name, prompt_version, COUNT(*) AS n
         FROM scores
+        WHERE (? IS NULL OR model_name = ?)
+          AND (? IS NULL OR prompt_version = ?)
         GROUP BY dimension, model_name, prompt_version
         ORDER BY dimension, n DESC
         """,
         conn,
+        params=[model, model, prompt_version, prompt_version],
     )
     if rows.empty:
         return pd.DataFrame()
@@ -140,7 +154,7 @@ def load_scores_from_db(
             a caller asks for a specific series. With neither given, the most
             recently scored variant wins per (company, quarter, year, dimension).
     """
-    report = check_score_comparability(conn)
+    report = check_score_comparability(conn, model=model, prompt_version=prompt_version)
     if not report.empty:
         for _, row in report.iterrows():
             logger.error(
@@ -191,10 +205,17 @@ def load_scores_from_db(
     ).reset_index()
     pivoted.columns.name = None
 
-    # Ensure all dimension columns exist (may be NaN if not yet scored)
+    # Ensure all dimension columns exist (may be NaN if not yet scored).
+    #
+    # These must be float64, not object. A column filled with pd.NA is object
+    # dtype, and .rolling() raises TypeError on it -- so an unscored dimension
+    # crashed compute_rolling_3q_average rather than yielding NaN. It only
+    # stayed hidden while every dimension happened to have at least one score;
+    # filtering to one (model, prompt_version) makes the empty columns real.
     for dim in SCORE_DIMENSIONS:
         if dim not in pivoted.columns:
-            pivoted[dim] = pd.NA
+            pivoted[dim] = float("nan")
+        pivoted[dim] = pd.to_numeric(pivoted[dim], errors="coerce")
 
     return _drop_period(_sorted_by_period(pivoted))
 
@@ -265,6 +286,15 @@ def compute_trend_label(scores_df: pd.DataFrame) -> pd.DataFrame:
         delta >= +1.5 → DETERIORATING (score increased = worse credibility signal)
         otherwise     → STABLE
 
+    A dimension with no score for that transcript is labelled NO DATA, not
+    STABLE. "Stable" is a claim about the company; an unscored dimension
+    supports no claim at all, and rendering it as STABLE put a reassuring
+    label on a measurement that was never taken -- visible wherever four of
+    five dimensions are unscored, which is the current state of the database.
+
+    A scored row whose delta is NaN (first quarter, or a calendar gap) stays
+    STABLE, which is the tested behaviour.
+
     Returns a DataFrame with the original columns plus <dim>_trend columns
     containing string labels.
     """
@@ -285,6 +315,8 @@ def compute_trend_label(scores_df: pd.DataFrame) -> pd.DataFrame:
                     else "STABLE"
                 )
             )
+            if dim in result.columns:
+                result.loc[result[dim].isna(), trend_col] = "NO DATA"
 
     return result
 

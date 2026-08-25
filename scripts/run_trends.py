@@ -4,6 +4,10 @@ Usage:
     python scripts/run_trends.py                        # All companies
     python scripts/run_trends.py --company TCS          # Single company
     python scripts/run_trends.py --json                 # JSON output
+
+    # One comparable series: hold model and prompt version constant.
+    python scripts/run_trends.py --model openai/gpt-oss-120b \
+        --prompt-version evasiveness-v2
 """
 
 import argparse
@@ -34,12 +38,28 @@ def main():
         "--strict", action="store_true",
         help="Exit instead of reporting trends if any dimension spans multiple models",
     )
+    parser.add_argument(
+        "--model", metavar="NAME",
+        help="Restrict to scores from this model, e.g. openai/gpt-oss-120b. "
+             "The scores table holds several models; without this the newest "
+             "row per transcript wins and a delta can straddle a model switch.",
+    )
+    parser.add_argument(
+        "--prompt-version", metavar="VERSION",
+        help="Restrict to scores from this prompt version, e.g. evasiveness-v2. "
+             "Combine with --model to pin one comparable series.",
+    )
     args = parser.parse_args()
 
     conn = init_db(args.db)
-    comparability = check_score_comparability(conn)
+    comparability = check_score_comparability(
+        conn, model=args.model, prompt_version=args.prompt_version
+    )
     try:
-        scores_df = load_scores_from_db(conn, strict=args.strict)
+        scores_df = load_scores_from_db(
+            conn, strict=args.strict,
+            model=args.model, prompt_version=args.prompt_version,
+        )
     except ValueError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         conn.close()
@@ -66,6 +86,11 @@ def main():
             print(f"No scores found for {args.company}.", file=sys.stderr)
             sys.exit(1)
 
+    selected = [f"model={args.model}" if args.model else "",
+                f"prompt_version={args.prompt_version}" if args.prompt_version else ""]
+    active = ", ".join(x for x in selected if x)
+    if active:
+        print(f"Restricted to {active}.")
     print(f"Loaded {len(scores_df)} transcript(s) with scores.\n")
 
     # --- QoQ Deltas ---
