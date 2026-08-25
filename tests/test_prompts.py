@@ -36,6 +36,7 @@ from src.scoring.prompts import (
 PINNED_CHECKSUMS = {
     "evasiveness-v1": "da8e0d5b62db48e9",
     "evasiveness-v2": "61907d99214e7576",
+    "evasiveness-v3": "f305dbd1d3222b03",
     "sentiment_shift-v1": "e2ba8b7b902a57ad",
     "complexity_spike-v1": "452fe8203a617903",
     "overpromising-v1": "72db460f23494d1c",
@@ -144,3 +145,44 @@ class TestV2AddressesMeasuredFailures:
 
     def test_asks_for_proportion_not_worst_moment(self):
         assert "proportion" in self._v2()
+
+
+class TestV3ScoresOneExchangeAtATime:
+    """v3 exists to change the unit of judgement, not just the wording.
+
+    v1/v2 ask a ~2000-word window to judge the whole call and then average the
+    windows, which was measured to flatten every transcript to 5 or 6
+    (KNOWN_ISSUES.md BLOCKER-6). v3 asks about one analyst exchange at a time.
+    """
+
+    def _v3(self):
+        return get_prompt("evasiveness", "evasiveness-v3")[0].lower()
+
+    def test_scores_each_exchange_independently(self):
+        text = self._v3()
+        assert "each exchange on its own" in text
+        assert "do not blend them" in text
+
+    def test_demands_the_indexed_output_shape_the_parser_expects(self):
+        """The parser matches scores back to exchanges by number."""
+        text = get_prompt("evasiveness", "evasiveness-v3")[0]
+        assert '"exchange_scores"' in text
+        assert '"exchange"' in text
+        assert '"evasiveness_score"' in text
+
+    def test_keeps_the_reasoned_decline_distinction(self):
+        """The one thing v2 got right, confirmed against the human review."""
+        text = self._v3()
+        assert "refusing to disclose something is not the same" in text
+
+    def test_still_pushes_against_mid_scale_clustering(self):
+        assert "use the whole scale" in self._v3()
+
+    def test_still_tells_the_model_not_to_penalise_tone(self):
+        assert "tone is not evasiveness" in self._v3()
+
+    def test_default_is_not_v3(self):
+        """v3 is unmeasured. Switching the default would silently invalidate
+        the existing series -- the same rule that kept the default at v1 when
+        v2 landed."""
+        assert DEFAULT_VERSIONS["evasiveness"] != "evasiveness-v3"
