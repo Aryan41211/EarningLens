@@ -23,6 +23,7 @@ from src.scoring.complexity_spike import COMPLEXITY_SPIKE_SYSTEM_PROMPT
 from src.scoring.evasiveness import (
     EVASIVENESS_SYSTEM_PROMPT,
     EVASIVENESS_SYSTEM_PROMPT_V2,
+    EVASIVENESS_SYSTEM_PROMPT_V3,
 )
 from src.scoring.forward_guidance_vagueness import FORWARD_GUIDANCE_VAGUENESS_SYSTEM_PROMPT
 from src.scoring.overpromising import OVERPROMISING_SYSTEM_PROMPT
@@ -33,6 +34,12 @@ PROMPTS: dict[str, dict[str, str]] = {
     "evasiveness": {
         "evasiveness-v1": EVASIVENESS_SYSTEM_PROMPT,
         "evasiveness-v2": EVASIVENESS_SYSTEM_PROMPT_V2,
+        # v3 is not just different words: it changes the unit of judgement from
+        # a word-count batch to a single analyst exchange, so it routes through
+        # a different scorer. src.scoring.evasiveness.PER_EXCHANGE_VERSIONS is
+        # what makes that switch; adding a version here alone would send v3's
+        # prompt down the batch path and get one blended score back.
+        "evasiveness-v3": EVASIVENESS_SYSTEM_PROMPT_V3,
     },
     "sentiment_shift": {"sentiment_shift-v1": SENTIMENT_SHIFT_SYSTEM_PROMPT},
     "complexity_spike": {"complexity_spike-v1": COMPLEXITY_SPIKE_SYSTEM_PROMPT},
