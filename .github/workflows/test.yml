@@ -3,6 +3,7 @@ name: Tests
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
@@ -41,3 +42,49 @@ jobs:
           earningslens-score --list-prompts
           earningslens-ingest --dry-run
           earningslens-score --dry-run
+          earningslens-aggregators --help
+
+  # The dashboard is the deployed artifact, so the thing that deploys it has to
+  # build. A Dockerfile nothing builds in CI is a Dockerfile that works until
+  # the day you need it.
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t earningslens:ci .
+
+      # No secret may reach a layer. .env is gitignored, but Docker reads the
+      # filesystem rather than the git index, so only .dockerignore stops it.
+      - name: No API key baked into the image
+        run: |
+          test -z "$(docker run --rm --entrypoint sh earningslens:ci -c 'printenv LLM_API_KEY')"
+          ! docker run --rm --entrypoint sh earningslens:ci -c 'test -f /app/.env'
+
+      - name: Dashboard serves and reports healthy
+        run: |
+          docker run -d --name el -p 8501:8501 earningslens:ci
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8501/_stcore/health && break
+            sleep 2
+          done
+          curl -sf http://localhost:8501/_stcore/health
+          docker rm -f el
+
+  # The release gate. Runs on demand and on a version tag -- never on an
+  # ordinary push, because it is expected to FAIL for as long as KNOWN_ISSUES.md
+  # BLOCKER-6 is open, and that is the point: it makes "do not ship the
+  # credibility claim" mechanical instead of a sentence in a document.
+  #
+  # It reads notebooks/labels.csv only, so it needs no database and reproduces
+  # anywhere. Exit code 3 means at least one target in EVALUATION.md 3.2 was
+  # missed or could not be measured.
+  release-gate:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: python scripts/run_evaluation.py --dimension evasiveness --against reviewed
