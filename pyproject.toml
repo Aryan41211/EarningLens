@@ -77,6 +77,17 @@ testpaths = ["tests"]
 # bug in the test. See KNOWN_ISSUES.md HIGH-1.
 addopts = "-q"
 
+[tool.ruff.lint.per-file-ignores]
+# Every entry point bootstraps sys.path before it can import `config` or `src`
+# (PROJECT_RULES.md pins config.py at the repo root, so there is no installed
+# package to import from when running the file directly). That bootstrap has to
+# execute before the imports it enables, which is E402 by definition and has no
+# autofix -- so without this, `pre-commit install` makes any commit touching the
+# dashboard or a test uncommittable.
+"src/dashboard/app.py" = ["E402"]
+"tests/*.py" = ["E402"]
+"scripts/*.py" = ["E402"]
+
 [tool.mypy]
 python_version = "3.12"
 warn_return_any = true
