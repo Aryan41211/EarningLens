@@ -1,0 +1,24 @@
+# Server defaults for a deployed dashboard. The Dockerfile passes port and
+# address on the command line so a host-assigned $PORT still wins.
+[server]
+headless = true
+# Both left at their secure defaults. Setting enableCORS = false here (the
+# usual copy-paste for "it works behind a proxy") does not limit cross-origin
+# access at all -- Streamlit then sends 'Access-Control-Allow-Origin: *' and
+# still accepts a WebSocket from any origin, and XSRF protection does not stop
+# that. A deployed dashboard should keep both on.
+enableCORS = true
+enableXsrfProtection = true
+# Nothing edits source in a container, and polling a mounted volume is waste.
+fileWatcherType = "none"
+
+[browser]
+# Do not phone home usage stats from a deployment.
+gatherUsageStats = false
+
+[client]
+# Show the honest empty state and error text rather than a stack trace.
+showErrorDetails = "none"
+
+[theme]
+base = "light"

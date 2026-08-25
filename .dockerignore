@@ -1,0 +1,32 @@
+# Keep the build context small and the image free of things that must not ship.
+.git
+.github
+.venv
+venv
+__pycache__
+**/__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.deepeval
+*.egg-info
+
+# Secrets. .env is gitignored but Docker reads the filesystem, not the index,
+# so it would otherwise be copied straight into a layer.
+.env
+.env.*
+!.env.example
+
+# The database is data, not code: it is gitignored, rebuilt by scoring, and
+# holds scores that have not passed evaluation. It arrives via the volume mount
+# documented in the Dockerfile, so it is kept out of the image entirely.
+data/*.db
+data/*.db.bak-*
+data/*.sqbpro
+data/*.log
+data/raw_pdfs/*.pdf
+
+# The dashboard image does not run the test suite or the notebooks.
+tests
+notebooks/*.md
+notebooks/*.ipynb
