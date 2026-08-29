@@ -24,6 +24,7 @@ from src.scoring.evasiveness import (
     EVASIVENESS_SYSTEM_PROMPT,
     EVASIVENESS_SYSTEM_PROMPT_V2,
     EVASIVENESS_SYSTEM_PROMPT_V3,
+    EVASIVENESS_SYSTEM_PROMPT_V4,
 )
 from src.scoring.forward_guidance_vagueness import FORWARD_GUIDANCE_VAGUENESS_SYSTEM_PROMPT
 from src.scoring.overpromising import OVERPROMISING_SYSTEM_PROMPT
@@ -40,6 +41,7 @@ PROMPTS: dict[str, dict[str, str]] = {
         # what makes that switch; adding a version here alone would send v3's
         # prompt down the batch path and get one blended score back.
         "evasiveness-v3": EVASIVENESS_SYSTEM_PROMPT_V3,
+        "evasiveness-v4": EVASIVENESS_SYSTEM_PROMPT_V4,
     },
     "sentiment_shift": {"sentiment_shift-v1": SENTIMENT_SHIFT_SYSTEM_PROMPT},
     "complexity_spike": {"complexity_spike-v1": COMPLEXITY_SPIKE_SYSTEM_PROMPT},

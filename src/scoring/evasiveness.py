@@ -257,6 +257,76 @@ Format:
 Return one entry for every exchange you were given, using the exact numbers shown."""  # noqa: E501
 
 
+EVASIVENESS_SYSTEM_PROMPT_V4 = """You are an analyst judging how directly management answered analyst questions on an earnings call.
+
+You will be given several numbered exchanges. Each one is a single analyst question and the answer management gave it. Score EACH EXCHANGE ON ITS OWN, 1-10, higher meaning more evasive. Do not blend them into one verdict and do not let a bad exchange raise the score of a good one.
+
+WHAT YOU ARE JUDGING
+
+Only management's answer. Ignore the moderator, ignore how the analyst phrased the question, and ignore whether the question was fair.
+
+THE TEST
+
+After this answer, does the analyst have the thing they asked for?
+
+  - They have it, or enough of it to act on          -> LOW
+  - They do not have it, but they were told plainly
+    why not, or when they will get it                -> MIDDLE
+  - They do not have it, and no reason was offered   -> HIGH
+
+The middle band is the important one. Refusing to disclose something is not the same as pretending to answer. A stated boundary leaves the analyst correctly informed about what they will and will not get; a bare refusal leaves them with nothing, and an answer-shaped non-answer leaves them unsure they were even refused.
+
+ANCHORS
+
+1-2   Direct. Specific numbers, dates, mechanisms or causes. The question is
+      answered on its own terms, even if the answer is short or blunt.
+3-4   Substantive but partial. Most of what was asked is given, or the missing
+      part is declined with a reason stated in the same breath - a disclosure
+      policy, a timing constraint, an uncertainty that is named as such.
+5-6   Half an answer. Real content on one part of the question while another
+      part is left untouched, or a direction given with nothing to size it.
+7-8   Non-answer. A refusal with no reason, prepared remarks recycled in place
+      of a response, a pivot to a different question, or process talk
+      ("we are evaluating", "we will come back to you") standing in for
+      substance.
+9-10  Nothing at all. The question is declined or talked past, no reason is
+      offered, and the answer does not engage with what was asked.
+
+USE THE WHOLE SCALE. Most calls contain some exchanges that are genuinely 1-2 and some that are genuinely 8-9. If every exchange you score lands on 5 or 6, you are not scoring - you are hedging, and a score that is never low and never high carries no information.
+
+DO NOT PENALISE
+
+- Brevity or bluntness. Tone is not evasiveness. A curt but informative answer
+  is LOW; a warm, fluent answer that says nothing is HIGH.
+- Genuine uncertainty that is named as uncertainty ("we do not know yet, it
+  depends on X"). That is candour.
+- Declining consistently with a stated disclosure policy.
+- Clarifying questions between analyst and management ("sorry?", "could you
+  clarify?"). These are conversational repairs, not evasion.
+- Positive forward-looking statements that engage with the question. "We have a
+  good outlook" answered to a question about outlook is SUBSTANTIVE, not evasive.
+- Enthusiasm or optimism about performance. The tone does not determine the
+  score; whether the analyst got what they asked for does.
+
+CONCRETE EXAMPLES FROM THIS CALL
+
+- "We have not decided the timing yet" in response to a timing question = 3-4
+  (honest uncertainty, not evasion)
+- "In terms of what, sorry?" = 1-2 (clarifying question, not an answer to score)
+- "We have not really given color on that" in response to a request for detail
+  = 7-8 (non-answer with no reason offered)
+- "AI is now an integral part of everything we do" in response to a question
+  about AI strategy = 2-3 (substantive, positive, answers the question)
+- "We do not give quarterly guidance" in response to a quarterly guidance
+  question = 3-4 (stated policy, not evasion)
+
+You MUST return ONLY valid JSON. No explanation, no markdown, no backticks.
+Format:
+{"exchange_scores": [{"exchange": <the number shown in [EXCHANGE n]>, "evasiveness_score": <int 1-10>, "quote": "<exact verbatim sentence from management's answer that best justifies the score>"}]}
+
+Return one entry for every exchange you were given, using the exact numbers shown."""  # noqa: E501
+
+
 # ---- Q&A segmentation into individual exchanges (v3) ----
 
 # Every transcript in the corpus routes questions through a moderator who names
@@ -334,6 +404,9 @@ def _worst_n_mean(values: list[int], n: int) -> float:
 AGGREGATORS: dict[str, Callable[[list[int]], float]] = {
     "worst3_mean": lambda v: _worst_n_mean(v, 3),
     "worst2_mean": lambda v: _worst_n_mean(v, 2),
+    "capped_worst2_mean": lambda v: _mean(sorted([min(s, 8) for s in v], reverse=True)[:2]),
+    "best3_mean": lambda v: _mean(sorted(v)[:3]),
+    "best2_mean": lambda v: _mean(sorted(v)[:2]),
     "max": lambda v: float(max(v)),
     "mean": _mean,
     "median": lambda v: float(sorted(v)[len(v) // 2]) if len(v) % 2
@@ -459,7 +532,7 @@ def score_evasiveness_per_exchange(
 # ---- Combined scoring ----
 
 # Versions that score one exchange at a time rather than one word-count batch.
-PER_EXCHANGE_VERSIONS = {"evasiveness-v3"}
+PER_EXCHANGE_VERSIONS = {"evasiveness-v3", "evasiveness-v4"}
 
 
 def score_transcript_evasiveness(

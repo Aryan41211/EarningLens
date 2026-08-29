@@ -48,7 +48,7 @@ logger = logging.getLogger("earningslens")
 
 # Words of transcript per request. Matches the batch scorer's ceiling, which is
 # set by the free tier's 8000 TPM limit rather than by anything about quality.
-_BATCH_TARGET_WORDS = 2000
+_BATCH_TARGET_WORDS = 1500
 
 # Output budget. Each exchange costs roughly a score, an index and a short
 # quote; the floor covers the JSON scaffolding itself.

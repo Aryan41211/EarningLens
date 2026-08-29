@@ -37,6 +37,7 @@ PINNED_CHECKSUMS = {
     "evasiveness-v1": "da8e0d5b62db48e9",
     "evasiveness-v2": "61907d99214e7576",
     "evasiveness-v3": "f305dbd1d3222b03",
+    "evasiveness-v4": "700030f9db0aed18",
     "sentiment_shift-v1": "e2ba8b7b902a57ad",
     "complexity_spike-v1": "452fe8203a617903",
     "overpromising-v1": "72db460f23494d1c",
