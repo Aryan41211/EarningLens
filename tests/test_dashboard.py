@@ -5,7 +5,7 @@ to ignore the variant selector that the rest of the page respects -- showing a
 reader the quotes one model gave for a score a different model produced. That
 is the BLOCKER-2 failure mode surviving inside the fix for BLOCKER-2.
 
-Streamlit is an optional dependency (requirements-dashboard.txt), so these
+Streamlit is an optional dependency (the `[dashboard]` extra), so these
 skip cleanly when it is absent.
 """
 

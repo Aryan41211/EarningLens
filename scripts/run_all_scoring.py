@@ -1,4 +1,4 @@
-﻿"""
+"""
 Unified end-to-end scoring runner for all 5 dimensions.
 
 Runs evasiveness, sentiment_shift, complexity_spike, overpromising,
@@ -299,12 +299,16 @@ def main():
 
     # A sweep that scored almost nothing must not look like a success. The
     # previous version exited 0 with '2 fully succeeded, 9 had failures'.
+    # Count is relative to the dimensions the run actually requested, so a
+    # single-dimension sweep is not mislabelled "incomplete" because the other
+    # four were never asked for.
+    _n_requested = len(dimensions)
     incomplete = conn.execute("""
         SELECT COUNT(*) FROM (
             SELECT company, quarter, year FROM scores
-            GROUP BY company, quarter, year HAVING COUNT(DISTINCT dimension) < 5
+            GROUP BY company, quarter, year HAVING COUNT(DISTINCT dimension) < ?
         )
-    """).fetchone()[0]
+    """, (_n_requested,)).fetchone()[0]
     conn.close()
 
     if quota_exhausted:
@@ -315,7 +319,10 @@ def main():
         )
         sys.exit(3)
     if fail_count:
-        print(f"\n{fail_count} transcript(s) did not score all 5 dimensions.", file=sys.stderr)
+        print(
+            f"\n{fail_count} transcript(s) did not score all {_n_requested} requested dimension(s).",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
 

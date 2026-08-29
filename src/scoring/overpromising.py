@@ -52,10 +52,12 @@ def score_overpromising_llm(
     chunks: list[str], model: str | None = None, prompt_version: str | None = None
 ) -> dict:
     """Score overpromising using LLM API."""
+    from src.scoring.prompts import get_prompt
+    system_prompt, _ = get_prompt("overpromising", prompt_version)
     return score_dimension_llm(
         chunks,
         dimension_name="overpromising",
-        system_prompt=OVERPROMISING_SYSTEM_PROMPT,
+        system_prompt=system_prompt,
         score_key=_SCORE_KEY,
         user_prompt_instruction=_USER_INSTRUCTION,
         model=model,

@@ -51,10 +51,12 @@ def score_complexity_spike_llm(
     chunks: list[str], model: str | None = None, prompt_version: str | None = None
 ) -> dict:
     """Score complexity spike using LLM API."""
+    from src.scoring.prompts import get_prompt
+    system_prompt, _ = get_prompt("complexity_spike", prompt_version)
     return score_dimension_llm(
         chunks,
         dimension_name="complexity_spike",
-        system_prompt=COMPLEXITY_SPIKE_SYSTEM_PROMPT,
+        system_prompt=system_prompt,
         score_key=_SCORE_KEY,
         user_prompt_instruction=_USER_INSTRUCTION,
         model=model,

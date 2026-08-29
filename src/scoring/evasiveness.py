@@ -360,20 +360,6 @@ def aggregate_exchange_scores(
     return max(1, min(10, round(AGGREGATORS[method](scores))))
 
 
-def _build_qa_prompt(chunks: list[str]) -> str:
-    """Build the user prompt from Q&A chunks, preserving speaker labels."""
-    transcript_text = "\n\n".join(chunks)
-    return (
-        "Below is the Q&A section of an earnings call transcript. "
-        "Each chunk begins with the speaker's name followed by a colon.\n\n"
-        "Score management evasiveness based on how directly management answers "
-        "the analysts' questions. Focus on management responses (speakers with names "
-        "like Krithivasan, Seksaria, Lakkad, Parekh, Roy — not analyst names or Moderator).\n\n"
-        "TRANSCRIPT:\n\n"
-        f"{transcript_text}"
-    )
-
-
 def score_evasiveness_llm(
     chunks: list[str], model: str | None = None, prompt_version: str | None = None
 ) -> dict:

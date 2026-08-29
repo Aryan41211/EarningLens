@@ -93,6 +93,19 @@ def main():
         write_processed_text(filename, cleaned)
         chunks = chunk_text(cleaned, target_words=CHUNK_TARGET_WORDS)
 
+        if not chunks:
+            # A PDF can pass the raw word-count check but lose everything during
+            # cleaning (all boilerplate / references / safe-harbor text). Writing
+            # zero chunks would DELETE the existing ingest for this
+            # (company, quarter, year) and re-insert nothing -- silent data loss,
+            # the same class as KNOWN_ISSUES.md HIGH-2. Skip and keep what is there.
+            logger.warning(
+                "Cleaning produced no chunks for %s %s %s (%s) — "
+                "skipping; existing ingest preserved.",
+                company, quarter, year, filename,
+            )
+            continue
+
         store_transcript(conn, company, quarter, year, chunks, filename)
 
         logger.info(

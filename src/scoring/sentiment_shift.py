@@ -49,10 +49,12 @@ def score_sentiment_shift_llm(
     chunks: list[str], model: str | None = None, prompt_version: str | None = None
 ) -> dict:
     """Score sentiment shift using LLM API."""
+    from src.scoring.prompts import get_prompt
+    system_prompt, _ = get_prompt("sentiment_shift", prompt_version)
     return score_dimension_llm(
         chunks,
         dimension_name="sentiment_shift",
-        system_prompt=SENTIMENT_SHIFT_SYSTEM_PROMPT,
+        system_prompt=system_prompt,
         score_key=_SCORE_KEY,
         user_prompt_instruction=_USER_INSTRUCTION,
         model=model,

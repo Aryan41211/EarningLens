@@ -214,7 +214,16 @@ def store_score(conn, transcript_id, dimension, score, supporting_quotes, model_
     identity = cur.execute(
         "SELECT company, quarter, year FROM transcripts WHERE id = ?", (transcript_id,)
     ).fetchone()
-    company, quarter, year = identity if identity else (None, None, None)
+    # A stale transcript_id must fail loudly, not write a row with NULL
+    # identity: SQLite treats NULLs as distinct in a UNIQUE index, so the
+    # ON CONFLICT below would never fire and every call would append another
+    # invisible row (get_scores/get_scored_on_model filter company IS NOT NULL).
+    if identity is None:
+        raise ValueError(
+            f"store_score: transcript_id {transcript_id!r} does not match any "
+            "transcript; refusing to write an orphaned score"
+        )
+    company, quarter, year = identity
     # Upsert on the full variant identity: re-running the same (model, prompt)
     # updates in place, while a different model or prompt version is stored
     # alongside rather than overwriting the series it should be compared to.

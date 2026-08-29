@@ -465,6 +465,41 @@ def test_store_score_upsert():
         os.unlink(path)
 
 
+def test_store_score_stale_transcript_id_raises():
+    """A transcript_id that matches no transcript must fail loudly, not write a
+    NULL-identity row.
+
+    Regression (F5): previously a stale id produced company/quarter/year = NULL,
+    and because SQLite treats NULLs as distinct in a UNIQUE index the
+    ON CONFLICT never fired -- every call appended another invisible row that
+    get_scores/get_scored_on_model filter out. Silent garbage accumulation.
+    """
+    import tempfile
+    import os
+    from src.storage.db import init_db, store_transcript, store_score
+
+    fd, path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    try:
+        conn = init_db(path)
+        # One real transcript, so the DB is not empty; 999 is a non-existent id.
+        store_transcript(conn, "TCS", "Q1", 2025, ["chunk text here"], "TCS_Q1_2025.pdf")
+
+        try:
+            store_score(conn, 999, "evasiveness", 7, ["q"], "m", "v1", "r")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("store_score should have raised for a stale transcript_id")
+
+        # Size check: no orphan row may have been written.
+        n_scores = conn.execute("SELECT COUNT(*) FROM scores").fetchone()[0]
+        assert n_scores == 0, "a stale-transcript store_score must not write a row"
+        conn.close()
+    finally:
+        os.unlink(path)
+
+
 # ===========================================================
 # orchestrator import test
 # ===========================================================
@@ -627,3 +662,63 @@ def test_scores_remain_readable_by_identity_after_reingest():
     assert joined == 0, "precondition: the rowid join is genuinely broken"
     assert by_identity == 1, "identity read must still find the score"
     conn.close()
+
+
+# ===========================================================
+# Each scorer routes its system prompt through the version registry
+# (F1: prompt_version must be honored, not silently dropped)
+# ===========================================================
+
+def test_non_evasiveness_scorers_route_system_prompt_through_registry():
+    """The four non-evasiveness scorers must resolve their system prompt through
+    `prompts.get_prompt()`, not hardcode a module constant.
+
+    Regression: each `score_<dim>_llm` accepted `prompt_version`, forwarded it,
+    and then dropped it -- calling `score_dimension_llm` with the hardcoded
+    `*_SYSTEM_PROMPT` constant. Today that is correct only because each
+    dimension registers exactly one version whose prompt IS that constant. The
+    moment a `-v2` is registered, the stored `prompt_version` would say v2 while
+    the text actually sent was still v1 -- the exact incomparability the registry
+    exists to prevent (prompts.py header).
+
+    This test patches `get_prompt` to return a sentinel and asserts that sentinel
+    reaches the LLM call. It fails if the scorer ignores the registry (uses the
+    constant) and passes once the prompt is routed through the registry.
+    """
+    import importlib
+    from unittest.mock import patch
+
+    from src.scoring.prompts import get_prompt as real_get_prompt
+
+    dim_to_module = {
+        "sentiment_shift": "src.scoring.sentiment_shift",
+        "complexity_spike": "src.scoring.complexity_spike",
+        "overpromising": "src.scoring.overpromising",
+        "forward_guidance_vagueness": "src.scoring.forward_guidance_vagueness",
+    }
+
+    sentinel = "SENTINEL-FROM-REGISTRY"
+    seen = {}
+
+    def _capture_dimension_llm(module_path, dimension):
+        mod = importlib.import_module(module_path)
+        fn = getattr(mod, f"score_{dimension}_llm")
+
+        def _dummy(chunks, **kwargs):
+            seen[dimension] = kwargs.get("system_prompt")
+            return {"llm_result": {}}
+
+        with patch.object(mod, "score_dimension_llm", side_effect=_dummy), patch(
+            "src.scoring.prompts.get_prompt", return_value=(sentinel, f"{dimension}-v1")
+        ):
+            fn(["chunk"], prompt_version=None)
+        return seen
+
+    for dimension, module_path in dim_to_module.items():
+        seen = _capture_dimension_llm(module_path, dimension)
+        assert seen[dimension] == sentinel, (
+            f"{dimension} did not send the registry prompt (dropped prompt_version?)"
+        )
+
+    # Sanity: the sentinel is genuinely a replacement, not the real default.
+    assert sentinel != real_get_prompt("sentiment_shift")[0]
