@@ -260,7 +260,7 @@ To serve it beyond localhost, see section 10.
 ## 5. Tests
 
 ```bash
-python -m pytest tests/ -q          # 189 tests
+python -m pytest tests/ -q          # 241 tests (measured 2026-08-29)
 python -m pytest tests/test_trends.py -v
 ```
 
@@ -457,8 +457,13 @@ section 2, then restart the container to pick up the new database.
 | `test` | every push/PR | pytest, mypy, `compileall scripts/`, every console script starts |
 | `image` | every push/PR | the image builds, holds no `.env` or `LLM_API_KEY`, and serves a healthy dashboard |
 | `release-gate` | `workflow_dispatch` and `v*` tags | the evaluation gate above |
+| `image-publish` | `workflow_dispatch` and `v*` tags, after `release-gate` | builds and pushes `$DOCKERHUB_USERNAME/earningslens` to Docker Hub as `{version}` and `latest` |
 
-`release-gate` is deliberately kept off ordinary pushes: it is expected to fail
-while BLOCKER-6 is open, so running it on every commit would train everyone to
-ignore a red build. On a version tag it does the one job it exists for — it
-stops the release.
+Both `release-gate`-dependent jobs (`release-gate`, `image-publish`) are kept
+off ordinary pushes for the same reason — while BLOCKER-6 is open `release-gate`
+fails and `image-publish` is skipped, so CI topology, not convention, stops a
+pre-evaluation image from being published.
+
+Secrets to configure for publishing:
+`DOCKERHUB_USERNAME` (the Docker Hub account owning the repo) and
+`DOCKERHUB_TOKEN` (a fine-grained write token).

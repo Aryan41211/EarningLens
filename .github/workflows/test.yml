@@ -88,3 +88,56 @@ jobs:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
       - run: python scripts/run_evaluation.py --dimension evasiveness --against reviewed
+
+  # The release itself. Build and push the dashboard image to Docker Hub on a
+  # version tag (or on demand), gated on the release gate passing.
+  #
+  # Secrets required at org/repo level:
+  #   DOCKERHUB_USERNAME -- Docker Hub account that owns the `earningslens` repo
+  #   DOCKERHUB_TOKEN     -- a fine-grained write token for that repo
+  #
+  # The gate is deliberately a dependency: this job will not run its payload
+  # until the `release-gate` job above has succeeded. While KNOWN_ISSUES.md
+  # BLOCKER-6 is open the gate exits 3 and the gate job fails, so this job is
+  # skipped and nothing is pushed -- the "do not ship the credibility claim"
+  # rule is enforced by CI topology, not a sentence.
+  image-publish:
+    needs: release-gate
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      # One definition, available to every later step via the environment.
+      # On a `v*` tag GITHUB_REF_NAME is the tag (e.g. v0.5.0); on a manual
+      # dispatch it is a branch name, so fall back to the latest tag.
+      - name: Define image tag
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="$(git describe --tags --abbrev=0 2>/dev/null || echo 0.0.0-dev)"
+            VERSION="${VERSION#v}"
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+
+      # Build what the `image` job proved works -- publish exactly what CI
+      # verified, not a fresh re-derivation.
+      - name: Build image
+        run: docker build -t "earningslens:${VERSION}" .
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Tag and push (version + latest)
+        run: |
+          IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/earningslens"
+          docker tag "earningslens:${VERSION}" "${IMAGE}:${VERSION}"
+          docker tag "earningslens:${VERSION}" "${IMAGE}:latest"
+          docker push "${IMAGE}:${VERSION}"
+          docker push "${IMAGE}:latest"
