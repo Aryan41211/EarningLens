@@ -390,6 +390,60 @@ for co, q, y, raw in c.execute(\"SELECT company,quarter,year,raw_llm_response FR
 "
 ```
 
+### The full evasiveness-v3 campaign, end to end
+
+These are the exact commands to run the unmeasured `evasiveness-v3` sweep,
+re-aggregate it, and re-run the gate. Everything but step 3 (the sweep) is free
+and offline. This is the path that decides whether v3 clears BLOCKER-6.
+
+1. Set the key (new shells, or put it in the gitignored `.env`):
+   ```bash
+   setx LLM_API_KEY "sk-..."
+   ```
+
+2. Preview the cost without burning quota:
+   ```bash
+   python scripts/run_all_scoring.py --dimension evasiveness \
+       --prompt-version evasiveness-v3 --dry-run
+   # -> 11 scores, ~220,000 tokens, ~1.1 days of free-tier budget
+   ```
+
+3. Run the v3 sweep. Resume after a daily reset with `--skip-scored` (never
+   re-pays finished work), or let `earningslens-resume` run it unattended:
+   ```bash
+   python scripts/run_all_scoring.py --dimension evasiveness \
+       --prompt-version evasiveness-v3
+   python scripts/resume_sweep.py --dimension evasiveness \
+       --prompt-version evasiveness-v3 --wait-minutes 18 --max-hours 20
+   ```
+
+4. Aggregate + measure, no LLM calls:
+   ```bash
+   earningslens-aggregators --dimension evasiveness --prompt-version evasiveness-v3
+   ```
+   Read `spread` and `Spearman`:
+   - spread ~ 0 under every aggregator -> the model does not discriminate at the
+     exchange level either -> the rubric, not the aggregation, is the problem.
+   - healthy spread, Spearman still negative -> v3 separates transcripts but
+     disagrees with the reviewer -> suspect the rubric and read HIGH-10: the
+     labels score three quotes, not the whole call.
+
+5. Run the gate on the v3 slice:
+   ```bash
+   python scripts/run_evaluation.py --dimension evasiveness \
+       --model openai/gpt-oss-120b --prompt-version evasiveness-v3
+   ```
+
+6. The likely real blocker is HIGH-10, not the model. Each label scores three
+   selected quotes while the LLM scores the whole call. Signal that the labels
+   are incommensurable -> have a reviewer score a whole call (or the same
+   exchanges v3 scores) so the comparison is apples-to-apples. This is human
+   work; do not fabricate labels.
+
+7. Ship only on exit 0 (all four targets met in EVALUATION.md § 3.2). Until
+   then the tool is for looking at data, not for credibility claims. `--no-gate`
+   is for exploration, never a release step.
+
 ---
 
 ## 10. Deployment
