@@ -48,10 +48,9 @@ def get_sample_transcript(conn, company=None, year=None, quarter=None):
 
 
 def score_all_dimensions(chunks):
-    """Score all 5 dimensions on a set of chunks."""
+    """Score all registered dimensions on a set of chunks."""
     results = {}
-    for dimension in ["evasiveness", "sentiment_shift", "complexity_spike",
-                       "overpromising", "forward_guidance_vagueness"]:
+    for dimension in DIMENSION_MODULES:
         scorer = DIMENSION_MODULES[dimension]
         result = scorer(chunks)
         results[dimension] = result

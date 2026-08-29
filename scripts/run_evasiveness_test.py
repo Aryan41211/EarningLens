@@ -6,7 +6,9 @@ Displays keyword counts, matched phrases, LLM scores, and supporting quotes.
 
 Usage:
     python scripts/run_evasiveness_test.py TCS
-    python scripts/run_evasiveness_test.py INFY
+    python scripts/run_evasiveness_test.py INFY --year 2025 --quarter Q4
+    python scripts/run_evasiveness_test.py TCS --prompt-version evasiveness-v3
+    python scripts/run_evasiveness_test.py TCS --prompt-version evasiveness-v3 --aggregator worst3_mean
 """
 
 import sys
@@ -21,14 +23,21 @@ from src.scoring.evasiveness import (
     score_transcript_evasiveness,
     score_evasiveness_keywords,
     find_qa_start_index,
+    DEFAULT_AGGREGATOR,
 )
+from src.scoring.prompts import resolve_version
 from src.utils.logging import setup_logger
 
 
 setup_logger(LOG_PATH)
 
 
-def run_company(conn, company: str, *, year: str | None = None, quarter: str | None = None) -> None:
+def run_company(
+    conn, company: str, *, prompt_version: str | None = None,
+    aggregator: str = DEFAULT_AGGREGATOR, year: str | None = None,
+    quarter: str | None = None,
+) -> None:
+    resolved = resolve_version("evasiveness", prompt_version)
     quarters = ["Q1", "Q2", "Q3", "Q4"]
 
     if quarter:
@@ -46,12 +55,15 @@ def run_company(conn, company: str, *, year: str | None = None, quarter: str | N
         ).fetchall()
     ))
 
+    if year is not None:
+        years = [y for y in years if y == year]
+
     if not years:
         print(f"No transcripts found for {company}")
         return
 
     print("=" * 72)
-    print(f"EVASIVENESS SCORING -- {company} (All Quarters)")
+    print(f"EVASIVENESS SCORING -- {company} (prompt_version={resolved})")
     print("=" * 72)
 
     for year in years:
@@ -85,7 +97,9 @@ def run_company(conn, company: str, *, year: str | None = None, quarter: str | N
             # One LLM call is executed inside score_transcript_evasiveness()
             # when Q&A is detected. Time that call here.
             t0 = time.time()
-            full = score_transcript_evasiveness(chunk_texts)
+            full = score_transcript_evasiveness(
+                chunk_texts, prompt_version=prompt_version, aggregator=aggregator
+            )
             elapsed = time.time() - t0
 
             if full["qa_detected"]:
@@ -118,7 +132,7 @@ def run_company(conn, company: str, *, year: str | None = None, quarter: str | N
                     # ---- FIX A: Persist to scoring_runs table ----
                     # Get the transcript_id (first chunk's row ID serves as transcript identifier)
                     transcript_id = chunks[0][0]
-                    prompt_version = "evasiveness-v1"
+                    prompt_version = resolved
                     raw_response = llm.get("raw_response", "")
                     store_scoring_run(
                         conn,
@@ -160,20 +174,32 @@ def run_company(conn, company: str, *, year: str | None = None, quarter: str | N
 def main():
     company = sys.argv[1] if len(sys.argv) > 1 else "TCS"
 
-    # Optional CLI args (for single-quarter runs without changing scoring logic)
+    # Optional CLI args (for targeted runs without changing scoring logic)
     # Usage:
     #   python scripts/run_evasiveness_test.py TCS --year 2025 --quarter Q4
-    year = None
-    quarter = None
-    if "--year" in sys.argv:
-        idx = sys.argv.index("--year")
-        year = int(sys.argv[idx + 1])
-    if "--quarter" in sys.argv:
-        idx = sys.argv.index("--quarter")
-        quarter = sys.argv[idx + 1]
+    #   python scripts/run_evasiveness_test.py TCS --prompt-version evasiveness-v3
+    #   python scripts/run_evasiveness_test.py TCS --prompt-version evasiveness-v3 --aggregator worst3_mean
+    def _flag_value(name: str):
+        if name in sys.argv:
+            idx = sys.argv.index(name)
+            if idx + 1 < len(sys.argv):
+                return sys.argv[idx + 1]
+        return None
+
+    year = _flag_value("--year")
+    quarter = _flag_value("--quarter")
+    prompt_version = _flag_value("--prompt-version")
+    aggregator = _flag_value("--aggregator") or DEFAULT_AGGREGATOR
+
+    if year is not None:
+        year = int(year)
 
     conn = init_db(str(DB_PATH))
-    run_company(conn, company, year=year, quarter=quarter)
+    run_company(
+        conn, company,
+        prompt_version=prompt_version, aggregator=aggregator,
+        year=year, quarter=quarter,
+    )
     conn.close()
 
 
