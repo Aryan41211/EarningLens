@@ -41,6 +41,7 @@ import pandas as pd
 
 from config import DB_PATH, LLM_MODEL_NAME, LOG_PATH, NOTEBOOKS_DIR, SCORE_DIMENSIONS
 from src.storage.db import init_db
+from src.scoring.evasiveness import AGGREGATORS, aggregate_exchange_scores
 from src.evaluation import (
     GATE_PASS,
     TARGETS,
@@ -62,10 +63,12 @@ def load_scores(
     dimensions: list[str],
     prompt_version: str | None = None,
     model_name: str | None = None,
+    aggregator: str | None = None,
 ) -> pd.DataFrame:
     placeholders = ",".join("?" * len(dimensions))
     sql = f"""
-        SELECT company, quarter, year, dimension, score, model_name, prompt_version
+        SELECT company, quarter, year, dimension, score, model_name, prompt_version,
+               raw_llm_response
         FROM scores
         WHERE dimension IN ({placeholders}) AND company IS NOT NULL
     """
@@ -76,7 +79,29 @@ def load_scores(
     if model_name:
         sql += " AND model_name = ?"
         params.append(model_name)
-    return pd.read_sql_query(sql, conn, params=params)
+    df = pd.read_sql_query(sql, conn, params=params)
+
+    if aggregator and not df.empty:
+        if aggregator not in AGGREGATORS:
+            valid = ", ".join(sorted(AGGREGATORS))
+            print(f"Unknown aggregator {aggregator!r}. Valid: {valid}", file=sys.stderr)
+            sys.exit(1)
+        new_scores = []
+        for _, row in df.iterrows():
+            raw = row["raw_llm_response"]
+            try:
+                parsed = json.loads(raw)
+                exchange_scores = parsed.get("exchange_scores", [])
+                values = [e.get("evasiveness_score", e.get("score")) for e in exchange_scores]
+                values = [v for v in values if v is not None]
+                agg = aggregate_exchange_scores(values, aggregator) if values else row["score"]
+            except (json.JSONDecodeError, TypeError):
+                agg = row["score"]
+            new_scores.append(agg)
+        df = df.copy()
+        df["score"] = new_scores
+
+    return df
 
 
 def _fmt(value: float | None, metric: str) -> str:
@@ -239,6 +264,11 @@ def main():
     parser.add_argument("--allow-mixed-models", action="store_true",
                         help="Evaluate even where a dimension spans multiple models. "
                              "The result measures the model mix, not the company.")
+    parser.add_argument("--aggregator", metavar="METHOD",
+                        help="Re-aggregate stored per-exchange scores under this method "
+                             "instead of using the stored score column. Only applies to "
+                             "--against db. Use compare_aggregators.py to preview which "
+                             "methods are worth testing.")
     args = parser.parse_args()
 
     dimensions = args.dimension or list(SCORE_DIMENSIONS)
@@ -286,7 +316,7 @@ def main():
         conn = init_db(args.db)
         paired_by_version: dict[str, pd.DataFrame] = {}
         for version in args.compare:
-            version_scores = load_scores(conn, [dimension], version, compare_model)
+            version_scores = load_scores(conn, [dimension], version, compare_model, args.aggregator)
             if version_scores.empty:
                 print(f"No {version} scores on {compare_model} - score it before comparing.",
                       file=sys.stderr)
@@ -348,7 +378,7 @@ def main():
         contaminated = check_score_comparability(
             conn, model=args.model, prompt_version=args.prompt_version
         )
-        scores = load_scores(conn, dimensions, args.prompt_version, args.model)
+        scores = load_scores(conn, dimensions, args.prompt_version, args.model, args.aggregator)
         conn.close()
 
     if not contaminated.empty:

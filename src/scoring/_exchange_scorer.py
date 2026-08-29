@@ -52,9 +52,9 @@ _BATCH_TARGET_WORDS = 2000
 
 # Output budget. Each exchange costs roughly a score, an index and a short
 # quote; the floor covers the JSON scaffolding itself.
-_TOKENS_PER_EXCHANGE = 140
+_TOKENS_PER_EXCHANGE = 250
 _MIN_OUTPUT_TOKENS = 500
-_MAX_OUTPUT_TOKENS = 3000
+_MAX_OUTPUT_TOKENS = 6000
 
 
 def _output_budget(n_exchanges: int) -> int:
