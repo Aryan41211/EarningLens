@@ -201,7 +201,9 @@ def get_chunks(conn, company: str, quarter: str | None = None, year: int | None 
 
 
 def store_score(conn, transcript_id, dimension, score, supporting_quotes, model_name, prompt_version, raw_response):
-    """Persist a single dimension score. Uses INSERT OR REPLACE to handle re-scoring.
+    """Persist a single dimension score. Upserts (ON CONFLICT ... DO UPDATE) on
+    the full (company, quarter, year, dimension, model_name, prompt_version)
+    identity, so re-scoring the same variant updates in place.
 
     (company, quarter, year) is resolved from transcript_id and stored on the row
     so the score keeps its identity if the transcript is later re-ingested and

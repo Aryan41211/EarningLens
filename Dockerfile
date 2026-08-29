@@ -28,6 +28,7 @@ COPY src/__init__.py ./src/
 RUN pip install --no-cache-dir \
         "pymupdf>=1.28.0,<2.0" \
         "pandas>=2.2.2,<3.0" \
+        "numpy>=1.26.0,<3.0" \
         "python-dotenv>=1.2.1,<2.0" \
         "openai>=2.44.0,<3.0" \
         "streamlit>=1.56.0,<2.0" \

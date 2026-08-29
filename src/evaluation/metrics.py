@@ -115,8 +115,6 @@ def directional_agreement(paired: pd.DataFrame) -> tuple[float | None, int]:
     if adjacent.empty:
         return None, 0
 
-    import numpy as np
-
     agree = np.sign(adjacent["_llm_delta"]) == np.sign(adjacent["_human_delta"])
     return float(agree.mean()), int(len(adjacent))
 
