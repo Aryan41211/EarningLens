@@ -35,6 +35,10 @@ and history live in `PROJECT_MEMORY.md`; forward plans live in `ROADMAP.md`.
 | HIGH-10 — the human labels score 3 quotes, the LLM scores the whole call; the two were compared as if commensurable | HIGH | ⛔ Open — needs new labels; documented 2026-08-25 |
 | **BLOCKER-6 — the scorer does not discriminate: on the cleanest slice it fails all four targets, Spearman −0.73** | **BLOCKER** | ⛔ **Open — cause partly corrected 2026-08-25; `evasiveness-v3` built but unmeasured** |
 | HIGH-11 — scipy was an undeclared dependency: the suite (and the release gate) crashed in a clean CI environment | HIGH | ✅ Fixed 2026-08-29 — pure-pandas Spearman + tie-behaviour tests |
+| Second-audit round: H1 dead `--year` flag, M3 413-as-rate-limit, L5 retry-after regex, L6 empty-batch, M1 undeclared numpy, L2 hardcoded dimension list, L1 upsert docstring | MIXED | ✅ Fixed 2026-08-29 — see below |
+| Manifest drift: `requirements.txt`/`requirements-dashboard.txt` duplicated `pyproject.toml` and drifted (numpy missing, pytest bundled) | MEDIUM | ✅ Fixed 2026-08-29 — files removed, pyproject is the single source of truth |
+| `FINDINGS_DIR` flagged as dead | LOW | ✅ Reviewed 2026-08-29 — kept deliberately: it names the tracked `data/findings/` path |
+| Audit round 3: F1 `prompt_version` dropped by 4 scorers, F2 phase1 silent deletes, F3 hardcoded 5-dimension count, F4 dead `_build_qa_prompt`, F5 stale `transcript_id` orphan rows | MEDIUM | ✅ Fixed 2026-08-29 — see below |
 
 Descriptions below are kept as originally written, so the reasoning that led
 to each fix stays on record.
@@ -891,6 +895,100 @@ tests. No dependency added; the docstring now states the promise the code keeps.
 
 Verified: with scipy's import blocked, `src.evaluation` and
 `scripts/run_evaluation` import and compute Spearman correctly.
+
+---
+
+## Second audit round (2026-08-29) — scorer hardening, script flags, dependency fixes
+
+The remaining verified findings from the second audit pass, all fixed:
+
+- **H1 — `--year` in `run_evasiveness_test.py` was silently dead.** The loop
+  `for year in years:` rebound the parameter before it was read, so the flag
+  never had any effect. The loop now filters on the requested year.
+- **M2 — the evasiveness runner hardcoded `prompt_version = "evasiveness-v1"`**
+  and offered no way to select v3. It now honours `--prompt-version` and
+  `--aggregator`, so a v3 per-exchange sweep is CLI-selectable.
+- **M3 — a 413 was treated as a rate limit.** A 413 is a request-shape/payload
+  error and will not clear after a wait; retrying burned the whole backoff
+  budget and mislabelled the cause. It now raises immediately.
+- **L5 — the retry-after parser only matched "try again in …".** It now also
+  matches "retry in …", which Groq actually emits.
+- **L6 — `_batch_chunks([])` returned `[[]]`**, so an empty transcript reached
+  the LLM as a zero-chunk request it answered by guessing. It now returns `[]`.
+- **M1 — numpy was an undeclared direct dependency** (HIGH-11's lesson). Now
+  declared in `pyproject.toml` and the `Dockerfile`; duplicate import removed.
+- **L2 — `run_validation_sample.py` hardcoded the five dimension names**
+  instead of iterating `DIMENSION_MODULES` — a diverging copy of the registry.
+- **L1 — `store_score` docstring said "INSERT OR REPLACE"** but the query is an
+  `ON CONFLICT ... DO UPDATE` upsert. The docstring now describes the reality.
+
+Covered by `tests/test_llm_scorer_helpers.py` (batching + retry-after) plus the
+existing suite; suite is 250 tests, `mypy src/` clean across 24 files.
+
+---
+
+## Manifest consolidation (2026-08-29) — one source of truth for dependencies
+
+`requirements.txt` and `requirements-dashboard.txt` duplicated
+`pyproject.toml`'s dependencies and drifted from it — numpy entered the code
+before it reached either file, and `requirements.txt` bundled `pytest` (a dev
+tool) into a runtime-looking list. This is the same failure class as HIGH-11 and
+HIGH-1: a claim (here, the dependency set) that nothing enforced.
+
+**Fixed by removing the parallel files.** `pyproject.toml` is now the single
+source of truth, with `[dev]` and `[dashboard]` extras. No code, CI, or build
+consumed the requirements files (CI and README already installed via the
+extras; the `Dockerfile` carries its own list); only `RUNBOOK.md`,
+`DEVELOPMENT_GUIDE.md`, `TECH_STACK.md`, and a `test_dashboard.py` header
+comment referenced them, and all now point at the extras.
+
+**`FINDINGS_DIR` (config.py), flagged as dead, was kept deliberately.** It is
+the canonical path to `data/findings/`, the project's tracked findings template
+(`data/findings/findings.md`), referenced from README. Nothing writes it yet
+because filling it requires a validated score series — `config.py`'s contract is
+to be the single home for paths, which a path pointing at a real, tracked
+directory satisfies. Removing it would orphan a documented location; keeping it
+with intent recorded.
+
+---
+
+## Audit round 3 (2026-08-29) — version-aware prompts, ingest & storage guards
+
+A fresh read-only pass over `src/`, `scripts/`, `config.py`, and `tests/`
+found five more genuine defects, all fixed:
+
+- **F1 (`prompt_version` silently dropped, MEDIUM) — the four non-evasiveness
+  scorers accepted and forwarded `prompt_version` but then made the LLM call
+  with a hardcoded module-level prompt constant.** Correct today only because
+  each dimension registers exactly one version whose text is that constant. The
+  moment a `-v2` is registered (prompts.py's documented workflow), the stored
+  `scores.prompt_version` would say v2 while the text actually sent was still
+  v1 — precisely the incomparability the registry was built to prevent. All four
+  now resolve their system prompt through `prompts.get_prompt()`, mirroring
+  `evasiveness.py`. Pinned by a test that patches `get_prompt` to a sentinel and
+  asserts it reaches `score_dimension_llm` (fails if the scorer uses the
+  constant).
+- **F2 (phase1 silent deletes, MEDIUM)** — `run_phase1.py` passed `chunks` to
+  `store_transcript`, which DELETEs-then-INSERTs. A PDF that passes the raw
+  word-count check but whose text is stripped entirely during cleaning yields
+  `[]`, deleting the existing rows for that `(company, quarter, year)` with no
+  error. The ingest loop now skips with a WARNING and preserves the existing
+  data. Same failure class as HIGH-2.
+- **F3 (hardcoded 5-dimension count, LOW)** — `run_all_scoring.py` counted
+  `COUNT(DISTINCT dimension) < 5` and printed "did not score all 5 dimensions",
+  mislabelling single-dimension sweeps as incomplete. Both now use
+  `len(dimensions)`.
+- **F4 (dead code, LOW)** — `_build_qa_prompt` in `evasiveness.py` was defined
+  but never called (the batch path builds its prompt in the shared scorer).
+  Removed.
+- **F5 (stale `transcript_id` orphan rows, LOW)** — `store_score` mapped an
+  unresolvable `transcript_id` to `(None, None, None)`; SQLite treats NULLs as
+  distinct in a UNIQUE index, so the `ON CONFLICT` never fired and each call
+  appended another invisible orphan row filtered out by every reader. It now
+  raises `ValueError`. Current callers always pass a valid id (via `get_chunks`),
+  so this is defensive, but a silent garbage-accumulation path is gone.
+
+All verified: **252 tests** pass, `mypy src/` clean across 24 files, ruff clean.
 
 ---
 

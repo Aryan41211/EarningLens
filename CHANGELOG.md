@@ -1,5 +1,64 @@
 # Changelog
 
+## [Unreleased] - 2026-08-29 — Audit round 3: version-aware prompts, ingest & storage guards
+
+### Fixed
+
+- **`prompt_version` was silently dropped by the 4 non-evasiveness scorers**
+  (F1). Each `score_<dim>_llm` accepted and forwarded the version, then called
+  `score_dimension_llm` with a hardcoded module prompt — correct only because
+  each dimension registers exactly one version whose text IS that constant. The
+  moment a `-v2` is registered, the stored `prompt_version` would say v2 while
+  the text actually sent was still v1: the exact incomparability the registry
+  exists to prevent. All four now resolve their system prompt through
+  `prompts.get_prompt()`. Regression-tested by patching `get_prompt` to a
+  sentinel and asserting it reaches the LLM call.
+- **`run_phase1.py` could silently delete an existing transcript** (F2). A PDF
+  that passes the raw word-count check but whose text is entirely stripped by
+  cleaning yields zero chunks, and `store_transcript` DELETEs-then-INSERTs — so
+  re-ingesting such a PDF destroyed the stored data with no warning. It now
+  skips with a WARNING and preserves the existing ingest.
+- **`run_all_scoring.py` hardcoded "5 dimensions"** in the incompleteness count
+  and the failure message (F3), mislabelling single-dimension sweeps as
+  incomplete. Both now use `len(dimensions)`.
+- **Dead `_build_qa_prompt` in `src/scoring/evasiveness.py` removed** (F4).
+- **`store_score` wrote invisible NULL-identity rows on a stale
+  `transcript_id`** (F5). Because SQLite treats NULLs as distinct in a UNIQUE
+  index, the `ON CONFLICT` never fired and every call appended another orphan
+  row filtered out by every reader. It now raises `ValueError` instead.
+  Regression-tested.
+
+### Added
+
+- Regression tests for F1 (registry routing) and F5 (stale id raises).
+- Test count is now **252** (measured).
+
+## [Unreleased] - 2026-08-29 — Dependency manifests consolidated, doc drift closed
+
+### Fixed
+
+- **Dependency drift across two parallel manifests** — `requirements.txt` and
+  `requirements-dashboard.txt` duplicated `pyproject.toml`'s dependencies and
+  drifted from it (numpy was missing from them even after it entered the code;
+  `requirements.txt` also bundled `pytest`, a dev tool, into a runtime-looking
+  list). Both files are removed; `pyproject.toml` is now the single source of
+  truth with `[dev]` and `[dashboard]` extras. `RUNBOOK.md`,
+  `DEVELOPMENT_GUIDE.md`, `TECH_STACK.md`, and the `test_dashboard.py` header
+  now point at the extras (L4).
+- **`FINDINGS_DIR` in `config.py` was flagged dead** (L3). Reviewed and kept
+  with intent recorded: it is the canonical path to `data/findings/`, the
+  project's tracked findings template. Nothing writes it yet because filling it
+  requires a validated score series (see README) — the constant names a real
+  path, so removing it would orphan a documented location.
+- Remaining doc drift closed (L8): test counts everywhere, install
+  commands and the dependency table in `TECH_STACK.md` match `pyproject.toml`.
+
+### Remaining open (not code-fixable)
+
+BLOCKER-2/4/6, MEDIUM-2, HIGH-10 — data and scientific issues that need an LLM
+sweep (token quota) and fresh human labels; see `KNOWN_ISSUES.md` and
+`ROADMAP.md` Step 6.
+
 ## [Unreleased] - 2026-08-29 — Second audit round: scorer hardening, script flags, dependency fixes
 
 ### Fixed
@@ -16,7 +75,7 @@
 - **An empty transcript could reach the LLM as a zero-chunk batch** and be
   answered by a guess. `_batch_chunks([])` now returns `[]` (L6).
 - **numpy was an undeclared direct dependency** (HIGH-11's lesson). It is now
-  declared in `pyproject.toml`, `requirements.txt`, and the `Dockerfile`, and
+  declared in `pyproject.toml` and the `Dockerfile`, and
   the duplicate inline import in `src/evaluation/metrics.py` was removed (M1).
 - **`run_validation_sample.py` hardcoded the five dimension names** instead of
   iterating `DIMENSION_MODULES` — a diverging copy of the registry (L2).
@@ -30,7 +89,7 @@
   so a v3 per-exchange sweep is selectable from the CLI (M2).
 - `tests/test_llm_scorer_helpers.py` — unit tests pinning batching and the
   retry-after parser.
-- Test count is now **250** (measured).
+- Test count is now **252** (measured).
 
 ## [Unreleased] - 2026-08-29 — First real CI run, scipy fix, Docker Hub release path
 

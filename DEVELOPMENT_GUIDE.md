@@ -9,8 +9,10 @@ cp .env.example .env       # fill in LLM_API_KEY, LLM_API_BASE_URL, LLM_MODEL_NA
 pre-commit install         # optional, but cheap
 ```
 
-`requirements.txt` and `requirements-dashboard.txt` remain for anyone who
-prefers them; `pyproject.toml` is the source of truth for dependencies.
+`pyproject.toml` is the single source of truth for dependencies and their
+versions — with the `[dashboard]` and `[dev]` extras for the Phase 4 dashboard
+and test tooling respectively. There are no `requirements*.txt` files to fall
+back on; install the extras, not a requirements list.
 
 > ⚠️ Never commit a real key into `.env`. If one has ever been committed
 > (even briefly), rotate it — deleting the line later does not remove it

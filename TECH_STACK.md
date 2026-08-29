@@ -14,18 +14,20 @@
 | `python-dotenv` | Loads `.env` at `config.py` import time |
 | `sqlite3` (stdlib) | Persistence |
 | `pandas` | Trend DataFrames (Phase 3) |
-| `pytest` | Test runner |
-| Streamlit + Plotly | Phase 4 dashboard — in `requirements-dashboard.txt` |
+| `pytest` | Test runner (the `[dev]` extra) |
+| Streamlit + Plotly | Phase 4 dashboard (the `[dashboard]` extra) |
 
-Pinned with compatible-release constraints:
+Pinned with compatible-release constraints in `pyproject.toml` — the single
+source of truth for dependencies:
 
 ```
-# requirements.txt
-pymupdf>=1.28.0,<2.0     pandas>=2.2.2,<3.0      pytest>=8.3.3,<9.0
-python-dotenv>=1.2.1,<2.0                        openai>=2.44.0,<3.0
+# [project.dependencies] (runtime)
+pymupdf>=1.28.0,<2.0     pandas>=2.2.2,<3.0      numpy>=1.26.0,<3.0
+python-dotenv>=1.2.1,<2.0                         openai>=2.44.0,<3.0
 
-# requirements-dashboard.txt (optional)
-streamlit>=1.56.0,<2.0   plotly>=6.7.0,<7.0
+# [project.optional-dependencies]
+dashboard = [streamlit>=1.56.0,<2.0, plotly>=6.7.0,<7.0]
+dev       = [pytest>=8.3.3,<9.0, mypy>=1.11, pre-commit>=3.8]
 ```
 
 `mypy.ini` exists (targeting Python 3.12) but is not run in CI.

@@ -12,10 +12,14 @@ Windows. Every path comes from `config.py`.
 ## 0. Preconditions
 
 ```bash
-pip install -r requirements.txt
-pip install -r requirements-dashboard.txt   # only needed for Phase 4
+pip install -e ".[dev,dashboard]"
 cp .env.example .env                        # then fill it in
 ```
+
+`pyproject.toml` is the single source of truth for dependencies — there are no
+`requirements*.txt` files to drift from it. `.[dev]` adds the test tooling
+(pytest, mypy, pre-commit); `.[dashboard]` adds the Phase 4 dashboard
+(streamlit, plotly).
 
 `.env` must contain all three values — a missing key or base URL makes every
 scoring call return `{"error": "LLM not configured"}` and store nothing, with
@@ -260,7 +264,7 @@ To serve it beyond localhost, see section 10.
 ## 5. Tests
 
 ```bash
-python -m pytest tests/ -q          # 250 tests (measured 2026-08-29)
+python -m pytest tests/ -q          # 252 tests (measured 2026-08-29)
 python -m pytest tests/test_trends.py -v
 ```
 
