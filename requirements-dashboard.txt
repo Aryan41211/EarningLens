@@ -1,4 +1,0 @@
-# Optional dependencies for the Phase 4 dashboard (src/dashboard/app.py)
-# Install with: pip install -r requirements-dashboard.txt
-streamlit>=1.56.0,<2.0
-plotly>=6.7.0,<7.0
