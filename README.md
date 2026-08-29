@@ -65,7 +65,7 @@ earningslens/
 │   ├── run_self_consistency.py # Run-to-run score spread
 │   ├── check_models.py         # Is the pinned model still reachable?
 │   └── check_db_status.py      # Ad-hoc DB inspection
-└── tests/                      # 241 tests (measured 2026-08-29)
+└── tests/                      # 243 tests (measured 2026-08-29)
     ├── test_extraction.py          # Filename parsing, cleaning, chunking
     ├── test_scoring.py             # Keyword matching, Q&A detection, mocked LLM
     ├── test_scoring_dimensions.py  # 4 LLM-only dimensions, DB CRUD

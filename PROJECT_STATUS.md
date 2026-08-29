@@ -169,7 +169,7 @@ Streamlit dashboard (`src/dashboard/app.py`) with:
 - Q&A section boundary detection
 - `scores` table (per-dimension, per-transcript persistence)
 - Unified scoring runner for all 5 dimensions with `--model` and `--skip-existing`
-- 241 tests across extraction, scoring, trends, evaluation, and integration
+- 243 tests across extraction, scoring, trends, evaluation, and integration
 - Trend analysis: QoQ deltas, rolling averages, trend labels, drop detection
 - Streamlit dashboard with interactive charts and drill-down
 
@@ -188,7 +188,7 @@ Streamlit dashboard (`src/dashboard/app.py`) with:
 
 ## Test suite
 
-**241 tests, all passing offline, measured 2026-08-29** (`mypy src/` clean across
+**243 tests, all passing offline, measured 2026-08-29** (`mypy src/` clean across
 24 files). Extraction, scoring, scoring dimensions, trends, evaluation, prompts,
 integration, and variant filtering.
 

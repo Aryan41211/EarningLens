@@ -260,7 +260,7 @@ To serve it beyond localhost, see section 10.
 ## 5. Tests
 
 ```bash
-python -m pytest tests/ -q          # 241 tests (measured 2026-08-29)
+python -m pytest tests/ -q          # 243 tests (measured 2026-08-29)
 python -m pytest tests/test_trends.py -v
 ```
 
