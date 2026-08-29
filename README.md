@@ -17,7 +17,7 @@ trustworthy**, and the tooling now says so rather than hiding it.
 | 2 — LLM scoring | Functional — 24/55 scores, spread across 4 models |
 | 3 — Trend detection | Functional — gap-aware deltas, mixed-model guard |
 | 4 — Dashboard | Functional — warns when scores aren't comparable |
-| 5 — Evaluation | Built — waiting on human labels |
+| 5 — Evaluation | Built — runs; all 11 evasiveness labels reviewed, and **fails** (BLOCKER-6) |
 
 Two things stand between this and a defensible result:
 
@@ -25,9 +25,11 @@ Two things stand between this and a defensible result:
    Blocked on token budget, not code: a full sweep costs ~1.1M tokens against a
    200k/day free tier. Resume with
    `python scripts/run_all_scoring.py --dimension evasiveness --skip-scored`.
-2. **`notebooks/labels.csv` has no `human_score` values.** The review rated how
-   accurate the LLM was but never recorded what the score should have been, so
-   error cannot be computed. Eleven numbers, transcripts already read.
+2. **The scorer does not yet discriminate.** The human labels now exist for all
+   11 evasiveness transcripts (`notebooks/labels.csv`), and on the cleanest
+   slice available the model fails all four evaluation targets — Spearman
+   **−0.73** (`KNOWN_ISSUES.md` BLOCKER-6). This, not coverage, is what gates
+   release.
 
 Start with **[KNOWN_ISSUES.md](KNOWN_ISSUES.md)** — it carries a status table
 of every defect found and whether it is fixed.
@@ -63,7 +65,7 @@ earningslens/
 │   ├── run_self_consistency.py # Run-to-run score spread
 │   ├── check_models.py         # Is the pinned model still reachable?
 │   └── check_db_status.py      # Ad-hoc DB inspection
-└── tests/                      # 116 tests
+└── tests/                      # 241 tests (measured 2026-08-29)
     ├── test_extraction.py          # Filename parsing, cleaning, chunking
     ├── test_scoring.py             # Keyword matching, Q&A detection, mocked LLM
     ├── test_scoring_dimensions.py  # 4 LLM-only dimensions, DB CRUD

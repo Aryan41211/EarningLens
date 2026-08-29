@@ -169,7 +169,7 @@ Streamlit dashboard (`src/dashboard/app.py`) with:
 - Q&A section boundary detection
 - `scores` table (per-dimension, per-transcript persistence)
 - Unified scoring runner for all 5 dimensions with `--model` and `--skip-existing`
-- 173 tests across extraction, scoring, trends, evaluation, and integration
+- 241 tests across extraction, scoring, trends, evaluation, and integration
 - Trend analysis: QoQ deltas, rolling averages, trend labels, drop detection
 - Streamlit dashboard with interactive charts and drill-down
 
@@ -178,17 +178,19 @@ Streamlit dashboard (`src/dashboard/app.py`) with:
 - **A complete single-model score sweep.** 24/55 scored, 10 on the pinned
   model. No dimension is yet complete on one model, so no series is valid.
   Blocked on token budget, not on code (`KNOWN_ISSUES.md` BLOCKER-4).
-- **Numeric human labels.** The review rated the LLM's accuracy but never
-  recorded a human 1–10 score, so error cannot be computed (`EVALUATION.md` § 2).
-- Evaluation harness against human-labeled data
+- **A scorer that discriminates.** The evasiveness labels are all filled in
+  (`notebooks/labels.csv`), yet the cleanest slice still fails every target —
+  Spearman **−0.73** (`KNOWN_ISSUES.md` BLOCKER-6). Until a scoring variant
+  ranks transcripts like the reviewer does, the credibility claim stays
+  unsupported and the release gate exits 3.
 - Prompt quality assessment for the 4 non-evasiveness dimensions
 - A verified case study in `data/findings/findings.md`
 
 ## Test suite
 
-**173 tests, all passing offline** (`mypy src/` clean across 23 files).
-extraction, scoring, scoring dimensions, trends 39, evaluation 24, prompts 22,
-integration 4, variant filtering 10.
+**241 tests, all passing offline, measured 2026-08-29** (`mypy src/` clean across
+24 files). Extraction, scoring, scoring dimensions, trends, evaluation, prompts,
+integration, and variant filtering.
 
 Four tests previously reached the live API. They passed in CI only because CI
 has no API key, and passed locally only because an earlier test left

@@ -56,13 +56,11 @@ has a valid, measured score series.
 
    Until one series is complete on one model, the trend layer has nothing
    valid to read.
-7. ⬜ **Add the numeric human labels — the one task only you can do.**
-   `notebooks/labels.csv` is now generated and pre-filled from your review: all
-   11 rows carry the LLM score at review time, your accuracy rating, your
-   verdict, and an anchor back to the notes. **Only `human_score` is blank.**
-   Eleven numbers, for transcripts you have already read and written about.
-   Without them no error metric can be computed at all — this is the highest
-   value-per-minute task remaining. (`EVALUATION.md` § 3.1)
+7. ✅ **Numeric human labels added 2026-08-29.** `labels.csv` now carries a
+   `human_score` for all 11 evasiveness transcripts, so error can be computed
+   against every model/prompt variant. Done: the evaluation runs; see BLOCKER-6
+   for the result — the labels now expose a scorer that does not discriminate,
+   which is the current release gate.
 8. ✅ **`scripts/run_evaluation.py` built** — MAE, Spearman ρ, within-2, and
    directional agreement, with logic in `src/evaluation/` and 24 tests. Refuses
    to evaluate a dimension whose scores span multiple models, and fails clearly
@@ -174,6 +172,102 @@ features.
 17. ✅ CI runs `mypy src/` and byte-compiles `scripts/`, on Python 3.12.
 18. ✅ Collapsed the two divergent "score all dimensions" implementations.
 19. ✅ Removed `config.COMPANIES` / `QUARTERS` — both were read nowhere.
+
+---
+
+## Step 6 — Close BLOCKER-6 (the release gate)
+
+Everything above is built and tested; the release gate still exits 3 because
+`evasiveness-v2` on the pinned model fails all four targets (Spearman −0.73)
+against labels that are now filled in. This is a measurement problem, not a
+missing feature. There is exactly one way to change the verdict: score under a
+new variant and re-measure. The plan below is the concrete sequence, costing
+quotient included, so each step is a decision you can make before spending.
+
+Cost of everything here, summed: ~2 v3 sweep-passes (~440k tokens, ~2.2 days)
+plus ~1 v1 baseline pass (~200k tokens, ~1 day), roughly **3.2 days of free-tier
+budget**, spread across the rolling 24-hour window with `resume_sweep.py`.
+
+### Step 6a — Measure evasiveness-v3 (why it exists: a per-exchange unit)
+
+v3 scores each analyst exchange, keeps every per-exchange score, and aggregates
+in code rather than by averaging whole-call windows. It costs the same as a v2
+sweep and is the first variant that treats the human labels (a
+worst-moments judgement) as commensurable with the machine measure. It has been
+built and tested but **never scored against real transcripts** — this is the
+cheapest unexercised lever available.
+
+```bash
+# 1. Score all 11 transcripts under v3 on the pinned model (~220k, ~1.1 days).
+python scripts/resume_sweep.py --dimension evasiveness \
+    --prompt-version evasiveness-v3 --wait-minutes 18 --max-hours 24
+
+# 2. Re-aggregate under every aggregator and re-measure vs the labels.
+#    Makes NO LLM calls -- every per-exchange score is stored in
+#    scores.raw_llm_response.
+earningslens-aggregators
+```
+
+Read `earningslens-aggregators`:
+
+- **`spread` near 0 under every aggregator** → the model does not discriminate
+  at the exchange level either. The rubric, not the aggregation, is the problem.
+  Go to Step 6c with that evidence.
+- **Healthy `spread`, Spearman still negative** → v3 separates transcripts but
+  ranks them against the reviewer. The rubric or the label unit is off. Go to
+  Step 6c / 6d.
+- **A `spread` and Spearman that now pass** → the strongest resolution yet, but
+  **not out-of-sample**: the labels informed v1/v2 design and the v3 default
+  aggregator was chosen to match them (EVALUATION.md § 1.5). Hold the result and
+  go to Step 6d before claiming victory.
+
+### Step 6b — Re-measure v1 on the pinned model for a like-for-like comparison
+
+The only positive-Spearman evidence so far (0.10) came from `--against reviewed`
+on llama-3.3-70b, a model that no longer exists. To know whether the pinned
+model itself can rank, v1 needs scores on the pinned model across all 11.
+
+```bash
+python scripts/resume_sweep.py --dimension evasiveness \
+    --prompt-version evasiveness-v1 --wait-minutes 18 --max-hours 24
+
+python scripts/run_evaluation.py --dimension evasiveness --against reviewed
+```
+
+### Step 6c — Attack the rubric/unit if no variant discriminates
+
+Order of expected value, from KNOWN_ISSUES.md BLOCKER-6:
+
+1. **Stop asking a fragment to judge the whole.** v3 already does this per
+   exchange; if v3 also fails, the failure is inside the rubric it shares with
+   v1/v2.
+2. **Force the range.** Anchored rubrics with worked examples at 2, 5 and 9, or
+   forced pairwise ranking of transcripts, attacks the 5–6 collapse directly.
+3. **New labels against a stated unit.** The current 11 labels are a
+   worst-three-moments judgement; every whole-call statistic is incommensurable
+   with them by construction. Fresh labels scored against *whole transcripts*,
+   or per-exchange labels against per-exchange scores, would make the metric
+   itself honest. This needs a careful human reader and is the only route to a
+   genuinely out-of-sample verdict.
+
+### Step 6d — The out-of-sample requirement
+
+Nobody should call a variant "validated" on labels that informed its design.
+Once a variant passes on an in-sample split, hold out labels gathered without
+seeing that variant's output, and only then treat the four-target pass as a
+release signal.
+
+### Step 6e — The release gate, mechanically
+
+```bash
+python scripts/run_evaluation.py --dimension evasiveness --against reviewed
+echo $?    # 0 → the credibility claim is shippable; anything else → it is not.
+```
+
+Exit 0 (all four targets met) is the only state in which CI's `release-gate`
+job passes and `image-publish` pushes a Docker Hub image. The gate ordering is
+already wired — a red gate simply skips the publish. This roadmap is done when
+that number is 0 on a held-out label set.
 
 ---
 
