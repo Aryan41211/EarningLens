@@ -92,8 +92,10 @@ jobs:
   # The release itself. Build and push the dashboard image to Docker Hub on a
   # version tag (or on demand), gated on the release gate passing.
   #
-  # Secrets required at org/repo level:
-  #   DOCKERHUB_USERNAME -- Docker Hub account that owns the `earningslens` repo
+  # The image name is fixed: aryankondekar/earningslens -- built from this
+  # project's own Dockerfile, never reusing an existing image. Only the login
+  # credential is a secret.
+  #   DOCKERHUB_USERNAME -- Docker Hub account owning the earningslens repo
   #   DOCKERHUB_TOKEN     -- a fine-grained write token for that repo
   #
   # The gate is deliberately a dependency: this job will not run its payload
@@ -136,7 +138,7 @@ jobs:
 
       - name: Tag and push (version + latest)
         run: |
-          IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/earningslens"
+          IMAGE="aryankondekar/earningslens"
           docker tag "earningslens:${VERSION}" "${IMAGE}:${VERSION}"
           docker tag "earningslens:${VERSION}" "${IMAGE}:latest"
           docker push "${IMAGE}:${VERSION}"
