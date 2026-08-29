@@ -1,5 +1,37 @@
 # Changelog
 
+## [Unreleased] - 2026-08-29 — Second audit round: scorer hardening, script flags, dependency fixes
+
+### Fixed
+
+- **`--year` in `run_evasiveness_test.py` was silently dead** — the loop
+  rebound `year` before it was read, so the flag had no effect. The loop now
+  filters on the requested year (H1).
+- **`413` was treated as a rate limit** in `_llm_dimension_scorer.py`. A 413 is
+  a request-shape/payload error, not a quota error, and will not clear after a
+  wait — burning the whole retry budget and mislabelling the cause. It now
+  raises immediately (M3).
+- **The retry-after parser only matched "try again in …"** — Groq also emits
+  "retry in …". The regex now matches both phrasings (L5).
+- **An empty transcript could reach the LLM as a zero-chunk batch** and be
+  answered by a guess. `_batch_chunks([])` now returns `[]` (L6).
+- **numpy was an undeclared direct dependency** (HIGH-11's lesson). It is now
+  declared in `pyproject.toml`, `requirements.txt`, and the `Dockerfile`, and
+  the duplicate inline import in `src/evaluation/metrics.py` was removed (M1).
+- **`run_validation_sample.py` hardcoded the five dimension names** instead of
+  iterating `DIMENSION_MODULES` — a diverging copy of the registry (L2).
+- **`store_score` docstring said "INSERT OR REPLACE"** but the query is an
+  `ON CONFLICT ... DO UPDATE` upsert; the docstring now describes the real
+  behaviour (L1).
+
+### Added
+
+- `run_evasiveness_test.py` now honours `--prompt-version` and `--aggregator`,
+  so a v3 per-exchange sweep is selectable from the CLI (M2).
+- `tests/test_llm_scorer_helpers.py` — unit tests pinning batching and the
+  retry-after parser.
+- Test count is now **250** (measured).
+
 ## [Unreleased] - 2026-08-29 — First real CI run, scipy fix, Docker Hub release path
 
 ### Fixed
@@ -17,7 +49,7 @@
 
 ### Added
 
-- **`image-publish` CI job** — builds and pushes `$DOCKERHUB_USERNAME/earningslens`
+- **`image-publish` CI job** — builds and pushes `aryankondekar/earningslens`
   to Docker Hub as `{version}` and `latest` on a `v*` tag (or on demand), hard-
   gated on the `release-gate` job so a pre-evaluation image is never published.
 - **ROADMAP Step 6** — a command-by-command plan to close BLOCKER-6 (v3 sweep →
