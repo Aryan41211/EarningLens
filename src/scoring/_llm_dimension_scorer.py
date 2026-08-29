@@ -24,6 +24,12 @@ _INITIAL_BACKOFF = 2.0
 
 def _batch_chunks(chunks: list[str], target_words: int = _BATCH_TARGET_WORDS) -> list[list[str]]:
     """Group chunks into batches that fit within TPM limits."""
+    if not chunks:
+        # An empty transcript must never become a batch of zero chunks that
+        # still reaches the LLM as "TRANSCRIPT:\n\n" -- the model would simply
+        # guess. Callers should treat this as "nothing to score", not an empty
+        # API call.
+        return []
     batches: list[list[str]] = []
     current_batch: list[str] = []
     current_words = 0
@@ -146,13 +152,14 @@ class DailyQuotaExhausted(RuntimeError):
 # waiting it out inside a run is not sensible.
 _MAX_SENSIBLE_WAIT = 120.0
 
-_RETRY_AFTER_PATTERN = re.compile(r"try again in ([\dhms.]+)", re.IGNORECASE)
+_RETRY_AFTER_PATTERN = re.compile(r"(?:try again|retry) in ([\dhms.]+)", re.IGNORECASE)
 
 
 def _parse_retry_after(error_str: str) -> float | None:
     """Extract the provider's suggested wait, in seconds, if it gave one.
 
-    Groq formats these as '23m46.032s', '7m39.648s', or '4.5s'.
+    Groq formats these as '23m46.032s', '7m39.648s', or '4.5s', phrased as
+    either "try again in ..." or "retry in ...".
     """
     match = _RETRY_AFTER_PATTERN.search(error_str)
     if not match:
@@ -184,7 +191,11 @@ def _call_llm_with_retry(client, *, model, messages, temperature, max_tokens, di
             )
         except Exception as e:
             error_str = str(e)
-            is_rate_limit = "413" in error_str or "rate_limit" in error_str or "429" in error_str
+            # A 413 is a request-shape / payload error, not a rate limit: it
+            # will not clear after a wait, so retrying through the backoff loop
+            # would burn the whole budget for nothing and mislabel the cause as
+            # "Rate limited". Anything else naming a rate limit is retried.
+            is_rate_limit = "rate_limit" in error_str or "429" in error_str
             if not is_rate_limit:
                 raise
 
