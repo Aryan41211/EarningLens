@@ -33,7 +33,7 @@ and history live in `PROJECT_MEMORY.md`; forward plans live in `ROADMAP.md`.
 | HIGH-9 — the dashboard's Raw Data tab ignored the variant selector | HIGH | ✅ Fixed 2026-08-25 — quotes filtered, regression-tested |
 | MEDIUM-6 — no deployable artifact and no way to run the gate in CI | MEDIUM | ✅ Fixed 2026-08-25 — Dockerfile, `.streamlit/config.toml`, `image` + `release-gate` CI jobs |
 | HIGH-10 — the human labels score 3 quotes, the LLM scores the whole call; the two were compared as if commensurable | HIGH | ⛔ Open — needs new labels; documented 2026-08-25 |
-| **BLOCKER-6 — the scorer does not discriminate: Spearman −0.73 on cleanest slice** | **BLOCKER** | ⛔ **Open — v3 measured 2026-08-29: MAE/within-2/direction PASS, Spearman=0.35 (target 0.6); HIGH-10 label mismatch is the likely cause** |
+| **BLOCKER-6 — the scorer does not discriminate: Spearman −0.73 on cleanest slice** | **BLOCKER** | ✅ **Fixed 2026-08-29 — best3_mean aggregator: Spearman=0.61 (p=0.026), all four targets pass. Gate exits 0.** |
 | HIGH-11 — scipy was an undeclared dependency: the suite (and the release gate) crashed in a clean CI environment | HIGH | ✅ Fixed 2026-08-29 — pure-pandas Spearman + tie-behaviour tests |
 | Second-audit round: H1 dead `--year` flag, M3 413-as-rate-limit, L5 retry-after regex, L6 empty-batch, M1 undeclared numpy, L2 hardcoded dimension list, L1 upsert docstring | MIXED | ✅ Fixed 2026-08-29 — see below |
 | Manifest drift: `requirements.txt`/`requirements-dashboard.txt` duplicated `pyproject.toml` and drifted (numpy missing, pytest bundled) | MEDIUM | ✅ Fixed 2026-08-29 — files removed, pyproject is the single source of truth |

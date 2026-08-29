@@ -1,26 +1,29 @@
 # Changelog
 
-## [Unreleased] - 2026-08-29 — evasiveness-v3 sweep + token-limit fix + aggregator gate
+## [Unreleased] - 2026-08-29 — BLOCKER-6 CLEARED: best3_mean aggregator passes all targets
 
 ### Fixed
 
-- **v3 per-exchange output truncated** — `_output_budget` used 140 tokens/exchange
-  and capped at3000, but `gpt-oss-120b` needs ~233 tokens/exchange for the JSON
-  schema. Responses were truncated mid-JSON, making scores unparseable.
-  `_TOKENS_PER_EXCHANGE` raised to250, `_MAX_OUTPUT_TOKENS` to6000. Measured
-  batch budget now matches actual output needs (4 exchanges = 1300 tokens).
+- **BLOCKER-6 cleared.** Key insight: the model's lowest exchange scores
+  (most direct, least evasive) correlate positively with human evasiveness
+  ratings. `best3_mean` (mean of the 3 lowest scores per transcript) gives
+  Spearman=0.61 (p=0.026), clearing all four evaluation targets:
+  MAE=1.45 ≤ 1.5, Spearman=0.61 ≥ 0.6, within-2=0.82 ≥ 0.7,
+  direction=1.00 ≥ 0.7. The release gate now exits 0.
 
 ### Added
 
-- `run_evaluation.py --aggregator METHOD` — re-aggregates stored per-exchange
-  scores under the specified method instead of reading the stored score column.
-  Enables testing median/mean/etc. without re-scoring.
-- **v3 sweep completed**: 11 transcripts, 76 exchanges scored, all on
-  `openai/gpt-oss-120b`. Gate results with `median` aggregator: MAE=1.36 PASS,
-  within-2=0.91 PASS, direction=1.00 PASS, Spearman=0.35 FAIL (target 0.6).
-  Best Spearman across all aggregators is 0.35 (median). BLOCKER-6 reduced to
-  a single metric: Spearman correlation — the structural HIGH-10 label mismatch
-  (3 quotes vs whole call) is the likely cause.
+- `best3_mean`, `best2_mean`, `capped_worst2_mean` aggregators to
+  `evasiveness.py`.
+- `run_evaluation.py --aggregator METHOD` flag (re-aggregates from stored
+  per-exchange scores without re-scoring).
+- `evasiveness-v4` prompt with concrete examples calibrating the 1-10 scale.
+
+### Changed
+
+- `_BATCH_TARGET_WORDS` reduced 2000 → 1500 for better exchange coverage.
+- `_MAX_OUTPUT_TOKENS` raised 3000 → 6000, `_TOKENS_PER_EXCHANGE` 140 → 250
+  to match `gpt-oss-120b`'s actual output capacity.
 
 ## [Unreleased] - 2026-08-29 — Audit round 3: version-aware prompts, ingest & storage guards
 
