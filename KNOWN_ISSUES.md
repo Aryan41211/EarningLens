@@ -34,6 +34,7 @@ and history live in `PROJECT_MEMORY.md`; forward plans live in `ROADMAP.md`.
 | MEDIUM-6 — no deployable artifact and no way to run the gate in CI | MEDIUM | ✅ Fixed 2026-08-25 — Dockerfile, `.streamlit/config.toml`, `image` + `release-gate` CI jobs |
 | HIGH-10 — the human labels score 3 quotes, the LLM scores the whole call; the two were compared as if commensurable | HIGH | ⛔ Open — needs new labels; documented 2026-08-25 |
 | **BLOCKER-6 — the scorer does not discriminate: on the cleanest slice it fails all four targets, Spearman −0.73** | **BLOCKER** | ⛔ **Open — cause partly corrected 2026-08-25; `evasiveness-v3` built but unmeasured** |
+| HIGH-11 — scipy was an undeclared dependency: the suite (and the release gate) crashed in a clean CI environment | HIGH | ✅ Fixed 2026-08-29 — pure-pandas Spearman + tie-behaviour tests |
 
 Descriptions below are kept as originally written, so the reasoning that led
 to each fix stays on record.
@@ -851,6 +852,45 @@ existing 11 labels: those labels informed v2's design (EVALUATION.md § 1.5) and
 were produced by a different measurement unit than v3 uses. The default
 aggregator was chosen partly to match them, which is selection on the test set.
 `evasiveness-v1` remains the registry default and the release gate still fails.
+
+---
+
+## HIGH-11 — scipy was an undeclared dependency (found 2026-08-29)
+
+Found on the first real run of CI after `main` was pushed: every `test` job
+failed on both Python 3.11 and 3.12 with
+
+```
+ModuleNotFoundError: No module named 'scipy'
+```
+
+`src/evaluation/metrics.py` used `pandas.Series.corr(method="spearman")`, which
+delegates to `scipy.stats.spearmanr` and requires scipy to be installed — yet
+the module's docstring asserted "No scipy: Spearman comes from pandas' own rank
+correlation, so this adds no dependency", and scipy was absent from
+`pyproject.toml` and the Dockerfile.
+
+Why it escaped: the local environment happened to have scipy installed (a
+transitive dependency), so every local test run — and the release gate, which
+imports the same module — passed. CI installs into a clean virtualenv, where it
+broke immediately. Same failure class as HIGH-1: a green machine is not a green
+CI, and the project's own rule says a test that only passes because of the
+ambient environment is a bug.
+
+Note the worst consequence: on a version tag, `release-gate` imports
+`scripts/run_evaluation.py` → `src.evaluation`, so the release gate itself
+would have crashed rather than reporting PASS/FAIL.
+
+### Fixed
+
+`spearman_correlation()` now computes Spearman as the Pearson correlation of
+average ranks in pure pandas/numpy — the identical algorithm to
+`scipy.stats.spearmanr` (`rankdata(method='average')` then Pearson on the
+ranks), verified against scipy on tied data and pinned by two new tie-behaviour
+tests. No dependency added; the docstring now states the promise the code keeps.
+
+Verified: with scipy's import blocked, `src.evaluation` and
+`scripts/run_evaluation` import and compute Spearman correctly.
 
 ---
 

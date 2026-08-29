@@ -12,12 +12,16 @@ last quarter*, not *this quarter is a 7* — so a model that is consistently two
 points high but always moves in the right direction is useful, and one with
 perfect average error that moves randomly is not.
 
-No scipy: Spearman comes from pandas' own rank correlation, so this adds no
-dependency (PROJECT_RULES.md keeps the stack small).
+No scipy: Spearman is computed as the Pearson correlation of average ranks, a
+pure-pandas/numpy operation. This matches scipy.stats.spearmanr (which itself
+does rankdata(method='average') then Pearson on the ranks) without adding a
+dependency (PROJECT_RULES.md keeps the stack small), and it is covered by a
+test pinning the exact tie behaviour.
 """
 
 import logging
 
+import numpy as np
 import pandas as pd
 
 from config import SCORE_DIMENSIONS
@@ -48,6 +52,20 @@ def mean_absolute_error(paired: pd.DataFrame) -> float | None:
     return float((paired["llm_score"] - paired["human_score"]).abs().mean())
 
 
+def _spearman_rho(x: pd.Series, y: pd.Series) -> float:
+    """Pearson correlation of average ranks -- Spearman with tie handling.
+
+    scipy's spearmanr ranks with method='average' and returns the Pearson
+    correlation of the ranks; this replicates it exactly without importing
+    scipy. pandas' own .corr(method='spearman') is NOT usable: it delegates to
+    scipy and raises ModuleNotFoundError in a clean environment where scipy is
+    not installed -- which is precisely why this module implements it.
+    """
+    x_rank = pd.Series(x).rank(method="average")
+    y_rank = pd.Series(y).rank(method="average")
+    return float(np.corrcoef(x_rank, y_rank)[0, 1])
+
+
 def spearman_correlation(paired: pd.DataFrame) -> float | None:
     """Rank correlation. None when undefined (fewer than 2 pairs, or no variance).
 
@@ -59,7 +77,7 @@ def spearman_correlation(paired: pd.DataFrame) -> float | None:
         return None
     if paired["llm_score"].nunique() < 2 or paired["human_score"].nunique() < 2:
         return None
-    value = paired["llm_score"].corr(paired["human_score"], method="spearman")
+    value = _spearman_rho(paired["llm_score"], paired["human_score"])
     return None if pd.isna(value) else float(value)
 
 

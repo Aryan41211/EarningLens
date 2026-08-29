@@ -1,5 +1,29 @@
 # Changelog
 
+## [Unreleased] - 2026-08-29 — First real CI run, scipy fix, Docker Hub release path
+
+### Fixed
+
+- **scipy was an undeclared dependency** (`KNOWN_ISSUES.md` HIGH-11). Spearman
+  came from `pandas.Series.corr(method="spearman")`, which needs scipy, while
+  the module claimed no scipy and none was declared — so the test suite and the
+  release gate crashed in a clean CI environment. Spearman is now computed in
+  pure pandas/numpy (Pearson of average ranks, identical to
+  `scipy.stats.spearmanr`), pinned by two new tie-behaviour tests.
+- `README.md`/`RUNBOOK.md`/`PROJECT_STATUS.md` carried remembered, drifting
+  figures — test counts (116/189/173) and a "labels still blank" claim that the
+  data had answered. Corrected to the measured 243 tests and the real
+  BLOCKER-6 blocker.
+
+### Added
+
+- **`image-publish` CI job** — builds and pushes `$DOCKERHUB_USERNAME/earningslens`
+  to Docker Hub as `{version}` and `latest` on a `v*` tag (or on demand), hard-
+  gated on the `release-gate` job so a pre-evaluation image is never published.
+- **ROADMAP Step 6** — a command-by-command plan to close BLOCKER-6 (v3 sweep →
+  `earningslens-aggregators` → v1 baseline → rubric/label work → out-of-sample),
+  with the free-tier token cost of each decision.
+
 ## [Unreleased] - 2026-08-24 — Truncated responses no longer vanish
 
 ### Fixed

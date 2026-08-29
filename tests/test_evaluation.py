@@ -77,6 +77,27 @@ class TestSpearman:
     def test_single_pair_is_none(self):
         assert spearman_correlation(_paired([("TCS", "Q1", 2024, 5, 5)])) is None
 
+    def test_tied_values_use_average_ranks(self):
+        """Ties must be handled the way scipy.stats.spearmanr does.
+
+        This pins the exact tie behaviour so a pure-pandas implementation (this
+        module promises no scipy dependency) cannot silently diverge on real
+        score data, where ties are common.
+        """
+        df = _paired([
+            ("TCS", "Q1", 2024, 1, 9), ("TCS", "Q2", 2024, 2, 5),
+            ("TCS", "Q3", 2024, 2, 6), ("TCS", "Q4", 2024, 3, 4),
+            ("TCS", "Q1", 2025, 4, 1),
+        ])
+        assert spearman_correlation(df) == pytest.approx(-0.9746794345)
+
+    def test_tied_perfect_anti_correlation(self):
+        df = _paired([
+            ("TCS", "Q1", 2024, 1, 9), ("TCS", "Q2", 2024, 1, 8),
+            ("TCS", "Q3", 2024, 2, 5), ("TCS", "Q4", 2024, 3, 2),
+        ])
+        assert spearman_correlation(df) == pytest.approx(-0.9486832981)
+
 
 class TestWithinN:
     def test_counts_fraction_within_tolerance(self):
