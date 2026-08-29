@@ -1,5 +1,27 @@
 # Changelog
 
+## [Unreleased] - 2026-08-29 — evasiveness-v3 sweep + token-limit fix + aggregator gate
+
+### Fixed
+
+- **v3 per-exchange output truncated** — `_output_budget` used 140 tokens/exchange
+  and capped at3000, but `gpt-oss-120b` needs ~233 tokens/exchange for the JSON
+  schema. Responses were truncated mid-JSON, making scores unparseable.
+  `_TOKENS_PER_EXCHANGE` raised to250, `_MAX_OUTPUT_TOKENS` to6000. Measured
+  batch budget now matches actual output needs (4 exchanges = 1300 tokens).
+
+### Added
+
+- `run_evaluation.py --aggregator METHOD` — re-aggregates stored per-exchange
+  scores under the specified method instead of reading the stored score column.
+  Enables testing median/mean/etc. without re-scoring.
+- **v3 sweep completed**: 11 transcripts, 76 exchanges scored, all on
+  `openai/gpt-oss-120b`. Gate results with `median` aggregator: MAE=1.36 PASS,
+  within-2=0.91 PASS, direction=1.00 PASS, Spearman=0.35 FAIL (target 0.6).
+  Best Spearman across all aggregators is 0.35 (median). BLOCKER-6 reduced to
+  a single metric: Spearman correlation — the structural HIGH-10 label mismatch
+  (3 quotes vs whole call) is the likely cause.
+
 ## [Unreleased] - 2026-08-29 — Audit round 3: version-aware prompts, ingest & storage guards
 
 ### Fixed
